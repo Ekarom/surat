@@ -2,10 +2,8 @@
 // 1. session_start() wajib dipanggil sebelum menggunakan $_SESSION
 session_start();
 require_once 'dbconn.php';
-// 2. Buat pertanyaan CAPTCHA baru setiap kali halaman dimuat
-$num1 = rand(1, 10);
-$num2 = rand(1, 10);
-$_SESSION['captcha_answer'] = $num1 + $num2;
+// 2. Captcha is now handled by captcha_img.php
+// (Session will be set when the image is requested)
 
 // --- Logika Pesan Error dari Session (Login Process) ---
 $error_message = '';
@@ -240,18 +238,19 @@ if (isset($_SESSION['error_message'])) {
                     <i class="fa fa-eye-slash eye-icon" id="toggle-password"></i>
                 </div>
 
-                <div class="captcha-container">
-                    <label class="captcha-question" id="captcha-question" for="captcha">
-                        <?php echo $num1 . ' + ' . $num2 . ' = ?'; ?>
-                    </label>
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <input class="input-captcha" type="text" id="captcha" name="captcha" required
-                            placeholder="Hasil">
-                        <i class="fas fa-sync-alt" id="reload-captcha"
-                            style="cursor: pointer; color: #fff; font-size: 20px; transition: transform 0.3s;"
-                            title="Reload Captcha"></i>
-                    </div>
+                <div class="wrap-input100 validate-input" data-validate="Masukkan Jawaban Captcha"
+                    style="display: flex; align-items: center; justify-content: space-between;">
+                    <img src="captcha_img.php" alt="CAPTCHA" id="captcha-img" style="border-radius: 5px; height: 40px;">
+                    <span style="cursor: pointer; padding: 0 10px; color: #999;"
+                        onclick="document.getElementById('captcha-img').src='captcha_img.php?'+Math.random();"
+                        title="Refresh Captcha">
+                        <i class="fas fa-sync-alt" style="transition: 0.3s;" onmouseover="this.style.color='#0010ff'"
+                            onmouseout="this.style.color=''"></i>
+                    </span>
+                    <input class="input100" type="text" id="captcha" name="captcha" placeholder="Jawaban Penjumlahan"
+                        required>
                 </div>
+                <br>
                 <div class="container-login100-form-btn">
                     <button class="login100-form-btn">
                         Login
@@ -383,7 +382,8 @@ if (isset($_SESSION['error_message'])) {
 
             // Reload Captcha functionality
             var reloadCaptcha = document.getElementById('reload-captcha');
-            if (reloadCaptcha) {
+            var captchaImg = document.getElementById('captcha-img');
+            if (reloadCaptcha && captchaImg) {
                 reloadCaptcha.addEventListener('click', function () {
                     // Add rotation animation
                     this.style.transform = 'rotate(360deg)';
@@ -392,21 +392,9 @@ if (isset($_SESSION['error_message'])) {
                         self.style.transform = 'rotate(0deg)';
                     }, 300);
 
-                    // Fetch new captcha via AJAX
-                    $.ajax({
-                        url: 'reload_captcha.php',
-                        type: 'GET',
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                document.getElementById('captcha-question').textContent = response.question;
-                                document.getElementById('captcha').value = '';
-                            }
-                        },
-                        error: function () {
-                            alert('Gagal memuat captcha baru. Silakan coba lagi.');
-                        }
-                    });
+                    // Refresh image source with timestamp to bypass cache
+                    captchaImg.src = 'captcha_img.php?' + new Date().getTime();
+                    document.getElementById('captcha').value = '';
                 });
             }
         });
