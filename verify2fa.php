@@ -9,8 +9,7 @@ include 'dbconn.php';
 if (file_exists('vendor/autoload.php')) {
     require 'vendor/autoload.php';
 } else {
-    // Fallback: Class Google2FA tidak akan ditemukan nanti
-    // Kita bisa handle graceful error saat instansiasi
+    die("Error: Library dependencies (vendor/autoload.php) not found. Please run 'composer install' or contact administrator.");
 }
 
 use PragmaRX\Google2FA\Google2FA;
