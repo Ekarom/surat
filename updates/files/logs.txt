@@ -1,0 +1,57 @@
+1.0.1
+1762146731
+- menambahkan pengamanan di dalam aplikasi
+- menambahkan fitur cek update
+- menambahkan fitur page legalisir
+- optimasi code
+- perbaikan bug
+- tambah fitur login
+http://localhost/arsip/updates/files/update_1.0.1.zip
+
+1.0.2
+1762228449
+- menambahkan fitur cek update
+- menambahkan fitur page legalisir
+- optimasi code
+http://localhost/arsip/updates/files/update_1.0.2.zip
+
+1.0.3
+1763340401
+- menambahkan fitur register
+- optimasi code
+- perbaikan bug
+http://localhost/arsip/updates/files/update_1.0.3.zip
+
+1.0.4
+1763354503
+- menambahkan fitur 
+- optimasi code
+- perbaikan bug
+http://localhost/arsip/updates/files/update_1.0.4.zip
+
+1.0.5
+1763355260
+- menambahkan fitur logout
+- optimasi code
+- perbaikan bug
+http://localhost/arsip/updates/files/update_1.0.5.zip
+
+1.0.6
+1763364781
+- menambahkan fitur logout
+- optimasi code
+- perbaikan bug
+http://localhost/arsip/updates/files/update_1.0.6.zip
+
+
+
+
+
+
+
+
+
+
+
+
+

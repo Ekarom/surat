@@ -1,0 +1,12 @@
+/_backups/
+/php_errors.log
+/debug_backup.txt
+/debug_dbs.txt
+*.sql
+*.gz
+*.zip
+*.rar
+/node_modules/
+/vendor/
+.DS_Store
+Thumbs.db

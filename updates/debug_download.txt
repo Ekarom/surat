@@ -1,0 +1,96 @@
+[20:43:01] Script started.
+[20:43:01] GET URL: http://localhost/update/files/update_1.0.1.zip
+[20:43:01] Basename: 
+[20:43:01] Candidate 1: C:\wamp64\www\data\update/files/
+[20:43:01] Candidate 2: C:\wamp64\www
+[20:43:01] File NOT found locally.
+[20:48:49] Script started.
+[20:48:49] GET URL: http://localhost/data/update/files/update.zip
+[20:48:49] Basename: update.zip
+[20:48:49] Candidate 1: C:\wamp64\www\data\update/files/update.zip
+[20:48:49] Candidate 2: C:\wamp64\www
+[20:48:49] Found at Candidate 1
+[20:52:19] Script started.
+[20:52:19] GET URL: http://localhost/data/update/files/update.zip
+[20:52:19] Basename: update.zip
+[20:52:19] Candidate 1: C:\wamp64\www\data\update/files/update.zip
+[20:52:19] Candidate 2: C:\wamp64\www\data\update\files\update.zip
+[20:52:19] Found at Candidate 1
+[20:59:41] Script started.
+[20:59:41] GET URL: http://localhost/data/update/files/update.zip
+[20:59:41] Basename: update.zip
+[20:59:41] Candidate 1: C:\wamp64\www\data\update/files/update.zip
+[20:59:41] Candidate 2: C:\wamp64\www\data\update\files\update.zip
+[20:59:41] Found at Candidate 1
+[14:49:07] Script started.
+[14:49:07] GET URL: http://localhost/data/update/files/update.zip
+[14:49:07] Basename: update.zip
+[14:49:07] Candidate 1: C:\wamp64\www\data\update/files/update.zip
+[14:49:07] Candidate 2: C:\wamp64\www\data\update\files\update.zip
+[14:49:07] Found at Candidate 1
+[15:18:11] Script started.
+[15:18:11] GET URL: http://localhost/data/update/files/update.zip
+[15:18:11] Basename: update.zip
+[15:18:11] Candidate 1: /home/p171.net/data/update/files/update.zip
+[15:18:11] Candidate 2: /home/p171.net/data/data/update/files/update.zip
+[15:18:11] Found at Candidate 1
+[15:31:32] Script started.
+[15:31:32] GET URL: http://localhost/data/update/files/update.zip
+[15:31:32] Basename: update.zip
+[15:31:32] Candidate 1: /home/p171.net/data/update/files/update.zip
+[15:31:32] Candidate 2: /home/p171.net/data/data/update/files/update.zip
+[15:31:32] Found at Candidate 1
+[15:45:37] Script started.
+[15:45:37] GET URL: http://localhost/data/update/files/update.zip
+[15:45:37] Basename: update.zip
+[15:45:37] Candidate 1: /home/p171.net/data/update/files/update.zip
+[15:45:37] Candidate 2: /home/p171.net/data/data/update/files/update.zip
+[15:45:37] Found at Candidate 1
+[16:42:05] Script started.
+[16:42:05] GET URL: http://localhost/data/update/files/update.zip
+[16:42:05] Basename: update.zip
+[16:42:05] Candidate 1: /home/p171.net/data/update/files/update.zip
+[16:42:05] Candidate 2: /home/p171.net/data/data/update/files/update.zip
+[16:42:05] Found at Candidate 1
+[17:44:32] Script started.
+[17:44:32] GET URL: https://localhost/update/files/update_1.0.1.zip
+[17:44:32] Basename: update_1.0.1.zip
+[17:44:32] Candidate 1: /home/p171.net/data/update/files/update_1.0.1.zip
+[17:44:32] Candidate 2: /home/p171.net/data/update/files/update_1.0.1.zip
+[17:44:32] File NOT found locally.
+[18:01:07] Script started.
+[18:01:07] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:01:07] Basename: update_1.0.1.zip
+[18:01:33] Script started.
+[18:01:33] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:01:33] Basename: update_1.0.1.zip
+[18:04:47] Script started.
+[18:04:47] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:04:47] Basename: update_1.0.1.zip
+[18:06:58] Script started.
+[18:06:58] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:06:58] Basename: update_1.0.1.zip
+[18:11:21] Script started.
+[18:11:21] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:11:21] Basename: update_1.0.1.zip
+[18:13:25] Script started.
+[18:13:25] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:13:25] Basename: update_1.0.1.zip
+[18:13:34] Script started.
+[18:13:34] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:13:34] Basename: update_1.0.1.zip
+[18:14:09] Script started.
+[18:14:09] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:14:09] Basename: update_1.0.1.zip
+[18:15:21] Script started.
+[18:15:21] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:15:21] Basename: update_1.0.1.zip
+[18:17:18] Script started.
+[18:17:18] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:17:18] Basename: update_1.0.1.zip
+[18:19:34] Script started.
+[18:19:34] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:19:34] Basename: update_1.0.1.zip
+[18:20:49] Script started.
+[18:20:49] GET URL: https://localhost/update/files/update_1.0.1.zip
+[18:20:49] Basename: update_1.0.1.zip

@@ -1,0 +1,20 @@
+[2025-12-15 05:47:23] Received data: 
+[2025-12-15 05:47:23] Error: Invalid JSON data
+[2025-12-15 05:47:25] Received data: 
+[2025-12-15 05:47:25] Error: Invalid JSON data
+[2025-12-15 05:47:30] Received data: 
+[2025-12-15 05:47:30] Error: Invalid JSON data
+[2025-12-15 05:47:39] Received data: 
+[2025-12-15 05:47:39] Error: Invalid JSON data
+[2025-12-15 05:47:53] Received data: 
+[2025-12-15 05:47:53] Error: Invalid JSON data
+[2025-12-15 05:47:58] Received data: 
+[2025-12-15 05:47:58] Error: Invalid JSON data
+[2025-12-15 05:48:03] Received data: 
+[2025-12-15 05:48:03] Error: Invalid JSON data
+[2025-12-15 05:49:44] Received data: 
+[2025-12-15 05:49:44] Error: Invalid JSON data
+[2025-12-15 05:49:52] Received data: 
+[2025-12-15 05:49:52] Error: Invalid JSON data
+[2025-12-15 05:51:37] Received data: 
+[2025-12-15 05:51:37] Error: Invalid JSON data

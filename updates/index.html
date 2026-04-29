@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Update System</title>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            color: #111827;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+        }
+
+        #check-btn,
+        #download-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #check-btn:hover,
+        #download-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        #check-btn:disabled,
+        #download-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        #update-info {
+            margin-top: 1.5rem;
+            text-align: left;
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            display: none;
+        }
+
+        #update-info p {
+            margin: 0.5rem 0;
+        }
+
+        pre {
+            background: #e2e8f0;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            overflow-x: auto;
+        }
+
+        #progress-container {
+            margin-top: 2rem;
+            display: none;
+        }
+
+        .progress-wrapper {
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        #progress-bar-fill {
+            background: var(--primary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        #progress-text {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .loading-spinner {
+            display: none;
+            margin: 1rem auto;
+        }
+
+        .error {
+            color: #ef4444;
+            font-weight: 600;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <i class="fas fa-cloud-arrow-down fa-3x" style="color: var(--primary); margin-bottom: 1.5rem;"></i>
+        <h1>System Update</h1>
+        <p class="subtitle">Check and install the latest system improvements.</p>
+
+        <button id="check-btn">
+            <i class="fas fa-sync-alt" id="check-icon"></i>
+            <span>Check for Updates</span>
+        </button>
+
+        <div id="loading" class="loading-spinner">
+            <i class="fas fa-spinner fa-spin fa-2x" style="color: var(--primary);"></i>
+        </div>
+
+        <div id="update-info"></div>
+
+        <div id="progress-container">
+            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Downloading Package...</h3>
+            <div class="progress-wrapper">
+                <div id="progress-bar-fill"></div>
+            </div>
+            <p id="progress-text">0% - Preparing...</p>
+        </div>
+    </div>
+
+    <script>
+        const checkBtn = document.getElementById('check-btn');
+        const checkIcon = document.getElementById('check-icon');
+        const updateInfo = document.getElementById('update-info');
+        const loading = document.getElementById('loading');
+        const progressContainer = document.getElementById('progress-container');
+        const progressBarFill = document.getElementById('progress-bar-fill');
+        const progressText = document.getElementById('progress-text');
+
+        let downloadUrl = '';
+        let latestVersion = '';
+        let progressInterval;
+
+        checkBtn.addEventListener('click', async () => {
+            // Reset UI
+            updateInfo.style.display = 'none';
+            updateInfo.innerHTML = '';
+            checkBtn.disabled = true;
+            checkIcon.className = 'fas fa-spinner fa-spin';
+
+            try {
+                const response = await fetch('check_update.php');
+                if (!response.ok) throw new Error('Failed to connect to server');
+
+                const data = await response.json();
+
+                if (data[0] && data[0].update_available) {
+                    const details = data[1];
+                    downloadUrl = details.download_url;
+                    latestVersion = details.latest_version;
+
+                    updateInfo.style.display = 'block';
+                    updateInfo.innerHTML = `
+                    <p><strong><i class="fas fa-star" style="color: #f59e0b;"></i> New Version: ${details.latest_version}</strong></p>
+                    <p style="font-size: 0.875rem; color: #64748b;">What's New:</p>
+                    <pre>${details.release_notes || 'Performance improvements and bug fixes.'}</pre>
+                    <button id="download-btn" style="margin-top: 1rem; width: 100%; justify-content: center;">
+                        <i class="fas fa-download"></i> Install Update
+                    </button>`;
+
+                    document.getElementById('download-btn').addEventListener('click', startDownload);
+                } else {
+                    updateInfo.style.display = 'block';
+                    updateInfo.innerHTML = `<p style="text-align: center;"><i class="fas fa-check-circle" style="color: #10b981;"></i> You're up to date!</p>`;
+                }
+            } catch (error) {
+                updateInfo.style.display = 'block';
+                updateInfo.innerHTML = `<p class="error"><i class="fas fa-exclamation-triangle"></i> Error: ${error.message}</p>`;
+            } finally {
+                checkBtn.disabled = false;
+                checkIcon.className = 'fas fa-sync-alt';
+            }
+        });
+
+        async function startDownload() {
+            progressContainer.style.display = 'block';
+            document.getElementById('download-btn').disabled = true;
+
+            const fullUrl = `download_update.php?url=${encodeURIComponent(downloadUrl)}&version=${encodeURIComponent(latestVersion)}`;
+            fetch(fullUrl).catch(console.error);
+
+            progressInterval = setInterval(get_progress, 1000);
+        }
+
+        async function get_progress() {
+            try {
+                const resp = await fetch('get_progress.php');
+                const data = await resp.json();
+
+                if (data && data.progress !== undefined) {
+                    const percent = Math.max(0, Math.min(100, Math.round(data.progress)));
+
+                    progressBarFill.style.width = percent + '%';
+                    progressText.textContent = `${percent}% - ${data.message || 'Processing'}`;
+
+                    if (percent >= 100) {
+                        clearInterval(progressInterval);
+                        progressText.style.color = '#10b981';
+                        progressText.innerHTML = '<i class="fas fa-check"></i> Update Success! Restarting...';
+                        setTimeout(() => location.reload(), 3000);
+                    }
+                }
+            } catch (e) { console.error("Progress error:", e); }
+        }
+    </script>
+
+</body>
+
+</html>
