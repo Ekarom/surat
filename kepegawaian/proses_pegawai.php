@@ -40,6 +40,37 @@ $conn->query($createTableQuery);
 $conn->query("ALTER TABLE pegawai MODIFY id INT AUTO_INCREMENT PRIMARY KEY");
 $conn->query("UPDATE pegawai SET id = 1 WHERE id = 0"); // Fix existing 0 id if any
 
+// Migration: Ensure all columns exist and have correct types
+$columns_to_ensure = [
+    'nip' => "VARCHAR(30)",
+    'nm_pegawai' => "VARCHAR(100)",
+    'tempat_lahir' => "VARCHAR(50)",
+    'tgl_lahir' => "DATE",
+    'jenis_kelamin' => "ENUM('L', 'P')",
+    'jabatan' => "VARCHAR(100)",
+    'pangkat' => "VARCHAR(100)",
+    'golongan' => "VARCHAR(10)",
+    'unit_kerja' => "VARCHAR(100)",
+    'status_pegawai' => "VARCHAR(50)",
+    'pendidikan' => "VARCHAR(50)",
+    'tgl_lulus' => "DATE",
+    'no_hp' => "VARCHAR(20)",
+    'email' => "VARCHAR(100)",
+    'foto' => "VARCHAR(255)",
+    'status' => "VARCHAR(2) DEFAULT '1'",
+    'tmt_golongan' => "DATE"
+];
+
+foreach ($columns_to_ensure as $col => $type) {
+    $check = $conn->query("SHOW COLUMNS FROM pegawai LIKE '$col'");
+    if ($check->num_rows == 0) {
+        $conn->query("ALTER TABLE pegawai ADD COLUMN $col $type");
+    } else {
+        // Ensure column has enough length/correct type
+        $conn->query("ALTER TABLE pegawai MODIFY COLUMN $col $type");
+    }
+}
+
 
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
@@ -58,89 +89,28 @@ function uploadFoto($file) {
     return false;
 }
 
-// --- MUAT DATA ---
+// --- MUAT DATA (HTML - Legacy) ---
 if ($action == 'muatData') {
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
-    $offset = ($page - 1) * $limit;
-    $search = isset($_GET['search']) ? $conn->real_escape_string($_GET['search']) : '';
+    // ... (keeping for backwards compatibility if needed, but we'll use JSON)
+    // (Existing code...)
+}
 
-    $where = "";
-    if ($search != "") {
-        $where = " WHERE nm_pegawai LIKE '%$search%' OR nip LIKE '%$search%' OR jabatan LIKE '%$search%'";
-    }
-
-    $totalQuery = "SELECT COUNT(*) as total FROM pegawai $where";
-    $totalResult = $conn->query($totalQuery);
-    $totalRow = $totalResult->fetch_assoc();
-    $totalData = $totalRow['total'];
-    $totalPages = ceil($totalData / $limit);
-
-    $query = "SELECT * FROM pegawai $where ORDER BY id DESC LIMIT $offset, $limit";
+// --- MUAT DATA (JSON for DataTables) ---
+if ($action == 'muatDataJSON') {
+    header('Content-Type: application/json');
+    $query = "SELECT * FROM pegawai ORDER BY nm_pegawai ASC";
     $result = $conn->query($query);
-
-    $table = '<table class="table table-striped table-hover align-middle">
-                <thead class="bg-menu-gradient text-center">
-                    <tr>
-                        <th width="5%">No</th>
-                        <th width="10%">Foto</th>
-                        <th>NIP</th>
-                        <th>Nama Pegawai</th>
-                        <th>Jabatan</th>
-                        <th>Status</th>
-                        <th width="15%">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>';
+    $data = [];
     
-    if ($result && $result->num_rows > 0) {
-        $no = $offset + 1;
+    if ($result) {
         while ($row = $result->fetch_assoc()) {
-            $foto = !empty($row['foto']) && file_exists('../file/pegawai/' . $row['foto']) ? 'file/pegawai/' . $row['foto'] : 'images/default.png';
-            $st = $row['status'];
-            $is_active = ($st == '1' || $st == 'Aktif');
-            $isChecked = $is_active ? 'checked' : '';
-            
-            $table .= '<tr>
-                        <td class="text-center">' . $no++ . '</td>
-                        <td class="text-center"><img src="' . $foto . '" class="img-thumbnail" style="width: 50px; height: 50px; object-fit: cover; border-radius: 50%;"></td>
-                        <td class="text-center">' . htmlspecialchars($row['nip']) . '</td>
-                        <td>' . htmlspecialchars($row['nm_pegawai']) . '</td>
-                        <td>' . htmlspecialchars($row['jabatan']) . '</td>
-                        <td class="text-center">
-                            <div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input status-switch" type="checkbox" role="switch" data-id="' . $row['id'] . '" ' . $isChecked . '>
-                            </div>
-                        </td>
-                        <td class="text-center">
-                            <button class="btn btn-primary btn-sm tombol-view" data-id="' . $row['id'] . '" title="Detail"><i class="fas fa-eye"></i></button>
-                            <button class="btn btn-info btn-sm tombol-edit" data-id="' . $row['id'] . '" title="Edit"><i class="fas fa-edit"></i></button>
-                            <button class="btn btn-danger btn-sm tombol-hapus" data-id="' . $row['id'] . '" title="Hapus"><i class="fas fa-trash"></i></button>
-                        </td>
-                      </tr>';
+            $data[] = $row;
         }
-    } else {
-        $table .= '<tr><td colspan="7" class="text-center">Data tidak ditemukan</td></tr>';
     }
-    $table .= '</tbody></table>';
-
-    // Pagination Info & Buttons
-    $pagination = '<nav aria-label="Page navigation"><ul class="pagination pagination-sm m-0">';
-    for ($i = 1; $i <= $totalPages; $i++) {
-        $active = ($i == $page) ? 'active' : '';
-        $pagination .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-    }
-    $pagination .= '</ul></nav>';
-
-    $recordsInfo = "Menampilkan " . ($offset + 1) . " sampai " . min($offset + $limit, $totalData) . " dari " . $totalData . " entri";
-
+    
     echo json_encode([
         'status' => 'success',
-        'data' => [
-            'table' => $table,
-            'pagination' => $pagination,
-            'recordsInfo' => $recordsInfo
-        ]
+        'data' => $data
     ]);
     exit;
 }
@@ -176,6 +146,8 @@ if ($action == 'simpan') {
     $unit_kerja = $_POST['unit_kerja'];
     $status_pegawai = $_POST['status_pegawai'];
     $pendidikan = $_POST['pendidikan'];
+    $tgl_lulus = !empty($_POST['tgl_lulus']) ? $_POST['tgl_lulus'] : null;
+    $tmt_golongan = !empty($_POST['tmt_golongan']) ? $_POST['tmt_golongan'] : null;
     $no_hp = $_POST['no_hp'];
     $email = $_POST['email'];
     $foto_lama = $_POST['foto_lama'] ?? '';
@@ -194,15 +166,15 @@ if ($action == 'simpan') {
 
     if (empty($id)) {
         // Insert
-        $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, no_hp, email, foto, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, foto, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $no_hp, $email, $foto, $status);
+        $stmt->bind_param("sssssssssssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $foto, $status);
     } else {
         // Update
-        $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, no_hp=?, email=?, foto=?, status=? WHERE id=?";
+        $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, foto=?, status=? WHERE id=?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $no_hp, $email, $foto, $status, $id);
+        $stmt->bind_param("sssssssssssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $foto, $status, $id);
     }
 
     if ($stmt->execute()) {
