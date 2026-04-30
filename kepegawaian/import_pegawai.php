@@ -4,179 +4,186 @@ if (!isset($conn)) {
 }
 ?>
 
-<div class="content-fluid">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0"><i class="fas fa-file-excel text-success me-2"></i> Import Data Pegawai (Excel)</h1>
-                </div>
-            </div>
+<style>
+    /* CSS Variables from Main System */
+    :root {
+        --sap-primary: #4f46e5;
+        --sap-primary-light: rgba(79, 70, 229, 0.1);
+        --sap-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+        --sap-secondary: #64748b;
+        --sap-success: #10b981;
+        --sap-gray-50: #f8fafc;
+        --sap-gray-100: #f1f5f9;
+        --sap-gray-200: #e2e8f0;
+        --sap-border-radius: 1rem;
+        --sap-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+    }
+
+    .page-title {
+        font-weight: 800;
+        color: #1e293b;
+        letter-spacing: -0.025em;
+    }
+
+    .modern-card {
+        background: #fff;
+        border-radius: var(--sap-border-radius);
+        border: none;
+        box-shadow: var(--sap-shadow-sm);
+        transition: all 0.3s ease;
+    }
+
+    .drop-zone {
+        border: 2px dashed var(--sap-gray-200);
+        border-radius: 1.25rem;
+        padding: 3rem;
+        text-align: center;
+        background: var(--sap-gray-50);
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+    .drop-zone:hover,
+    .drop-zone.active {
+        border-color: var(--sap-primary);
+        background: var(--sap-primary-light);
+    }
+
+    .drop-zone i {
+        font-size: 3.5rem;
+        color: var(--sap-primary);
+        margin-bottom: 1rem;
+    }
+
+    .table-sm thead th {
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--sap-secondary);
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--sap-gray-100);
+        padding: 0.75rem 0.5rem;
+    }
+
+    .table-sm tbody td {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.5rem;
+        color: #334155;
+    }
+
+    .btn-rounded {
+        border-radius: 50px;
+    }
+</style>
+
+<div class="container-fluid py-2">
+    <div class="row align-items-center mb-4">
+        <div class="col-md-6">
+            <h2 class="page-title mb-1">Import Data Pegawai</h2>
+            <p class="text-muted small mb-0">Unggah berkas Excel untuk memperbarui database pegawai secara massal</p>
         </div>
-    </section>
+        <div class="col-md-6 text-md-end mt-3 mt-md-0">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb justify-content-md-end bg-transparent p-0 m-0">
+                    <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none text-muted">Home</a></li>
+                    <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Import Data</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="modern-card p-4">
+                    <h5 class="fw-bold mb-4">Pilih File Excel</h5>
+                    <div id="alertContainer"></div>
 
-    <section class="content-fluid">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card card-success card-outline bg-dark-lighter shadow-sm" style="border-radius: 15px;">
-                    <div class="card-header border-0 pt-3">
-                        <h3 class="card-title text-white">Pilih File Excel (.xlsx / .xls)</h3>
+                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('excelFile').click()">
+                        <i class="la la-cloud-upload"></i>
+                        <h5 class="fw-bold">Drag & Drop file di sini</h5>
+                        <p class="text-muted small">Atau klik untuk memilih file dari komputer Anda</p>
+                        <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
+                        <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 mt-2 fw-bold">
+                            Pilih File Excel
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <div id="alertContainer"></div>
 
-                        <div class="form-group mb-4 text-center p-5 border border-2 border-dashed border rounded-3"
-                            id="dropZone">
-                            <i class="la la-cloud-upload"></i>
-                            <h5 class="text-white">Drag & Drop file di sini</h5>
-                            <p class="text-muted small">Atau klik tombol di bawah untuk memilih file</p>
-                            <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
-                            <button type="button" class="btn btn-success px-4 rounded-pill fw-bold"
-                                onclick="document.getElementById('excelFile').click()">
-                                Pilih File Excel
+                    <div id="fileInfo" class="d-none mt-3 p-3 rounded-4 bg-light border border-dashed">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="small fw-bold text-dark">
+                                <i class="fas fa-file-excel me-2 text-success"></i>
+                                <span id="fileName">file.xlsx</span>
+                            </span>
+                            <button type="button" class="btn btn-sm btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
+                                style="width: 24px; height: 24px;" onclick="resetFile()">
+                                <i class="fas fa-times" style="font-size: 10px;"></i>
                             </button>
                         </div>
-
-                        <div id="fileInfo" class="d-none alert alert-dark bg-dark-darker border-secondary">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="fas fa-file-excel me-2 text-success"></i> <strong
-                                        id="fileName">file.xlsx</strong></span>
-                                <button type="button" class="btn btn-sm btn-danger rounded-circle"
-                                    onclick="resetFile()"><i class="fas fa-times"></i></button>
-                            </div>
-                        </div>
                     </div>
-                    <div class="card-footer bg-transparent border-0 pb-4 text-center">
-                        <button type="button" id="btnImport" class="btn btn-primary px-5 rounded-pill fw-bold" disabled
-                            onclick="startImport()">
-                            <i class="fas fa-cloud-download-alt me-2"></i> Mulai Import Sekarang
+
+                    <div class="mt-4 pt-2 border-top text-center">
+                        <button type="button" id="btnImport" class="btn btn-primary btn-rounded px-5 fw-bold shadow-sm"
+                            disabled onclick="startImport()">
+                            <i class="fas fa-cloud-upload-alt me-2"></i> Mulai Import Sekarang
                         </button>
                     </div>
                 </div>
 
-                <!-- Progress Card (Hidden by default) -->
-                <div id="progressCard" class="card bg-dark-lighter shadow-sm d-none" style="border-radius: 15px;">
-                    <div class="card-body py-4">
-                        <h6 class="fw-bold mb-3">Memproses Data... <span id="progressPercent"
-                                class="float-end">0%</span></h6>
-                        <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
-                            <div id="progressBar"
-                                class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                                role="progressbar" style="width: 0%"></div>
-                        </div>
-                        <p class="text-muted small mb-0" id="progressStatus">Membaca file excel...</p>
+                <!-- Progress Card -->
+                <div id="progressCard" class="modern-card mt-4 p-4 d-none">
+                    <h6 class="fw-bold mb-3">Memproses Data... <span id="progressPercent" class="float-end text-primary">0%</span></h6>
+                    <div class="progress mb-2" style="height: 8px; border-radius: 10px; background: #f1f5f9;">
+                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                            role="progressbar" style="width: 0%"></div>
                     </div>
+                    <p class="text-muted extra-small mb-0" id="progressStatus">Membaca file excel...</p>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="card bg-dark-lighter shadow-sm" style="border-radius: 15px;">
-                    <div class="card-header border-0 pt-3">
-                        <h3 class="card-title fw-bold text-muted small uppercase">Struktur Kolom Excel</h3>
+            <div class="col-lg-6">
+                <div class="modern-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold mb-0 text-muted extra-small uppercase">Struktur Kolom Excel</h6>
+                        <button type="button" onclick="downloadTemplate()" class="btn btn-link text-decoration-none p-0 extra-small fw-bold">
+                            <i class="fas fa-download me-1"></i> Template
+                        </button>
                     </div>
-                    <div class="card-body">
-                        <table class="table table-sm table-dark bg-transparent">
+                    <div class="table-responsive">
+                        <table class="table table-sm mb-0">
                             <thead>
-                                <tr class="text-muted small uppercase">
-                                    <th>Kolom</th>
+                                <tr>
+                                    <th width="60">Kolom</th>
                                     <th>Keterangan</th>
-                                    <th>Wajib</th>
+                                    <th class="text-center">Wajib</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td>A</td>
-                                    <td>NIP (Tanpa Spasi)</td>
-                                    <td>Ya</td>
-                                </tr>
-                                <tr>
-                                    <td>B</td>
-                                    <td>Nama Pegawai</td>
-                                    <td>Ya</td>
-                                </tr>
-                                <tr>
-                                    <td>C</td>
-                                    <td>Tempat Lahir</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>D</td>
-                                    <td>Tanggal Lahir (YYYY-MM-DD)</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>E</td>
-                                    <td>Jenis Kelamin (L/P)</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>F</td>
-                                    <td>Pendidikan Terakhir</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>G</td>
-                                    <td>Jabatan</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>H</td>
-                                    <td>Pangkat</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>I</td>
-                                    <td>Golongan</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>J</td>
-                                    <td>Unit Kerja</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>K</td>
-                                    <td>Status Pegawai</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>L</td>
-                                    <td>Tanggal Lulus</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>M</td>
-                                    <td>TMT Golongan</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>N</td>
-                                    <td>No. HP / WA</td>
-                                    <td>Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td>O</td>
-                                    <td>Email</td>
-                                    <td>Tidak</td>
-                                </tr>
+                                <tr><td class="fw-bold text-primary">A</td><td>NIP / NIK</td><td class="text-center"><span class="text-danger fw-bold">Ya</span></td></tr>
+                                <tr><td class="fw-bold text-primary">B</td><td>Nama Lengkap</td><td class="text-center"><span class="text-danger fw-bold">Ya</span></td></tr>
+                                <tr><td class="fw-bold text-primary">C</td><td>Tempat Lahir</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">D</td><td>Tanggal Lahir</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">E</td><td>Gender (L/P)</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">F</td><td>Pendidikan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">G</td><td>Jabatan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">H</td><td>Pangkat</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">I</td><td>Golongan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">J</td><td>Unit Kerja</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">K</td><td>Status Pegawai</td><td class="text-center text-muted">Tidak</td></tr>
                             </tbody>
                         </table>
-                        <div class="alert alert-warning bg-warning-subtle border-0 text-warning-emphasis small mt-3">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            <strong>Penting:</strong> Baris pertama (Header) harus ada dan akan diabaikan oleh
-                            sistem.
+                    </div>
+                    <div class="mt-4 alert alert-info bg-soft-primary border-0 rounded-4">
+                        <div class="d-flex gap-3">
+                            <i class="fas fa-info-circle mt-1 text-primary"></i>
+                            <div class="small">
+                                <strong class="d-block mb-1">Informasi Penting</strong>
+                                <span>Baris pertama dianggap sebagai Header dan akan diabaikan. Pastikan format tanggal adalah <strong>YYYY-MM-DD</strong>.</span>
+                            </div>
                         </div>
-                        <button type="button" onclick="downloadTemplate()"
-                            class="btn btn-outline-info btn-sm rounded-pill w-100 mt-2 fw-bold">
-                            <i class="fas fa-file-download me-2"></i> Download Template Excel (.xlsx)
-                        </button>
                     </div>
                 </div>
             </div>
         </div>
-</div>
-</section>
-</div>
+    </div>
 
 <!-- SheetJS Library -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -292,20 +299,7 @@ if (!isset($conn)) {
 </script>
 
 <style>
-    .bg-dark-lighter {
-        background-color: #1e293b !important;
-    }
-
-    .bg-dark-darker {
-        background-color: #0f172a !important;
-    }
-
-    .border-dashed {
-        border-style: dashed !important;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border: none;
-    }
+    .extra-small { font-size: 0.75rem; }
+    .bg-soft-primary { background-color: var(--sap-primary-light); color: var(--sap-primary); }
+    .border-dashed { border-style: dashed !important; }
 </style>

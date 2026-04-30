@@ -12,15 +12,24 @@ if (session_status() === PHP_SESSION_NONE) {
 // User Data & Security
 $nuser = $_SESSION['nama'] ?? 'User';
 $lv = $_SESSION['level'] ?? '';
-$current_page = $_GET['page'] ?? 'dashboard';
+
+// Determine current page from URL keys (e.g., ?dashboard instead of ?page=dashboard)
+$current_page = 'dashboard';
 
 // Path mapping with whitelist for security
 $pages = [
     'dashboard' => 'dashboard.php',
-    'data' => 'pegawai.php',
-    'import' => 'import_pegawai.php',
-    'pensiun' => 'datapensiun.php'
+    'data_pegawai' => 'pegawai.php',
+    'import_data_pegawai' => 'import_pegawai.php',
+    'data_pensiun' => 'datapensiun.php'
 ];
+
+foreach ($pages as $key => $file) {
+    if (isset($_GET[$key])) {
+        $current_page = $key;
+        break;
+    }
+}
 
 $page_to_include = $pages[$current_page] ?? 'dashboard.php';
 
@@ -252,20 +261,20 @@ if (!file_exists($page_to_include)) {
         <div id="sidebar-wrapper">
             <div class="sidebar-heading">Manajemen Data</div>
             <div class="list-group list-group-flush">
-                <a href="index.php?page=dashboard"
+                <a href="?dashboard"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
                     <i class="fas fa-tachometer-alt"></i> Dashboard
                 </a>
-                <a href="index.php?page=data"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data') ? 'active' : ''; ?>">
+                <a href="?data_pegawai"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pegawai') ? 'active' : ''; ?>">
                     <i class="fas fa-users"></i> Data Pegawai
                 </a>
-                <a href="index.php?page=import"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'import') ? 'active' : ''; ?>">
+                <a href="?import_data_pegawai"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'import_data_pegawai') ? 'active' : ''; ?>">
                     <i class="fas fa-file-excel"></i> Import (Excel)
                 </a>
-                <a href="index.php?page=pensiun"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'pensiun') ? 'active' : ''; ?>">
+                <a href="?data_pensiun"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pensiun') ? 'active' : ''; ?>">
                     <i class="fas fa-user-clock"></i> Data Pensiun Pegawai
                 </a>
             </div>
