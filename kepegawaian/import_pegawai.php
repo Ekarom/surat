@@ -20,15 +20,15 @@ if (!isset($conn)) {
             <div class="col-md-6">
                 <div class="card card-success card-outline bg-dark-lighter shadow-sm" style="border-radius: 15px;">
                     <div class="card-header border-0 pt-3">
-                        <h3 class="card-title fw-bold">Pilih File Excel (.xlsx / .xls)</h3>
+                        <h3 class="card-title text-white">Pilih File Excel (.xlsx / .xls)</h3>
                     </div>
                     <div class="card-body">
                         <div id="alertContainer"></div>
 
-                        <div class="form-group mb-4 text-center p-5 border border-2 border-dashed border-secondary rounded-3"
+                        <div class="form-group mb-4 text-center p-5 border border-2 border-dashed border rounded-3"
                             id="dropZone">
-                            <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
-                            <h5>Drag & Drop file di sini</h5>
+                            <i class="la la-cloud-upload"></i>
+                            <h5 class="text-white">Drag & Drop file di sini</h5>
                             <p class="text-muted small">Atau klik tombol di bawah untuk memilih file</p>
                             <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
                             <button type="button" class="btn btn-success px-4 rounded-pill fw-bold"

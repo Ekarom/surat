@@ -1,299 +1,239 @@
 <?php
-if (!isset($conn)) {
-    if (file_exists('../dbconn.php')) {
-        include_once "../dbconn.php";
-    } else {
-        include_once "dbconn.php";
-    }
+/**
+ * Dashboard Kepegawaian - Optimized & Refined
+ * Managed by Antigravity AI
+ */
+
+if (!isset($conn) || !$conn) {
+    $db_path = file_exists('../dbconn.php') ? '../dbconn.php' : 'dbconn.php';
+    include_once $db_path;
 }
 
-// Helper to get count safely
-if (!function_exists('getDashboardCount')) {
-    function getDashboardCount($conn, $query)
-    {
-        if (!$conn || !($conn instanceof mysqli)) return 0;
-        $res = $conn->query($query);
-        if (!$res)
-            return 0;
-        $row = $res->fetch_assoc();
-        return $row['total'] ?? 0;
-    }
+if (!isset($conn) || !$conn) {
+    echo "<div class='alert alert-danger shadow-sm rounded-3'>Koneksi database tidak tersedia.</div>";
+    return;
 }
 
-// Fetch Statistics
-$stats = [
-    'total'   => getDashboardCount($conn, "SELECT COUNT(*) as total FROM pegawai"),
-    'aktif'   => getDashboardCount($conn, "SELECT COUNT(*) as total FROM pegawai WHERE status = '1'"),
-    'pns'     => getDashboardCount($conn, "SELECT COUNT(*) as total FROM pegawai WHERE status_pegawai = 'PNS'"),
-    'pppk'    => getDashboardCount($conn, "SELECT COUNT(*) as total FROM pegawai WHERE status_pegawai = 'PPPK'"),
-    'pw'      => getDashboardCount($conn, "SELECT COUNT(*) as total FROM pegawai WHERE status_pegawai = 'PPPK PW'"),
-    'honorer' => getDashboardCount($conn, "SELECT COUNT(*) as total FROM pegawai WHERE status_pegawai = 'HONORER'"),
+/**
+ * 1. DATA FETCHING
+ */
+
+// Summary Statistics
+$stats_query = "SELECT 
+    COUNT(*) as total,
+    IFNULL(SUM(CASE WHEN status = '1' THEN 1 ELSE 0 END), 0) as aktif,
+    IFNULL(SUM(CASE WHEN status_pegawai = 'PNS' THEN 1 ELSE 0 END), 0) as pns,
+    IFNULL(SUM(CASE WHEN status_pegawai = 'PPPK' THEN 1 ELSE 0 END), 0) as pppk,
+    IFNULL(SUM(CASE WHEN status_pegawai = 'PPPK PW' THEN 1 ELSE 0 END), 0) as pppk_pw,
+    IFNULL(SUM(CASE WHEN status_pegawai = 'HONORER' THEN 1 ELSE 0 END), 0) as honorer
+FROM pegawai";
+
+$stats_res = $conn->query($stats_query);
+$stats = $stats_res ? $stats_res->fetch_assoc() : ['total' => 0, 'aktif' => 0, 'pns' => 0, 'pppk' => 0, 'pppk_pw' => 0, 'honorer' => 0];
+
+$info_boxes = [
+    ['title' => 'Total Pegawai', 'value' => $stats['total'], 'unit' => 'Orang', 'icon' => 'fa-users', 'color' => 'bg-primary'],
+    ['title' => 'Pegawai Aktif', 'value' => $stats['aktif'], 'unit' => '', 'icon' => 'fa-user-check', 'color' => 'bg-success'],
+    ['title' => 'Jumlah PNS', 'value' => $stats['pns'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
+    ['title' => 'Jumlah PPPK', 'value' => $stats['pppk'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
+    ['title' => 'Jumlah PPPK PW', 'value' => $stats['pppk_pw'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
+    ['title' => 'Jumlah Honorer', 'value' => $stats['honorer'], 'unit' => '', 'icon' => 'fa-user-clock', 'color' => 'bg-warning'],
 ];
 
-// Map stats to variables for HTML compatibility
-$total_pegawai = $stats['total'];
-$pegawai_aktif = $stats['aktif'];
-$pns_count = $stats['pns'];
-$pppk_count = $stats['pppk'];
-$pw_count = $stats['pw'];
-$honorer_count = $stats['honorer'];
-
-// Data for Charts
-$gender_data = $conn->query("SELECT jenis_kelamin, COUNT(*) as count FROM pegawai GROUP BY jenis_kelamin");
-$genders = [];
-if ($gender_data) {
-    while ($row = $gender_data->fetch_assoc()) {
-        $genders[$row['jenis_kelamin']] = $row['count'];
-    }
-}
-
-$status_data = $conn->query("SELECT status_pegawai, COUNT(*) as count FROM pegawai GROUP BY status_pegawai");
-$status_labels = [];
-$status_values = [];
-if ($status_data) {
-    while ($row = $status_data->fetch_assoc()) {
-        $status_labels[] = $row['status_pegawai'] ?: 'Lainnya';
-        $status_values[] = $row['count'];
-    }
-}
-
-// Pendidikan Data
-$pendidikan_data = $conn->query("SELECT pendidikan, COUNT(*) as count FROM pegawai GROUP BY pendidikan");
-$pendidikan_labels = [];
-$pendidikan_values = [];
-if ($pendidikan_data) {
-    while ($row = $pendidikan_data->fetch_assoc()) {
-        $pendidikan_labels[] = $row['pendidikan'] ?: 'Tidak Diisi';
-        $pendidikan_values[] = $row['count'];
+// Gender Distribution
+$genders = ['L' => 0, 'P' => 0];
+$gender_res = $conn->query("SELECT jenis_kelamin, COUNT(*) as count FROM pegawai GROUP BY jenis_kelamin");
+if ($gender_res) {
+    while ($row = $gender_res->fetch_assoc()) {
+        $val = strtoupper(trim($row['jenis_kelamin']));
+        if ($val === 'L' || strpos($val, 'LAKI') === 0) $genders['L'] += (int)$row['count'];
+        elseif ($val === 'P' || strpos($val, 'PEREMPUAN') === 0 || strpos($val, 'WANITA') === 0) $genders['P'] += (int)$row['count'];
     }
 }
 
 // Unit Kerja Data
 $unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GROUP BY unit_kerja ORDER BY count DESC LIMIT 5");
 
+// Employment Status Chart Data
+$status_labels = []; $status_values = [];
+$status_res = $conn->query("SELECT status_pegawai, COUNT(*) as count FROM pegawai GROUP BY status_pegawai");
+if ($status_res) {
+    while ($row = $status_res->fetch_assoc()) {
+        $status_labels[] = $row['status_pegawai'] ?: 'Lainnya';
+        $status_values[] = (int)$row['count'];
+    }
+}
 ?>
 
-<div class="content-fluid">
-    <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1 class="m-0 text-dark">Dashboard
-                    </h1>
-                </div>
-                <div class="col-sm-6">
-                    <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="?dashboard">Home</a></li>
-                        <li class="breadcrumb-item active">Dashboard</li>
-                    </ol>
-                </div>
-            </div>
+<div class="py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1">Dashboard</h2>
+            <p class="text-muted small mb-0">Ringkasan data kepegawaian hari ini.</p>
         </div>
-    </section>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item active">Dashboard</li>
+            </ol>
+        </nav>
+    </div>
 
-    <section class="content">
-        <div class="container-fluid">
-            <!-- Info Boxes -->
-            <div class="row">
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box shadow-sm" style="border-radius: 12px;">
-                        <span class="info-box-icon bg-primary elevation-1" style="border-radius: 10px;"><i
-                                class="fas fa-users"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text fw-bold text-muted small uppercase">Total Pegawai</span>
-                            <span class="info-box-number h4 mb-0"><?php echo $total_pegawai; ?>
-                                <small>Orang</small></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box shadow-sm" style="border-radius: 12px;">
-                        <span class="info-box-icon bg-success elevation-1" style="border-radius: 10px;"><i
-                                class="fas fa-user-check"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text fw-bold text-muted small uppercase">Pegawai Aktif</span>
-                            <span class="info-box-number h4 mb-0"><?php echo $pegawai_aktif; ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box shadow-sm" style="border-radius: 12px;">
-                        <span class="info-box-icon bg-info elevation-1" style="border-radius: 10px;"><i
-                                class="fas fa-id-card"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text fw-bold text-muted small uppercase">Jumlah PNS</span>
-                            <span class="info-box-number h4 mb-0"><?php echo $pns_count; ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box shadow-sm" style="border-radius: 12px;">
-                        <span class="info-box-icon bg-info elevation-1" style="border-radius: 10px;"><i
-                                class="fas fa-id-card"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text fw-bold text-muted small uppercase">Jumlah PPPK</span>
-                            <span class="info-box-number h4 mb-0"><?php echo $pppk_count; ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box shadow-sm" style="border-radius: 12px;">
-                        <span class="info-box-icon bg-info elevation-1" style="border-radius: 10px;"><i
-                                class="fas fa-id-card"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text fw-bold text-muted small uppercase">Jumlah PPPK PW</span>
-                            <span class="info-box-number h4 mb-0"><?php echo $pw_count; ?></span>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-12 col-sm-6 col-md-3">
-                    <div class="info-box shadow-sm" style="border-radius: 12px;">
-                        <span class="info-box-icon bg-warning elevation-1" style="border-radius: 10px;"><i
-                                class="fas fa-user-clock"></i></span>
-                        <div class="info-box-content">
-                            <span class="info-box-text fw-bold text-muted small uppercase">Jumlah Honorer</span>
-                            <span class="info-box-number h4 mb-0"><?php echo $honorer_count; ?></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <!-- Gender Chart -->
-                <div class="col-md-4">
-                    <div class="card card-outline primary shadow-sm" style="border-radius: 15px;">
-                        <div class="card-header border-0 pt-3">
-                            <h3 class="card-title fw-bold text-muted small uppercase"><i
-                                    class="fas fa-venus-mars me-2"></i> Distribusi Gender</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="genderChart"
-                                style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Status Chart -->
-                <div class="col-md-8">
-                    <div class="card card-outline primary shadow-sm" style="border-radius: 15px;">
-                        <div class="card-header border-0 pt-3">
-                            <h3 class="card-title fw-bold text-muted small uppercase"><i
-                                    class="fas fa-briefcase me-2"></i> Status Kepegawaian</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="statusChart"
-                                style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row mt-4">
-                <!-- Pendidikan Chart -->
-                <div class="col-md-7">
-                    <div class="card card-outline primary shadow-sm" style="border-radius: 15px;">
-                        <div class="card-header border-0 pt-3">
-                            <h3 class="card-title fw-bold text-muted small uppercase"><i
-                                    class="fas fa-graduation-cap me-2"></i> Tingkat Pendidikan</h3>
-                        </div>
-                        <div class="card-body">
-                            <canvas id="pendidikanChart"
-                                style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Unit Kerja Summary -->
-                <div class="col-md-5">
-                    <div class="card card-outline primary shadow-sm" style="border-radius: 15px;">
-                        <div class="card-header border-0 pt-3">
-                            <h3 class="card-title fw-bold text-muted small uppercase"><i
-                                    class="fas fa-building me-2"></i> Sebaran Unit Kerja (Top 5)</h3>
-                        </div>
-                        <div class="card-body">
-                            <div class="list-group list-group-flush">
-                                <?php
-                                if ($unit_data && $unit_data->num_rows > 0) {
-                                    while ($u = $unit_data->fetch_assoc()) {
-                                        $percent = ($total_pegawai > 0) ? round(($u['count'] / $total_pegawai) * 100) : 0;
-                                        echo '<div class="list-group-item border-0 px-0 mb-2">
-                                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                                    <span class="fw-bold small text-dark">' . ($u['unit_kerja'] ?: 'Belum Diatur') . '</span>
-                                                    <span class="badge bg-primary rounded-pill">' . $u['count'] . '</span>
-                                                </div>
-                                                <div class="progress" style="height: 6px; border-radius: 10px;">
-                                                    <div class="progress-bar bg-primary" role="progressbar" style="width: ' . $percent . '%" aria-valuenow="' . $percent . '" aria-valuemin="0" aria-valuemax="100"></div>
-                                                </div>
-                                              </div>';
-                                    }
-                                } else {
-                                    echo '<p class="text-center text-muted">Data belum tersedia</p>';
-                                }
-                                ?>
+    <!-- Statistics Grid -->
+    <div class="row g-3">
+        <?php foreach ($info_boxes as $box): ?>
+            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
+                <div class="card border-0 shadow-sm h-100 stat-card">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="icon-shape <?php echo $box['color']; ?> text-white rounded-3 me-2">
+                                <i class="fas <?php echo $box['icon']; ?> fa-xs"></i>
                             </div>
+                            <span class="text-muted fw-bold small text-uppercase letter-spacing-1"><?php echo $box['title']; ?></span>
+                        </div>
+                        <div class="h4 fw-bold mb-0">
+                            <?php echo number_format($box['value']); ?>
+                            <?php if ($box['unit']): ?><span class="fs-6 text-muted fw-normal ms-1"><?php echo $box['unit']; ?></span><?php endif; ?>
                         </div>
                     </div>
                 </div>
             </div>
+        <?php endforeach; ?>
+    </div>
 
-            <div class="row mt-4">
-                <!-- Recent Employees -->
-                <div class="col-12">
-                    <div class="card shadow-sm border-0" style="border-radius: 15px; overflow: hidden;">
-                        <div class="card-header bg-menu-gradient text-white py-3">
-                            <h3 class="card-title fw-bold"><i class="fas fa-user-plus me-2"></i> Pegawai Terbaru</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle mb-0">
-                                    <thead class="bg-light">
-                                        <tr>
-                                            <th class="text-center" width="50">#</th>
-                                            <th>NIP</th>
-                                            <th>Nama Pegawai</th>
-                                            <th>Jabatan</th>
-                                            <th>Unit Kerja</th>
-                                            <th class="text-center">Tgl Bergabung</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $recent = $conn->query("SELECT * FROM pegawai ORDER BY id DESC LIMIT 5");
-                                        if ($recent && $recent->num_rows > 0) {
-                                            $no = 1;
-                                            while ($row = $recent->fetch_assoc()) {
-                                                echo "<tr>
-                                                        <td class='text-center'>{$no}</td>
-                                                        <td class='fw-bold'>" . ($row['nip'] ?: '-') . "</td>
-                                                        <td>{$row['nm_pegawai']}</td>
-                                                        <td><span class='badge bg-soft-primary px-2 py-1' style='background-color:#e7f1ff; color:#0d6efd;'>{$row['jabatan']}</span></td>
-                                                        <td>{$row['unit_kerja']}</td>
-                                                        <td class='text-center small text-muted'>" . date('d M Y') . "</td>
-                                                      </tr>";
-                                                $no++;
-                                            }
-                                        } else {
-                                            echo "<tr><td colspan='6' class='text-center p-4'>Belum ada data pegawai</td></tr>";
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
+    <!-- Charts & Distributions -->
+    <div class="row mt-4 g-4">
+        <!-- Work Unit Distribution -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-building me-2 text-primary"></i> Sebaran Unit Kerja (Top 5)</h6>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="mt-2">
+                        <?php if ($unit_data && $unit_data->num_rows > 0): ?>
+                            <?php while ($u = $unit_data->fetch_assoc()): 
+                                $percent = ($stats['total'] > 0) ? round(($u['count'] / $stats['total']) * 100) : 0;
+                            ?>
+                                <div class="mb-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="small fw-bold"><?php echo htmlspecialchars($u['unit_kerja'] ?: 'N/A'); ?></span>
+                                        <span class="small text-muted"><?php echo $u['count']; ?> Org (<?php echo $percent; ?>%)</span>
+                                    </div>
+                                    <div class="progress" style="height: 8px; border-radius: 20px;">
+                                        <div class="progress-bar bg-primary rounded-pill shadow-none" style="width: <?php echo $percent; ?>%"></div>
+                                    </div>
+                                </div>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <div class="text-center py-5 opacity-50">
+                                <i class="fas fa-inbox fa-3x mb-2"></i>
+                                <p class="small">Data tidak ditemukan</p>
                             </div>
-                        </div>
-                        <div class="card-footer bg-white border-0 text-center">
-                            <a href="?pegawai" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-bold">Lihat
-                                Semua Pegawai</a>
-                        </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+
+        <!-- Gender Distribution Chart -->
+        <div class="col-lg-3">
+            <div class="card border-0 shadow-sm h-100 text-center">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-venus-mars me-2 text-danger"></i> Komposisi Gender</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 180px; position: relative;">
+                        <canvas id="genderChart"></canvas>
+                    </div>
+                    <div class="d-flex justify-content-around mt-3 small fw-bold">
+                        <div><i class="fas fa-circle text-primary me-1"></i> L: <?php echo $genders['L']; ?></div>
+                        <div><i class="fas fa-circle text-danger me-1"></i> P: <?php echo $genders['P']; ?></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Employment Status Chart -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <h6 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-info"></i> Status Pegawai</h6>
+                </div>
+                <div class="card-body">
+                    <div style="height: 220px;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Employees Table -->
+    <div class="mt-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-warning"></i> Pegawai Terbaru</h6>
+                <a href="?page=data" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">Semua Data <i class="fas fa-arrow-right ms-1"></i></a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="text-center px-4" width="70">#</th>
+                                <th>NIP</th>
+                                <th>Nama Pegawai</th>
+                                <th>Jabatan</th>
+                                <th>Unit Kerja</th>
+                                <th class="text-center px-4">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $recent = $conn->query("SELECT * FROM pegawai ORDER BY id DESC LIMIT 5");
+                            if ($recent && $recent->num_rows > 0):
+                                $no = 1;
+                                while ($row = $recent->fetch_assoc()): ?>
+                                    <tr>
+                                        <td class="text-center px-4 text-muted"><?php echo $no++; ?></td>
+                                        <td class="fw-bold"><?php echo htmlspecialchars($row['nip'] ?: '-'); ?></td>
+                                        <td><?php echo htmlspecialchars($row['nm_pegawai']); ?></td>
+                                        <td><span class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span></td>
+                                        <td><span class="small text-muted"><?php echo htmlspecialchars($row['unit_kerja']); ?></span></td>
+                                        <td class="text-center px-4">
+                                            <?php if ($row['status'] == '1'): ?>
+                                                <span class="badge bg-success-soft text-success rounded-pill px-3">Aktif</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-secondary-soft text-secondary rounded-pill px-3">Non-Aktif</span>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endwhile;
+                            else: ?>
+                                <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada data terbaru.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
+<!-- Chart Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', () => {
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            }
+        };
+
         // Gender Chart
         const genderCtx = document.getElementById('genderChart').getContext('2d');
         new Chart(genderCtx, {
@@ -301,20 +241,13 @@ $unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GRO
             data: {
                 labels: ['Laki-laki', 'Perempuan'],
                 datasets: [{
-                    data: [<?php echo $genders['L'] ?? 0; ?>, <?php echo $genders['P'] ?? 0; ?>],
-                    backgroundColor: ['#007bff', '#ff4d94'],
-                    borderWidth: 5,
-                    borderColor: '#ffffff'
+                    data: [<?php echo $genders['L']; ?>, <?php echo $genders['P']; ?>],
+                    backgroundColor: ['#3b82f6', '#f43f5e'],
+                    borderWidth: 0,
+                    hoverOffset: 10
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' }
-                },
-                cutout: '70%'
-            }
+            options: { ...commonOptions, cutout: '70%' }
         });
 
         // Status Chart
@@ -324,50 +257,17 @@ $unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GRO
             data: {
                 labels: <?php echo json_encode($status_labels); ?>,
                 datasets: [{
-                    label: 'Jumlah Pegawai',
+                    label: 'Org',
                     data: <?php echo json_encode($status_values); ?>,
-                    backgroundColor: 'rgba(0, 123, 255, 0.7)',
-                    borderColor: '#007bff',
-                    borderWidth: 1,
-                    borderRadius: 8
+                    backgroundColor: '#0ea5e9',
+                    borderRadius: 5
                 }]
             },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                ...commonOptions,
                 scales: {
-                    y: { beginAtZero: true, ticks: { stepSize: 1 } },
-                    x: { grid: { display: false } }
-                },
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-
-        // Pendidikan Chart
-        const eduCtx = document.getElementById('pendidikanChart').getContext('2d');
-        new Chart(eduCtx, {
-            type: 'polarArea',
-            data: {
-                labels: <?php echo json_encode($pendidikan_labels); ?>,
-                datasets: [{
-                    data: <?php echo json_encode($pendidikan_values); ?>,
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.7)',
-                        'rgba(54, 162, 235, 0.7)',
-                        'rgba(255, 206, 86, 0.7)',
-                        'rgba(75, 192, 192, 0.7)',
-                        'rgba(153, 102, 255, 0.7)',
-                        'rgba(255, 159, 64, 0.7)'
-                    ]
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'right' }
+                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
+                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
                 }
             }
         });
@@ -375,26 +275,42 @@ $unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GRO
 </script>
 
 <style>
-    .bg-soft-primary {
-        background-color: #e7f1ff;
-        color: #0d6efd;
-    }
-
-    .bg-menu-gradient {
-        background: linear-gradient(135deg, #2c3e50 0%, #00d2ff 100%);
-    }
-
-    .info-box {
-        border: none;
-    }
-
-    .info-box-icon {
+    .letter-spacing-1 { letter-spacing: 1px; }
+    .icon-shape {
+        width: 35px;
+        height: 35px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
-
-    .card-outline.primary {
-        border-top: 3px solid #007bff;
+    .stat-card {
+        transition: transform 0.2s;
     }
+    .stat-card:hover {
+        transform: translateY(-3px);
+    }
+    .badge-soft-blue {
+        background-color: #eff6ff;
+        color: #3b82f6;
+        font-weight: 600;
+        font-size: 0.75rem;
+        padding: 5px 10px;
+        border-radius: 6px;
+    }
+    .bg-success-soft { background-color: #f0fdf4; }
+    .bg-secondary-soft { background-color: #f8fafc; }
+    .table thead th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #64748b;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .table tbody td {
+        font-size: 0.9rem;
+        padding: 1rem 0.75rem;
+        border-bottom: 1px solid #f8fafc;
+    }
+    .progress { background-color: #f1f5f9; overflow: visible; }
+    .progress-bar { box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
 </style>
