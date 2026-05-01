@@ -1,21 +1,41 @@
 <?php
-// processes for personnel management
+ob_start();
+try {
 if (file_exists('../dbconn.php')) {
     include "../dbconn.php";
 } else if (file_exists('dbconn.php')) {
     include "dbconn.php";
 } else {
-    die(json_encode(['status' => 'error', 'message' => 'Database connection file not found.']));
+    throw new Exception('Database connection file not found.');
 }
 
-// Cek apakah koneksi berhasil
-if (!isset($conn) || !$conn) {
-    header('Content-Type: application/json');
-    echo json_encode(['status' => 'error', 'message' => 'Koneksi database gagal!']);
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Debugging: Log all requests
+$log_file = 'error_log.txt';
+$log_entry = date('Y-m-d H:i:s') . " - Action: " . ($_REQUEST['action'] ?? 'none') . " - User: " . ($_SESSION['id'] ?? 'none') . "\n";
+file_put_contents($log_file, $log_entry, FILE_APPEND);
+
+set_error_handler(function($errno, $errstr, $errfile, $errline) use ($log_file) {
+    $msg = "PHP Error [$errno]: $errstr in $errfile on line $errline\n";
+    file_put_contents($log_file, $msg, FILE_APPEND);
+    return false;
+});
+
+$action = $_POST['action'] ?? $_GET['action'] ?? '';
+
+// Check connection
+if (!isset($conn) || !$conn || $conn->connect_error) {
+    echo json_encode(['status' => 'error', 'message' => 'Database connection failed.']);
     exit;
 }
 
-// Ensure pegawai exists
+// --- AJAX ACTIONS FIRST (to prevent migration overhead and output interference) ---
+// Ensure pegawai table and columns exist before any actions
 $createTableQuery = "CREATE TABLE IF NOT EXISTS pegawai (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nip VARCHAR(30) UNIQUE,
@@ -32,8 +52,9 @@ $createTableQuery = "CREATE TABLE IF NOT EXISTS pegawai (
     no_hp VARCHAR(20),
     email VARCHAR(100),
     foto VARCHAR(255),
+    nrk VARCHAR(30),
     status VARCHAR(2) DEFAULT '1'
-)";
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 $conn->query($createTableQuery);
 
 // Fix if ID is not auto_increment (prevent ID=0 issue)
@@ -57,6 +78,7 @@ $columns_to_ensure = [
     'no_hp' => "VARCHAR(20)",
     'email' => "VARCHAR(100)",
     'foto' => "VARCHAR(255)",
+    'nrk' => "VARCHAR(30)",
     'status' => "VARCHAR(2) DEFAULT '1'",
     'tmt_golongan' => "DATE"
 ];
@@ -66,7 +88,6 @@ foreach ($columns_to_ensure as $col => $type) {
     if ($check->num_rows == 0) {
         $conn->query("ALTER TABLE pegawai ADD COLUMN $col $type");
     } else {
-        // Ensure column has enough length/correct type
         $conn->query("ALTER TABLE pegawai MODIFY COLUMN $col $type");
     }
 }
@@ -81,17 +102,89 @@ $createRiwayatTable = "CREATE TABLE IF NOT EXISTS riwayat_kepegawaian (
     no_sk VARCHAR(100),
     tgl_sk DATE,
     file_lampiran VARCHAR(255),
+    institusi VARCHAR(255),
+    jurusan VARCHAR(100),
+    no_ijazah VARCHAR(100),
+    tgl_ijazah DATE,
+    gelar_depan VARCHAR(20),
+    gelar_belakang VARCHAR(20),
+    tempat VARCHAR(255),
+    durasi VARCHAR(50),
+    masa_kerja_thn INT,
+    masa_kerja_bln INT,
+    gaji_pokok DECIMAL(15,2),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (pegawai_id) REFERENCES pegawai(id) ON DELETE CASCADE
 )";
 $conn->query($createRiwayatTable);
 
+// Ensure new columns exist for existing tables
+$riwayat_cols = [
+    'institusi' => "VARCHAR(255)",
+    'jurusan' => "VARCHAR(100)",
+    'no_ijazah' => "VARCHAR(100)",
+    'tgl_ijazah' => "DATE",
+    'gelar_depan' => "VARCHAR(20)",
+    'gelar_belakang' => "VARCHAR(20)",
+    'tempat' => "VARCHAR(255)",
+    'durasi' => "VARCHAR(50)",
+    'masa_kerja_thn' => "INT",
+    'masa_kerja_bln' => "INT",
+    'gaji_pokok' => "DECIMAL(15,2)"
+];
+foreach ($riwayat_cols as $col => $type) {
+    $check = $conn->query("SHOW COLUMNS FROM riwayat_kepegawaian LIKE '$col'");
+    if ($check->num_rows == 0) {
+        $conn->query("ALTER TABLE riwayat_kepegawaian ADD COLUMN $col $type");
+    }
+}
 
-$action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
+// --- AJAX ACTIONS ---
+if ($action == 'listPegawai') {
+    $q = $conn->query("SELECT id, nm_pegawai, nip, nrk FROM pegawai WHERE status = '1' ORDER BY nm_pegawai ASC");
+    $data = [];
+    while ($r = $q->fetch_assoc()) {
+        $data[] = $r;
+    }
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'success', 'data' => $data]);
+    exit;
+}
+
+if ($action == 'muatDataJSON') {
+    // Temporarily enabled for debugging
+    error_reporting(E_ALL); 
+    ini_set('display_errors', 1);
+    // if (ob_get_level()) ob_end_clean(); // Commented for debug
+    header('Content-Type: application/json');
+    if (session_status() === PHP_SESSION_NONE) session_start();
+    $lv = $_SESSION['level'] ?? '';
+    $nik = $_SESSION['nik'] ?? '';
+
+    $query = "SELECT * FROM pegawai";
+    if ($lv == '4') {
+        $query .= " WHERE id = '" . $conn->real_escape_string($_SESSION['id']) . "'";
+    }
+    $query .= " ORDER BY nm_pegawai ASC";
+    
+    $result = $conn->query($query);
+    $data = [];
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
+        }
+    } else {
+        die(json_encode(['status' => 'error', 'message' => 'SQL Error: ' . $conn->error]));
+    }
+    echo json_encode(['status' => 'success', 'data' => $data], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+
 
 // --- FUNGSI HELPER UPLOAD ---
 function uploadFoto($file) {
-    $target_dir = "../file/pegawai/";
+    $target_dir = "../file/datakepegawaian/";
     if (!file_exists($target_dir)) {
         mkdir($target_dir, 0777, true);
     }
@@ -105,7 +198,7 @@ function uploadFoto($file) {
 }
 
 function uploadSK($file) {
-    $target_dir = "../file/riwayat/";
+    $target_dir = "../file/datakepegawaian/";
     if (!file_exists($target_dir)) {
         mkdir($target_dir, 0777, true);
     }
@@ -124,25 +217,6 @@ if ($action == 'muatData') {
     // (Existing code...)
 }
 
-// --- MUAT DATA (JSON for DataTables) ---
-if ($action == 'muatDataJSON') {
-    header('Content-Type: application/json');
-    $query = "SELECT * FROM pegawai ORDER BY nm_pegawai ASC";
-    $result = $conn->query($query);
-    $data = [];
-    
-    if ($result) {
-        while ($row = $result->fetch_assoc()) {
-            $data[] = $row;
-        }
-    }
-    
-    echo json_encode([
-        'status' => 'success',
-        'data' => $data
-    ]);
-    exit;
-}
 
 // --- AMBIL SATU DATA ---
 if ($action == 'ambil') {
@@ -153,8 +227,10 @@ if ($action == 'ambil') {
     if ($stmt->execute()) {
         $result = $stmt->get_result();
         $data = $result->fetch_assoc();
+        ob_clean();
         echo json_encode(['status' => 'success', 'data' => $data]);
     } else {
+        ob_clean();
         echo json_encode(['status' => 'error', 'message' => 'Gagal mengambil data.']);
     }
     exit;
@@ -163,22 +239,48 @@ if ($action == 'ambil') {
 // --- SIMPAN (INSERT / UPDATE) ---
 if ($action == 'simpan') {
     header('Content-Type: application/json');
+    $lv = $_SESSION['level'] ?? '';
+    $nik_session = $_SESSION['nik'] ?? '';
+
     $id = $_POST['id'] ?? '';
-    $nip = $_POST['nip'];
-    $nm_pegawai = $_POST['nm_pegawai'];
-    $tempat_lahir = $_POST['tempat_lahir'];
-    $tgl_lahir = $_POST['tgl_lahir'];
-    $jenis_kelamin = $_POST['jenis_kelamin'];
-    $jabatan = $_POST['jabatan'];
-    $pangkat = $_POST['pangkat'];
-    $golongan = $_POST['golongan'];
-    $unit_kerja = $_POST['unit_kerja'];
-    $status_pegawai = $_POST['status_pegawai'];
-    $pendidikan = $_POST['pendidikan'];
+    $nip = $_POST['nip'] ?? '';
+
+    // Security check for Guru
+    if ($lv == '4') {
+        if (!empty($id)) {
+            // Check if ID belongs to this Guru
+            $check = $conn->query("SELECT nip FROM pegawai WHERE id = '$id'");
+            $row = $check->fetch_assoc();
+            if (!$row || $row['nip'] != $nik_session) {
+                ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Anda hanya dapat mengedit data Anda sendiri!']);
+                exit;
+            }
+        } else {
+            // Guru cannot insert new employees
+            ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Akses ditolak untuk menambah pegawai baru.']);
+            exit;
+        }
+        
+        // Ensure Guru doesn't change their own NIP to someone else's
+        $nip = $nik_session; 
+    }
+    $nm_pegawai = $_POST['nm_pegawai'] ?? '';
+    $tempat_lahir = $_POST['tempat_lahir'] ?? '';
+    $tgl_lahir = !empty($_POST['tgl_lahir']) ? $_POST['tgl_lahir'] : null;
+    $jenis_kelamin = $_POST['jenis_kelamin'] ?? '';
+    $jabatan = $_POST['jabatan'] ?? '';
+    $pangkat = $_POST['pangkat'] ?? '';
+    $golongan = $_POST['golongan'] ?? '';
+    $unit_kerja = $_POST['unit_kerja'] ?? '';
+    $status_pegawai = $_POST['status_pegawai'] ?? '';
+    $pendidikan = $_POST['pendidikan'] ?? '';
     $tgl_lulus = !empty($_POST['tgl_lulus']) ? $_POST['tgl_lulus'] : null;
     $tmt_golongan = !empty($_POST['tmt_golongan']) ? $_POST['tmt_golongan'] : null;
-    $no_hp = $_POST['no_hp'];
-    $email = $_POST['email'];
+    $no_hp = $_POST['no_hp'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $nrk = $_POST['nrk'] ?? '';
     $foto_lama = $_POST['foto_lama'] ?? '';
     $status = $_POST['status'] ?? '1';
 
@@ -187,28 +289,30 @@ if ($action == 'simpan') {
         $upload = uploadFoto($_FILES['foto']);
         if ($upload) {
             $foto = $upload;
-            if (!empty($foto_lama) && file_exists("../file/pegawai/" . $foto_lama)) {
-                unlink("../file/pegawai/" . $foto_lama);
+            if (!empty($foto_lama) && file_exists("../file/datakepegawaian/" . $foto_lama)) {
+                unlink("../file/datakepegawaian/" . $foto_lama);
             }
         }
     }
 
     if (empty($id)) {
         // Insert
-        $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, foto, status) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, foto, nrk, status) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $foto, $status);
+        $stmt->bind_param("ssssssssssssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $foto, $nrk, $status);
     } else {
         // Update
-        $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, foto=?, status=? WHERE id=?";
+        $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, foto=?, nrk=?, status=? WHERE id=?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("sssssssssssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $foto, $status, $id);
+        $stmt->bind_param("ssssssssssssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $foto, $nrk, $status, $id);
     }
 
     if ($stmt->execute()) {
+        ob_clean();
         echo json_encode(['status' => 'success', 'message' => 'Data pegawai berhasil disimpan!']);
     } else {
+        ob_clean();
         echo json_encode(['status' => 'error', 'message' => 'Database Error: ' . $stmt->error]);
     }
     exit;
@@ -222,8 +326,10 @@ if ($action == 'ubah_status') {
     $stmt = $conn->prepare("UPDATE pegawai SET status = ? WHERE id = ?");
     $stmt->bind_param("si", $status, $id);
     if ($stmt->execute()) {
+        ob_clean();
         echo json_encode(['status' => 'success', 'message' => 'Status berhasil diubah!']);
     } else {
+        ob_clean();
         echo json_encode(['status' => 'error', 'message' => 'Gagal mengubah status.']);
     }
     exit;
@@ -232,21 +338,28 @@ if ($action == 'ubah_status') {
 // --- HAPUS ---
 if ($action == 'hapus') {
     header('Content-Type: application/json');
+    if ($_SESSION['level'] == '4') {
+        ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Akses ditolak untuk menghapus data.']);
+        exit;
+    }
     $id = $_POST['id'];
     // Get foto to delete file
     $stmt_cek = $conn->prepare("SELECT foto FROM pegawai WHERE id = ?");
     $stmt_cek->bind_param("i", $id);
     $stmt_cek->execute();
     $res = $stmt_cek->get_result()->fetch_assoc();
-    if ($res && !empty($res['foto']) && file_exists("../file/pegawai/" . $res['foto'])) {
-        unlink("../file/pegawai/" . $res['foto']);
+    if ($res && !empty($res['foto']) && file_exists("../file/datakepegawaian/" . $res['foto'])) {
+        unlink("../file/datakepegawaian/" . $res['foto']);
     }
 
     $stmt = $conn->prepare("DELETE FROM pegawai WHERE id = ?");
     $stmt->bind_param("i", $id);
     if ($stmt->execute()) {
+        ob_clean();
         echo json_encode(['status' => 'success', 'message' => 'Data pegawai berhasil dihapus!']);
     } else {
+        ob_clean();
         echo json_encode(['status' => 'error', 'message' => 'Gagal menghapus data.']);
     }
     exit;
@@ -255,7 +368,15 @@ if ($action == 'hapus') {
 // --- RIWAYAT: MUAT DATA ---
 if ($action == 'muatRiwayat') {
     header('Content-Type: application/json');
-    $pegawai_id = $_GET['pegawai_id'];
+    $pegawai_id = $_GET['pegawai_id'] ?? 0;
+
+    if ($_SESSION['level'] == '4') {
+        if ($pegawai_id != $_SESSION['id']) {
+            ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Akses ditolak.']);
+            exit;
+        }
+    }
     $query = "SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt DESC, created_at DESC";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("i", $pegawai_id);
@@ -272,11 +393,21 @@ if ($action == 'muatRiwayat') {
 // --- RIWAYAT: AMBIL SATU ---
 if ($action == 'ambilRiwayat') {
     header('Content-Type: application/json');
-    $id = $_GET['id'];
+    $id = $_GET['id'] ?? 0;
+    
     $stmt = $conn->prepare("SELECT * FROM riwayat_kepegawaian WHERE id = ?");
     $stmt->bind_param("i", $id);
     $stmt->execute();
     $data = $stmt->get_result()->fetch_assoc();
+
+    if ($data && $_SESSION['level'] == '4') {
+        if ($data['pegawai_id'] != $_SESSION['id']) {
+            ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Akses ditolak.']);
+            exit;
+        }
+    }
+    
     echo json_encode(['status' => 'success', 'data' => $data]);
     exit;
 }
@@ -285,38 +416,72 @@ if ($action == 'ambilRiwayat') {
 if ($action == 'simpanRiwayat') {
     header('Content-Type: application/json');
     $id = $_POST['id_riwayat'] ?? '';
-    $pegawai_id = $_POST['pegawai_id_riwayat'];
-    $kategori = $_POST['kategori'];
-    $deskripsi = $_POST['deskripsi'];
+    $pegawai_id = $_POST['pegawai_id_riwayat'] ?? '';
+    $kategori = $_POST['kategori'] ?? 'Lainnya';
+    
+    // Security check
+    if (($_SESSION['level'] ?? '') == '4') {
+        // Teacher portal always uses their own ID
+        $pegawai_id = $_SESSION['id'];
+    }
+
+    $deskripsi = $_POST['deskripsi'] ?? '';
     $tmt = !empty($_POST['tmt']) ? $_POST['tmt'] : null;
-    $no_sk = $_POST['no_sk'];
+    $no_sk = $_POST['no_sk'] ?? '';
     $tgl_sk = !empty($_POST['tgl_sk']) ? $_POST['tgl_sk'] : null;
     $file_lama = $_POST['file_lama_riwayat'] ?? '';
+
+    // New Fields
+    $institusi = $_POST['institusi'] ?? '';
+    $jurusan = $_POST['jurusan'] ?? '';
+    $no_ijazah = $_POST['no_ijazah'] ?? '';
+    $tgl_ijazah = !empty($_POST['tgl_ijazah']) ? $_POST['tgl_ijazah'] : null;
+    $gelar_depan = $_POST['gelar_depan'] ?? '';
+    $gelar_belakang = $_POST['gelar_belakang'] ?? '';
+    $tempat = $_POST['tempat'] ?? '';
+    $durasi = $_POST['durasi'] ?? '';
+    $masa_kerja_thn = !empty($_POST['masa_kerja_thn']) ? intval($_POST['masa_kerja_thn']) : null;
+    $masa_kerja_bln = !empty($_POST['masa_kerja_bln']) ? intval($_POST['masa_kerja_bln']) : null;
+    $gaji_pokok = !empty($_POST['gaji_pokok']) ? floatval(str_replace(['.', ','], ['', '.'], $_POST['gaji_pokok'])) : null;
 
     $file_lampiran = $file_lama;
     if (isset($_FILES['file_lampiran']) && $_FILES['file_lampiran']['error'] == 0) {
         $upload = uploadSK($_FILES['file_lampiran']);
         if ($upload) {
             $file_lampiran = $upload;
-            if (!empty($file_lama) && file_exists("../file/riwayat/" . $file_lama)) {
-                unlink("../file/riwayat/" . $file_lama);
+            if (!empty($file_lama) && file_exists("../file/datakepegawaian/" . $file_lama)) {
+                unlink("../file/datakepegawaian/" . $file_lama);
             }
         }
     }
 
     if (empty($id)) {
-        $sql = "INSERT INTO riwayat_kepegawaian (pegawai_id, kategori, deskripsi, tmt, no_sk, tgl_sk, file_lampiran) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO riwayat_kepegawaian (pegawai_id, kategori, deskripsi, tmt, no_sk, tgl_sk, file_lampiran, institusi, jurusan, no_ijazah, tgl_ijazah, gelar_depan, gelar_belakang, tempat, durasi, masa_kerja_thn, masa_kerja_bln, gaji_pokok) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("issssss", $pegawai_id, $kategori, $deskripsi, $tmt, $no_sk, $tgl_sk, $file_lampiran);
+        if (!$stmt) {
+            ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Prepare Error: ' . $conn->error]);
+            exit;
+        }
+        $pegawai_id_int = intval($pegawai_id);
+        $stmt->bind_param("issssssssssssssiid", $pegawai_id_int, $kategori, $deskripsi, $tmt, $no_sk, $tgl_sk, $file_lampiran, $institusi, $jurusan, $no_ijazah, $tgl_ijazah, $gelar_depan, $gelar_belakang, $tempat, $durasi, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok);
     } else {
-        $sql = "UPDATE riwayat_kepegawaian SET kategori=?, deskripsi=?, tmt=?, no_sk=?, tgl_sk=?, file_lampiran=? WHERE id=?";
+        $sql = "UPDATE riwayat_kepegawaian SET kategori=?, deskripsi=?, tmt=?, no_sk=?, tgl_sk=?, file_lampiran=?, institusi=?, jurusan=?, no_ijazah=?, tgl_ijazah=?, gelar_depan=?, gelar_belakang=?, tempat=?, durasi=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=? WHERE id=?";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("ssssssi", $kategori, $deskripsi, $tmt, $no_sk, $tgl_sk, $file_lampiran, $id);
+        if (!$stmt) {
+            ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Prepare Error: ' . $conn->error]);
+            exit;
+        }
+        $id_int = intval($id);
+        $stmt->bind_param("ssssssssssssssiidi", $kategori, $deskripsi, $tmt, $no_sk, $tgl_sk, $file_lampiran, $institusi, $jurusan, $no_ijazah, $tgl_ijazah, $gelar_depan, $gelar_belakang, $tempat, $durasi, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $id_int);
     }
 
     if ($stmt->execute()) {
+        ob_clean();
         echo json_encode(['status' => 'success', 'message' => 'Riwayat berhasil disimpan!']);
     } else {
+        ob_clean();
         echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan riwayat: ' . $stmt->error]);
     }
     exit;
@@ -325,13 +490,26 @@ if ($action == 'simpanRiwayat') {
 // --- RIWAYAT: HAPUS ---
 if ($action == 'hapusRiwayat') {
     header('Content-Type: application/json');
-    $id = $_POST['id'];
+    $id = $_POST['id'] ?? '';
+
+    if (($_SESSION['level'] ?? '') == '4') {
+        $stmt_cek = $conn->prepare("SELECT pegawai_id FROM riwayat_kepegawaian WHERE id = ?");
+        $stmt_cek->bind_param("i", $id);
+        $stmt_cek->execute();
+        $r = $stmt_cek->get_result()->fetch_assoc();
+        
+        if (!$r || $r['pegawai_id'] != $_SESSION['id']) {
+            ob_clean();
+        echo json_encode(['status' => 'error', 'message' => 'Akses ditolak.']);
+            exit;
+        }
+    }
     $stmt_cek = $conn->prepare("SELECT file_lampiran FROM riwayat_kepegawaian WHERE id = ?");
     $stmt_cek->bind_param("i", $id);
     $stmt_cek->execute();
     $res = $stmt_cek->get_result()->fetch_assoc();
-    if ($res && !empty($res['file_lampiran']) && file_exists("../file/riwayat/" . $res['file_lampiran'])) {
-        unlink("../file/riwayat/" . $res['file_lampiran']);
+    if ($res && !empty($res['file_lampiran']) && file_exists("../file/datakepegawaian/" . $res['file_lampiran'])) {
+        unlink("../file/datakepegawaian/" . $res['file_lampiran']);
     }
 
     $stmt = $conn->prepare("DELETE FROM riwayat_kepegawaian WHERE id = ?");
@@ -341,6 +519,17 @@ if ($action == 'hapusRiwayat') {
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal menghapus riwayat.']);
     }
+    exit;
+}
+} catch (Exception $e) {
+    ob_clean();
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'System Error: ' . $e->getMessage()]);
+    exit;
+} catch (Error $e) {
+    ob_clean();
+    header('Content-Type: application/json');
+    echo json_encode(['status' => 'error', 'message' => 'System Fatal Error: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine()]);
     exit;
 }
 ?>

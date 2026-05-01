@@ -68,9 +68,21 @@ if (isset($_GET['dashboard'])) {
 } else if (isset($_GET['kepegawaian_dashboard'])) {
   $current_page = 'kepegawaian_dashboard';
   $page_to_include = 'kepegawaian/dashboard.php';
+} else if (isset($_GET['kepegawaian_dashboard_guru'])) {
+  $current_page = 'kepegawaian_dashboard_guru';
+  $page_to_include = 'kepegawaian/dashboard_guru.php';
+} else if (isset($_GET['kepegawaian_biodata_guru'])) {
+  $current_page = 'kepegawaian_biodata_guru';
+  $page_to_include = 'kepegawaian/pegawai.php';
 } else {
-  $current_page = 'dashboard';
-  $page_to_include = 'load.php';
+  // --- DEFAULT DASHBOARD BY LEVEL ---
+  if ($lv == '4') {
+    header("Location: kepegawaian/index_guru.php");
+    exit;
+  } else {
+    $current_page = 'dashboard';
+    $page_to_include = 'load.php';
+  }
 }
 
 // Helper untuk mengecek menu Arsip (Treeview)
@@ -441,6 +453,28 @@ if ($force_change_pass) {
               </li>
             </ul>
           </li>
+          <?php } ?>
+
+          <!------------------------------------------ MENU GURU (LEVEL 4) ----------------------------------------->
+          <?php if ($lv == "4") { ?>
+            <li class="nav-item">
+              <a href="?kepegawaian_dashboard_guru" class="nav-link <?php echo ($current_page == 'kepegawaian_dashboard_guru') ? 'active' : ''; ?>">
+                <i class="fas fa-tachometer-alt nav-icon"></i>
+                <p>Dashboard Guru</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="?kepegawaian_biodata_guru" class="nav-link <?php echo ($current_page == 'kepegawaian_biodata_guru') ? 'active' : ''; ?>">
+                <i class="fas fa-id-card nav-icon"></i>
+                <p>Biodata Mandiri</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="?profil" class="nav-link <?php echo ($current_page == 'profil') ? 'active' : ''; ?>">
+                <i class="fas bi bi-person-badge nav-icon"></i>
+                <p>Profil Akun</p>
+              </a>
+            </li>
           <?php } ?>
 
           <?php endif; // END IF (!force_change_pass) ?>

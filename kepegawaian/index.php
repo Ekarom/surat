@@ -1,6 +1,6 @@
 <?php
 /**
- * S.A.P KEPEGAWAIAN - Core Layout (Simple Sidebar Version)
+ * S.A.P KEPEGAWAIAN - Admin Portal (Dedicated Version)
  * Managed by Antigravity AI
  */
 
@@ -9,21 +9,29 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// User Data & Security
-$nuser = $_SESSION['nama'] ?? 'User';
+// Security Check
 $lv = $_SESSION['level'] ?? '';
+if (empty($lv)) {
+    header("Location: ../login.php");
+    exit;
+}
+if ($lv == '4') {
+    header("Location: index_guru.php");
+    exit;
+}
 
-// Determine current page from URL keys (e.g., ?dashboard instead of ?page=dashboard)
-$current_page = 'dashboard';
+$nuser = $_SESSION['nama'] ?? 'Admin';
 
-// Path mapping with whitelist for security
+// Determine current page
 $pages = [
     'dashboard' => 'dashboard.php',
     'data_pegawai' => 'pegawai.php',
     'import_data_pegawai' => 'import_pegawai.php',
-    'data_pensiun' => 'datapensiun.php'
+    'data_pensiun' => 'datapensiun.php',
+    'riwayat_monitor' => 'riwayat_monitor.php'
 ];
 
+$current_page = 'dashboard';
 foreach ($pages as $key => $file) {
     if (isset($_GET[$key])) {
         $current_page = $key;
@@ -33,7 +41,7 @@ foreach ($pages as $key => $file) {
 
 $page_to_include = $pages[$current_page] ?? 'dashboard.php';
 
-// Fallback if file doesn't exist
+// Fallback
 if (!file_exists($page_to_include)) {
     $page_to_include = 'dashboard.php';
 }
@@ -44,7 +52,7 @@ if (!file_exists($page_to_include)) {
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Admin Panel Pegawai</title>
+    <title>Admin Kepegawaian | SMPN 171</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Stylesheets -->
@@ -52,24 +60,26 @@ if (!file_exists($page_to_include)) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.icons8.com/fonts/line-awesome/1.1/css/line-awesome.min.css">
-
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
     <!-- Core Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
         body {
             font-family: 'Outfit', sans-serif;
+            background-color: #f1f5f9;
             overflow-x: hidden;
-            background-color: #f8f9fa;
         }
 
-        /* NAVBAR STYLE */
+        /* 1. NAVBAR STYLE */
         .navbar {
-            height: 56px;
-            z-index: 1050;
+            height: 60px;
             background-color: #1e293b !important;
+            z-index: 1050;
         }
 
         .navbar-brand-text {
@@ -79,24 +89,24 @@ if (!file_exists($page_to_include)) {
             letter-spacing: 0.5px;
         }
 
-        /* 1. SIDEBAR STYLE */
+        /* 2. SIDEBAR STYLE */
         #sidebar-wrapper {
-            margin-left: -250px;
-            /* Default disembunyikan di Mobile */
-            transition: margin 0.25s ease-out;
-            background-color: #343a40;
-            border-right: 1px solid #dee2e6;
+            width: 260px;
             position: fixed;
-            top: 56px;
-            /* Tinggi Navbar */
+            top: 60px;
             bottom: 0;
-            width: 250px;
+            left: 0;
+            margin-left: -260px;
+            /* Default hidden on Mobile */
+            background-color: #334155;
+            transition: margin 0.25s ease-out;
             z-index: 1000;
             overflow-y: auto;
+            border-right: 1px solid #e2e8f0;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Custom Scrollbar */
+        /* Custom Scrollbar for Sidebar */
         #sidebar-wrapper::-webkit-scrollbar {
             width: 5px;
         }
@@ -115,76 +125,68 @@ if (!file_exists($page_to_include)) {
         }
 
         /* Menu Link Style */
-        #sidebar-wrapper .list-group {
-            background-color: transparent !important;
-        }
-
-        #sidebar-wrapper .list-group-item {
+        .list-group-item {
+            background: transparent !important;
+            color: #cbd5e1;
             border: none;
-            background-color: transparent !important;
-            color: #ccc;
-            padding: 8px 20px;
-            /* Diperkecil dari 12px */
+            padding: 10px 24px;
+            /* Slightly tighter */
+            font-size: 0.9rem;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
-            text-decoration: none;
-            transition: all 0.2s;
-            font-size: 0.9rem;
         }
 
-        #sidebar-wrapper .list-group-item i {
-            width: 25px;
-            margin-right: 10px;
-        }
-
-        #sidebar-wrapper .list-group-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+        .list-group-item:hover {
             color: #fff;
+            background: rgba(255, 255, 255, 0.05) !important;
         }
 
-        #sidebar-wrapper .list-group-item.active {
-            background-color: #0d6efd;
+        .list-group-item.active {
             color: #fff;
-            font-weight: bold;
+            background: #0284c7 !important;
+            font-weight: 600;
+        }
+
+        .list-group-item i {
+            width: 28px;
+            font-size: 1.1rem;
         }
 
         .sidebar-heading {
-            padding: 15px 20px 5px 20px;
-            /* Diperkecil */
-            font-size: 0.75rem;
-            /* Sedikit diperkecil */
+            padding: 20px 24px 8px 24px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            color: #94a3b8;
             text-transform: uppercase;
-            color: #6c757d;
-            font-weight: bold;
-            letter-spacing: 1px;
-            margin-top: 5px;
-            /* Diperkecil */
+            letter-spacing: 1.5px;
         }
 
-        /* 2. MAIN CONTENT STYLE */
+        /* 3. MAIN CONTENT STYLE */
         #page-content-wrapper {
             width: 100%;
             padding: 20px;
-            margin-top: 56px;
-            /* Tinggi Navbar */
+            margin-top: 60px;
+            margin-left: 0;
             transition: all 0.25s ease-out;
         }
 
-        /* 3. LOGIKA TOGGLE (Desktop vs Mobile) */
+        /* 4. TOGGLE LOGIC (Desktop vs Mobile) */
 
-        /* Di Desktop (Layar Lebar): Sidebar default MUNCUL */
-        @media (min-width: 768px) {
+        /* Desktop Mode (Layar Lebar) */
+        @media (min-width: 769px) {
             #sidebar-wrapper {
                 margin-left: 0;
+                /* Visible by default */
             }
 
             #page-content-wrapper {
-                margin-left: 250px;
+                margin-left: 260px;
             }
 
-            /* Class khusus saat tombol ditekan di Desktop (Hide) */
+            /* Hide Sidebar on Desktop Toggle */
             body.toggled #sidebar-wrapper {
-                margin-left: -250px;
+                margin-left: -260px;
             }
 
             body.toggled #page-content-wrapper {
@@ -192,78 +194,63 @@ if (!file_exists($page_to_include)) {
             }
         }
 
-        /* Di Mobile (Layar Kecil): Sidebar default SEMBUNYI */
+        /* Mobile Mode (Layar Kecil) */
         @media (max-width: 768px) {
 
-            /* Class khusus saat tombol ditekan di Mobile (Show) */
+            /* Show Sidebar on Mobile Toggle */
             body.toggled #sidebar-wrapper {
                 margin-left: 0;
             }
 
-            /* Overlay hitam saat sidebar muncul di HP */
+            /* Overlay effect on Content */
             body.toggled #page-content-wrapper {
                 opacity: 0.5;
-                /* Efek redup */
                 pointer-events: none;
-                /* Cegah klik konten belakang */
             }
         }
 
-        .footer {
-            background: #fff;
-            border-top: 1px solid #dee2e6;
-            padding: 15px 20px;
+        .clock-wrapper {
+            color: #94a3b8;
             font-size: 0.85rem;
-            color: #6c757d;
         }
 
-        .logout-btn {
-            border-radius: 50px;
-            padding: 5px 15px !important;
-            font-size: 0.85rem;
+        #toastiin-container.top-right {
+            top: 20px;
+            right: 20px;
         }
     </style>
 </head>
 
 <body>
-    <!-- Navbar -->
     <nav class="navbar navbar-expand navbar-dark fixed-top shadow-sm">
         <div class="container-fluid px-3">
             <div class="d-flex align-items-center">
-                <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <span class="navbar-brand-text d-none d-sm-inline-block">S.A.P KEPEGAWAIAN</span>
+                <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle"><i class="fas fa-bars"></i></button>
+                <span class="navbar-brand-text text-uppercase">Admin Kepegawaian</span>
             </div>
-
             <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item">
-                    <span class="nav-link text-white small me-3">
-                        <span id="date-display" class="opacity-75"></span>
-                        <time id="clock" class="fw-bold"></time>
-                    </span>
+                <li class="nav-item d-none d-lg-block me-3">
+                    <div class="clock-wrapper"><i class="far fa-clock me-1"></i> <span id="realtime-clock"></span></div>
                 </li>
                 <li class="nav-item">
-                    <span class="nav-link text-white small me-2 d-none d-md-inline-block">Halo,
+                    <span class="text-white text-white">Halo,
                         <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
+                <li class="nav-item">
+                    <a href="logout.php" class="nav-link btn btn-danger btn-sm text-white px-3 ms-3">Logout
+                        <i class="fa-solid fa-right-from-bracket ms-2"></i></a>
                 </li>
-                <li class="nav-item d-none d-md-inline-block">
-                    <a class="nav-link  text-white logout-btn" href="../logout.php">
-                        Logout <i class="fa-solid fa-right-from-bracket ms-1"></i>
-                    </a>
                 </li>
             </ul>
         </div>
     </nav>
 
     <div class="d-flex" id="wrapper">
-        <!-- Sidebar -->
         <div id="sidebar-wrapper">
-            <div class="sidebar-heading">Manajemen Data</div>
+            <div class="sidebar-heading">Data Master</div>
             <div class="list-group list-group-flush">
                 <a href="?dashboard"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                    <i class="fas fa-chart-line"></i> Dashboard
                 </a>
                 <a href="?data_pegawai"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pegawai') ? 'active' : ''; ?>">
@@ -271,74 +258,108 @@ if (!file_exists($page_to_include)) {
                 </a>
                 <a href="?import_data_pegawai"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'import_data_pegawai') ? 'active' : ''; ?>">
-                    <i class="fas fa-file-excel"></i> Import (Excel)
+                    <i class="fas fa-upload"></i> Import Data
                 </a>
                 <a href="?data_pensiun"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pensiun') ? 'active' : ''; ?>">
-                    <i class="fas fa-user-clock"></i> Data Pensiun Pegawai
+                    <i class="fas fa-user-clock"></i> Data Pensiun
                 </a>
-            </div>
-
-            <div class="list-group list-group-flush">
-                <a href="../logout.php" class="list-group-item list-group-item-action">
-                    <i class="fas fa-sign-out-alt"></i> Logout
+                <a href="#" id="menuMonitoring" class="list-group-item list-group-item-action">
+                    <i class="fas fa-file-invoice"></i> Monitoring Data Pegawai
                 </a>
             </div>
         </div>
 
-        <!-- Page Content -->
         <div id="page-content-wrapper">
             <div class="container-fluid">
-                <?php
-                if (file_exists($page_to_include)) {
-                    include $page_to_include;
-                } else {
-                    echo "<div class='text-center p-5'>
-                            <div class='alert alert-light border rounded-4 shadow-sm p-4'>
-                                <i class='fas fa-exclamation-triangle fa-2x text-warning mb-3'></i>
-                                <h4>Halaman Tidak Ditemukan</h4>
-                                <p class='text-muted'>Modul tidak tersedia.</p>
-                                <a href='index.php' class='btn btn-primary btn-sm rounded-pill px-4'>Dashboard</a>
-                            </div>
-                          </div>";
-                }
-                ?>
+                <?php include $page_to_include; ?>
             </div>
-
-
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- === MODAL: SELEKSI MONITORING === -->
+    <div class="modal fade" id="modalMonitorSelect" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0 pt-4 px-4">
+                    <h5 class="fw-bold"><i class="fas fa-file-medical me-2 text-primary"></i>Monitoring Data
+                        Pegawai
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small mb-3">Silakan pilih nama pegawai untuk memantau kelengkapan Data
+                        Pegawai.
+                    </p>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted text-uppercase">Cari Pegawai</label>
+                        <select id="selectMonitorPegawai" class="form-select" style="width: 100%;">
+                            <option value="">-- Pilih Pegawai --</option>
+                        </select>
+                    </div>
+                    <div class="text-end pt-3">
+                        <button type="button" id="btnGoToMonitor"
+                            class="btn btn-primary btn-rounded px-4 w-100 py-2 shadow-sm" disabled>
+                            Buka Monitoring <i class="fas fa-arrow-right ms-2"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/toastin.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
-        // Custom Sidebar Toggle Logic
-        window.addEventListener('DOMContentLoaded', event => {
-            const sidebarToggle = document.body.querySelector('#sidebarToggle');
-            if (sidebarToggle) {
-                sidebarToggle.addEventListener('click', event => {
-                    event.preventDefault();
-                    document.body.classList.toggle('toggled');
-                });
+        $("#sidebarToggle").click(function (e) { e.preventDefault(); $("body").toggleClass("toggled"); });
+        function updateClock() {
+            const now = new Date();
+            $('#realtime-clock').text(now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }));
+        }
+        setInterval(updateClock, 1000); updateClock();
+
+        // Monitoring Logic
+        const modalMonitor = new bootstrap.Modal(document.getElementById('modalMonitorSelect'));
+
+        // Initialize Select2
+        $('#selectMonitorPegawai').select2({
+            theme: 'bootstrap-5',
+            dropdownParent: $('#modalMonitorSelect'),
+            placeholder: 'Ketik nama pegawai...'
+        });
+
+        $('#menuMonitoring').click(function (e) {
+            e.preventDefault();
+            modalMonitor.show();
+            loadMonitorOptions();
+        });
+
+        function loadMonitorOptions() {
+            $.get('proses_pegawai.php', { action: 'listPegawai' }, function (res) {
+                if (res.status === 'success') {
+                    let options = '<option value="">-- Pilih Pegawai --</option>';
+                    res.data.forEach(p => {
+                        options += `<option value="${p.id}">${p.nm_pegawai} - ${p.nip || p.nrk || ''}</option>`;
+                    });
+                    $('#selectMonitorPegawai').html(options).trigger('change');
+                }
+            });
+        }
+
+        $('#selectMonitorPegawai').on('change', function () {
+            const val = $(this).val();
+            if (val) {
+                $('#btnGoToMonitor').prop('disabled', false);
+            } else {
+                $('#btnGoToMonitor').prop('disabled', true);
             }
         });
 
-        $(document).ready(function () {
-            // Real-time Clock Functionality
-            function updateClock() {
-                const now = new Date();
-                const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-                const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jum\'at', 'Sabtu'];
-
-                const dateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} | `;
-                const timeString = now.toTimeString().split(' ')[0];
-
-                $('#date-display').text(dateString);
-                $('#clock').text(timeString);
+        $('#btnGoToMonitor').click(function () {
+            const id = $('#selectMonitorPegawai').val();
+            if (id) {
+                window.location.href = `?riwayat_monitor&id=${id}`;
             }
-
-            updateClock();
-            setInterval(updateClock, 1000);
         });
     </script>
 </body>

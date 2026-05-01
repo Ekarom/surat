@@ -4,12 +4,16 @@
  * Premium DataTables Implementation with FixedColumns
  * Managed by Antigravity AI
  */
+
+if (!isset($conn) || !$conn) {
+    include_once "../dbconn.php";
+}
+
+$lv = $_SESSION['level'] ?? '';
+$nik = $_SESSION['nik'] ?? '';
 ?>
 
 <!-- === EXTERNAL ASSETS === -->
-<link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.bootstrap5.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.3/css/responsive.bootstrap5.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
 <style>
     /* CSS Variables & Core Styles */
@@ -58,91 +62,35 @@
         padding: 1.25rem 1.5rem;
     }
 
-    /* Table Styles */
-    .table-modern thead th {
-        font-size: 0.7rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: var(--sap-secondary);
-        padding: 1.1rem 0.75rem;
-        border-bottom: 2px solid var(--sap-gray-100) !important;
-        background-color: var(--sap-gray-50);
-        border-top: none;
-        white-space: nowrap;
-    }
-
-    .table-modern tbody td {
-        padding: 1rem 0.75rem;
-        vertical-align: middle;
-        border-bottom: 1px solid #f1f5f9;
-        font-size: 0.85rem;
-        color: #334155;
-        transition: background-color 0.2s;
-    }
-
-    .table-modern tbody tr:hover td {
-        background-color: rgba(79, 70, 229, 0.02) !important;
-    }
-
-    .table-modern.table-striped tbody tr:nth-of-type(odd) {
-        background-color: #fafbfc;
-    }
-
-    /* Custom Scrollbar for Table */
-    .table-responsive::-webkit-scrollbar {
-        height: 8px;
-        width: 8px;
-    }
-
-    .table-responsive::-webkit-scrollbar-track {
-        background: #f1f5f9;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: #cbd5e1;
-        border-radius: 10px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb:hover {
-        background: #94a3b8;
-    }
-
-    /* DataTables Responsive Child Row Style */
-    table.dataTable.dtr-inline.collapsed>tbody>tr>td.dtr-control:before,
-    table.dataTable.dtr-inline.collapsed>tbody>tr>th.dtr-control:before {
-        background-color: var(--sap-primary);
-        border: 2px solid #fff;
-        box-shadow: var(--sap-shadow-sm);
-        font-family: "Font Awesome 6 Free";
-        content: "\f0fe";
-        font-weight: 900;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-        font-size: 10px;
-    }
-
-    table.dataTable.dtr-inline.collapsed>tbody>tr.parent>td.dtr-control:before,
-    table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
-        background-color: var(--sap-danger);
-        content: "\f146";
-    }
-
-    .dtr-details {
+    /* Table Styles - Refined Standard Table */
+    .table-standard {
+        border-collapse: separate;
+        border-spacing: 0;
         width: 100%;
-        padding: 1rem;
-        background: var(--sap-gray-50);
-        border-radius: 0.75rem;
     }
 
-    .dtr-title {
-        font-weight: 700;
+    .table-standard thead th {
+        background-color: var(--sap-gray-50);
         color: var(--sap-secondary);
         font-size: 0.75rem;
+        font-weight: 800;
         text-transform: uppercase;
-        margin-right: 1rem;
+        padding: 1rem;
+        border-bottom: 2px solid var(--sap-gray-100);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .table-standard tbody td {
+        padding: 0.85rem 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid var(--sap-gray-100);
+        font-size: 0.85rem;
+    }
+
+    .table-standard tbody tr:hover {
+        background-color: var(--sap-gray-50);
     }
 
     /* Badges Style */
@@ -302,8 +250,15 @@
 
     /* Animation */
     @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     /* Pagination Styling */
@@ -335,84 +290,399 @@
         opacity: 0.5;
     }
 
-    .dataTables_info {
-        font-size: 0.8rem;
-        font-weight: 600;
+    /* Riwayat Card Styles */
+    .riwayat-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 1rem;
+        max-height: 500px;
+        overflow-y: auto;
+        padding: 0.5rem;
+    }
+
+    .riwayat-card {
+        background: #fff;
+        border-radius: 1rem;
+        border: 1px solid var(--sap-gray-100);
+        padding: 1.25rem;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+    .riwayat-card:hover {
+        border-color: var(--sap-primary);
+        box-shadow: var(--sap-shadow-md);
+        transform: translateY(-2px);
+    }
+
+    .riwayat-card-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--sap-gray-50);
+        color: var(--sap-primary);
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+
+    .riwayat-card-title {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--sap-dark);
+        margin-bottom: 0.25rem;
+    }
+
+    .riwayat-card-meta {
+        font-size: 0.75rem;
         color: var(--sap-secondary);
+        margin-bottom: 0.75rem;
+    }
+
+    .riwayat-card-footer {
+        border-top: 1px solid var(--sap-gray-100);
+        padding-top: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 </style>
 
 <div class="container-fluid">
     <!-- === HEADER === -->
-    <div class="row align-items-center mb-4">
-        <div class="col-md-6">
-            <h2 class="page-title mb-1">Manajemen Kepegawaian</h2>
-            <p class="text-muted small mb-0">Kelola database profil, jabatan, dan status kepegawaian secara terpusat</p>
+    <div class="d-md-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="page-title mb-1">
+                <?php echo ($lv == '4') ? 'Profil & Riwayat Mandiri' : 'Manajemen Kepegawaian'; ?></h2>
+            <p class="text-muted small mb-0">
+                <?php echo ($lv == '4') ? 'Lihat dan verifikasi data profil serta riwayat kepegawaian Anda.' : 'Kelola database profil, jabatan, dan status kepegawaian secara terpusat'; ?>
+            </p>
         </div>
-        <div class="col-md-6 text-md-end mt-3 mt-md-0">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb justify-content-md-end bg-transparent p-0 m-0">
-                    <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none text-muted">Home</a>
-                    </li>
-                    <li class="breadcrumb-item active text-primary fw-bold" aria-current="page">Kepegawaian</li>
-                </ol>
-            </nav>
-        </div>
+        <nav aria-label="breadcrumb" class="mt-2 mt-md-0">
+            <ol class="breadcrumb mb-0 small">
+                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none text-muted">Home</a></li>
+                <li class="breadcrumb-item active text-primary fw-bold">
+                    <?php echo ($lv == '4') ? 'Dashboard Guru' : 'Kepegawaian'; ?></li>
+            </ol>
+        </nav>
     </div>
 
-    <!-- === MAIN TABLE CARD === -->
-    <div class="card">
-        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
-                    id="tombolTambahPegawai">
-                    <i class="fas fa-user-plus me-2"></i> Tambah Pegawai
-                </button>
-                <button type="button"
-                    class="btn btn-outline-secondary btn-sm btn-rounded p-0 d-flex align-items-center justify-content-center"
-                    id="tombolRefresh" style="width: 36px; height: 36px;" title="Refresh Data">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <div class="vr mx-1 text-gray-300" style="height: 20px;"></div>
-                <span class="badge bg-soft-primary rounded-pill px-3 py-2" id="totalPegawaiBadge">Loading...</span>
+    <?php if ($lv != '4'): ?>
+        <div class="modern-card">
+            <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
+                        id="tombolTambahPegawai">
+                        <i class="fas fa-user-plus me-2"></i> Tambah Pegawai
+                    </button>
+                </div>
+
+                <div class="position-relative">
+                    <i class="fas fa-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                    <input type="text" id="customSearch"
+                        class="form-control form-control-sm btn-rounded ps-5 border-0 bg-light"
+                        placeholder="Cari data pegawai..." style="width: 250px; height: 36px;">
+                </div>
             </div>
 
-            <div class="position-relative">
-                <i class="fas fa-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                <input type="text" id="customSearch"
-                    class="form-control form-control-sm btn-rounded ps-5 border-0 bg-light"
-                    placeholder="Cari data pegawai..." style="width: 250px; height: 36px;">
+            <div class="card-body p-0">
+                <div class="table-responsive" style="max-height: 600px;">
+                    <table id="tabelPegawai" class="table table-standard mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-center" width="50">No</th>
+                                <th class="text-center" width="60">Foto</th>
+                                <th>Nama & Identitas</th>
+                                <th>Jabatan & Unit</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center">Berkas SK</th>
+                                <?php if ($lv != '4'): ?>
+                                    <th class="text-center">Aktif</th>
+                                <?php endif; ?>
+                                <th class="text-center" width="150">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $query = "SELECT p.*, 
+                                 (SELECT COUNT(*) FROM riwayat_kepegawaian r WHERE r.pegawai_id = p.id AND r.file_lampiran IS NOT NULL AND r.file_lampiran != '') as total_sk
+                                 FROM pegawai p";
+                            if ($lv == '4') {
+                                $query .= " WHERE p.nip = '" . $conn->real_escape_string($nik) . "' OR p.nrk = '" . $conn->real_escape_string($nik) . "'";
+                            }
+                            $query .= " ORDER BY p.nm_pegawai ASC";
+                            $result = $conn->query($query);
+                            $no = 1;
+                            if ($result && $result->num_rows > 0):
+                                while ($row = $result->fetch_assoc()):
+                                    $foto_path = !empty($row['foto']) ? "../file/datakepegawaian/" . $row['foto'] : "../images/default.png";
+                                    $s = strtolower($row['status_pegawai'] ?? '');
+                                    $cls = 'badge-soft-lainnya';
+                                    if (strpos($s, 'pns') !== false)
+                                        $cls = 'badge-soft-pns';
+                                    else if (strpos($s, 'pppk') !== false)
+                                        $cls = 'badge-soft-pppk';
+                                    else if (strpos($s, 'honorer') !== false)
+                                        $cls = 'badge-soft-honorer';
+                                    ?>
+                                    <tr>
+                                        <td class="text-center">
+                                            <span class="fw-bold text-muted small"><?php echo $no++; ?></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <img src="<?php echo $foto_path; ?>" class="rounded-circle shadow-sm"
+                                                style="width: 36px; height: 36px; object-fit: cover;">
+                                        </td>
+                                        <td>
+                                            <div class="fw-bold text-dark"><?php echo $row['nm_pegawai'] ?? '-'; ?></div>
+                                            <div class="small text-muted">
+                                                NIP: <span class="text-primary"><?php echo $row['nip'] ?: '-'; ?></span> |
+                                                NRK: <?php echo $row['nrk'] ?: '-'; ?>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-medium text-dark"><?php echo $row['jabatan'] ?? '-'; ?></div>
+                                            <div class="extra-small text-muted"><?php echo $row['unit_kerja'] ?? '-'; ?></div>
+                                        </td>
+                                        <td class="text-center">
+                                            <span
+                                                class="badge-soft <?php echo $cls; ?>"><?php echo $row['status_pegawai'] ?? '-'; ?></span>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if ($row['total_sk'] > 0): ?>
+                                                <span class="badge bg-success-soft text-success rounded-pill px-2 py-1 small">
+                                                    <i class="fas fa-file-check me-1"></i><?php echo $row['total_sk']; ?> File
+                                                </span>
+                                            <?php else: ?>
+                                                <span class="text-muted extra-small italic">Kosong</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <?php if ($lv != '4'): ?>
+                                            <td class="text-center">
+                                                <div class="form-check form-switch d-flex justify-content-center">
+                                                    <input class="form-check-input status-switch" type="checkbox"
+                                                        data-id="<?php echo $row['id']; ?>" <?php echo ($row['status'] == '1') ? 'checked' : ''; ?>>
+                                                </div>
+                                            </td>
+                                        <?php endif; ?>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <button class="btn btn-sm btn-light border shadow-sm tombol-edit"
+                                                    data-id="<?php echo $row['id']; ?>" title="Edit"><i
+                                                        class="fas fa-edit text-warning"></i></button>
+                                                <?php if ($lv != '4'): ?>
+                                                    <button class="btn btn-sm btn-light border shadow-sm tombol-hapus"
+                                                        data-id="<?php echo $row['id']; ?>" title="Hapus"><i
+                                                            class="fas fa-trash text-danger"></i></button>
+                                                <?php endif; ?>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php
+                                endwhile;
+                            endif;
+                            ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
+    <?php else:
+        // === VIEW KHUSUS GURU (CARD STYLE) ===
+        $q_guru = $conn->query("SELECT * FROM pegawai WHERE nip = '$nik' OR nrk = '$nik' LIMIT 1");
+        $guru = $q_guru->fetch_assoc();
+        if ($guru):
+            $foto_guru = !empty($guru['foto']) ? '../file/pegawai/' . $guru['foto'] : '../images/default.png';
+            ?>
+            <div class="row g-4 mb-5">
+                <!-- Identity Card -->
+                <div class="col-lg-4">
+                    <div class="modern-card h-100">
+                        <div class="card-body text-center p-5">
+                            <div class="position-relative d-inline-block mb-4">
+                                <img src="<?php echo $foto_guru; ?>" class="rounded-circle border border-5 border-white shadow"
+                                    style="width: 180px; height: 180px; object-fit: cover;">
+                                <span
+                                    class="position-absolute bottom-0 end-0 bg-success border border-4 border-white rounded-circle"
+                                    style="width: 30px; height: 30px;"></span>
+                            </div>
+                            <h4 class="fw-bold text-dark mb-1"><?php echo htmlspecialchars($guru['nm_pegawai']); ?></h4>
+                            <p class="text-muted mb-3">
+                                <?php echo htmlspecialchars($guru['jabatan'] ?: 'Jabatan Belum Diatur'); ?></p>
+                            <div class="d-flex justify-content-center gap-2 mb-4">
+                                <span class="badge bg-primary-soft text-primary rounded-pill px-3">NIP:
+                                    <?php echo htmlspecialchars($guru['nip'] ?: '-'); ?></span>
+                                <span class="badge bg-indigo-soft text-indigo rounded-pill px-3">NRK:
+                                    <?php echo htmlspecialchars($guru['nrk'] ?: '-'); ?></span>
+                            </div>
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-indigo rounded-pill py-2 shadow-sm tombol-edit"
+                                    data-id="<?php echo $guru['id']; ?>">
+                                    <i class="fas fa-edit me-2"></i> Perbarui Biodata
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-        <div class="card-body p-0">
-            <div class="p-3">
-                <table id="tabelPegawai" class="table table-modern table-striped w-100">
-                    <thead>
-                        <tr>
-                            <th class="text-center">No</th>
-                            <th class="text-center">Foto</th>
-                            <th>NIP / Nama</th>
-                            <th>Tempat</th>
-                            <th>Tanggal</th>
-                            <th class="text-center">JK</th>
-                            <th>Pendidikan</th>
-                            <th>Jabatan</th>
-                            <th>Pangkat</th>
-                            <th>Gol</th>
-                            <th>Unit Kerja</th>
-                            <th>Status</th>
-                            <th class="text-center">Aktif</th>
-                            <th class="text-center">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Content loaded via AJAX -->
-                    </tbody>
-                </table>
+                <!-- Info Cards -->
+                <div class="col-lg-8">
+                    <div class="row g-4">
+                        <!-- Personal Info -->
+                        <div class="col-12">
+                            <div class="modern-card">
+                                <div class="modern-card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-user me-2 text-indigo"></i> Data Personal</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Tempat,
+                                                Tanggal Lahir</label>
+                                            <div class="text-dark fw-semibold">
+                                                <?php
+                                                $tgl = (!empty($guru['tgl_lahir']) && $guru['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($guru['tgl_lahir'])) : '-';
+                                                echo htmlspecialchars($guru['tempat_lahir'] ?: '-') . ", " . $tgl;
+                                                ?>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Jenis
+                                                Kelamin</label>
+                                            <div class="text-dark fw-semibold">
+                                                <?php echo ($guru['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan'; ?></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label
+                                                class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Pendidikan
+                                                Terakhir</label>
+                                            <div class="text-dark fw-semibold">
+                                                <?php echo htmlspecialchars($guru['pendidikan'] ?: '-'); ?></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Kontak
+                                                (No. HP / Email)</label>
+                                            <div class="text-dark fw-semibold">
+                                                <?php echo htmlspecialchars($guru['no_hp'] ?: '-'); ?> /
+                                                <?php echo htmlspecialchars($guru['email'] ?: '-'); ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Employment Info -->
+                        <div class="col-12">
+                            <div class="modern-card">
+                                <div class="modern-card-header bg-white border-bottom py-3">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-briefcase me-2 text-indigo"></i> Status
+                                        Kepegawaian</h6>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="row g-4">
+                                        <div class="col-md-6">
+                                            <label
+                                                class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Status</label>
+                                            <div><span
+                                                    class="badge-soft <?php echo (strpos(strtolower($guru['status_pegawai']), 'pns') !== false) ? 'badge-soft-pns' : 'badge-soft-pppk'; ?>"><?php echo htmlspecialchars($guru['status_pegawai'] ?: '-'); ?></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Pangkat
+                                                / Golongan</label>
+                                            <div class="text-dark fw-semibold">
+                                                <?php echo htmlspecialchars($guru['pangkat'] ?: '-'); ?>
+                                                (<?php echo htmlspecialchars($guru['golongan'] ?: '-'); ?>)</div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Unit
+                                                Kerja</label>
+                                            <div class="text-dark fw-semibold">
+                                                <?php echo htmlspecialchars($guru['unit_kerja'] ?: '-'); ?></div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-muted small text-uppercase fw-bold letter-spacing-1 mb-1">Alamat
+                                                Unit</label>
+                                            <div class="text-dark fw-semibold">SMP Negeri 171 Jakarta</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- History & Documents Section (No Modal) -->
+                        <div class="col-12 mt-2">
+                            <div class="modern-card">
+                                <div class="modern-card-header d-flex justify-content-between align-items-center py-3">
+                                    <h6 class="mb-0 fw-bold"><i class="fas fa-file-invoice me-2 text-indigo"></i> Riwayat &
+                                        Berkas SK</h6>
+                                    <button class="btn btn-primary btn-sm btn-rounded px-3" id="tombolTambahRiwayatGuru"
+                                        data-id="<?php echo $guru['id']; ?>">
+                                        <i class="fas fa-plus me-1"></i> Tambah Berkas
+                                    </button>
+                                </div>
+                                <div class="card-body p-4">
+                                    <div class="riwayat-container" style="max-height: none; overflow: visible;">
+                                        <?php
+                                        $id_g = $guru['id'];
+                                        $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = '$id_g' ORDER BY tmt DESC");
+                                        if ($q_riwayat && $q_riwayat->num_rows > 0):
+                                            while ($r = $q_riwayat->fetch_assoc()):
+                                                $icon = $r['kategori'] == 'Pangkat' ? 'fa-award' : ($r['kategori'] == 'Pendidikan' ? 'fa-graduation-cap' : 'fa-file-signature');
+                                                $has_file = !empty($r['file_lampiran']);
+                                                ?>
+                                                <div class="riwayat-card">
+                                                    <div class="riwayat-card-icon"><i class="fas <?php echo $icon; ?>"></i></div>
+                                                    <div class="riwayat-card-title"><?php echo htmlspecialchars($r['deskripsi']); ?>
+                                                    </div>
+                                                    <div class="riwayat-card-meta">
+                                                        <span class="me-2"><i class="far fa-calendar-alt me-1"></i>TMT:
+                                                            <?php echo date('d-m-Y', strtotime($r['tmt'])); ?></span>
+                                                        <div><i class="fas fa-hashtag me-1"></i>SK:
+                                                            <?php echo htmlspecialchars($r['no_sk'] ?: '-'); ?></div>
+                                                    </div>
+                                                    <div class="riwayat-card-footer">
+                                                        <?php if ($has_file): ?>
+                                                            <a href="../file/riwayat/<?php echo $r['file_lampiran']; ?>" target="_blank"
+                                                                class="btn btn-sm btn-soft-danger rounded-pill px-3 py-1 extra-small">
+                                                                <i class="fas fa-file-pdf me-1"></i>Lihat SK
+                                                            </a>
+                                                        <?php else: ?>
+                                                            <span class="text-muted extra-small italic"><i
+                                                                    class="fas fa-exclamation-circle me-1"></i>Belum ada file</span>
+                                                        <?php endif; ?>
+                                                        <div class="d-flex gap-2">
+                                                            <button class="btn btn-link text-warning p-0 edit-riwayat"
+                                                                data-id="<?php echo $r['id']; ?>" title="Edit"><i
+                                                                    class="fas fa-edit"></i></button>
+                                                            <button class="btn btn-link text-danger p-0 hapus-riwayat"
+                                                                data-id="<?php echo $r['id']; ?>" title="Hapus"><i
+                                                                    class="fas fa-trash"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            <?php
+                                            endwhile;
+                                        else:
+                                            ?>
+                                            <div class="col-12 text-center py-5 text-muted">
+                                                <i class="fas fa-folder-open fa-3x mb-3 opacity-25"></i>
+                                                <p class="small italic">Belum ada riwayat atau berkas yang diunggah.</p>
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+        <?php else: ?>
+            <div class="alert alert-warning rounded-4 shadow-sm">Data biodata tidak ditemukan.</div>
+        <?php endif; ?>
+    <?php endif; ?>
 </div>
 
 <!-- === MODAL: FORM PEGAWAI === -->
@@ -446,12 +716,17 @@
                         <!-- Basic Info Section -->
                         <div class="col-md-8">
                             <div class="row g-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="modern-label">NIP / NIK <span class="text-danger">*</span></label>
                                     <input type="text" name="nip" id="nip" class="form-control modern-input" required
                                         placeholder="NIP Pegawai">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label class="modern-label">NRK</label>
+                                    <input type="text" name="nrk" id="nrk" class="form-control modern-input"
+                                        placeholder="NRK Pegawai">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="modern-label">Nama Lengkap <span class="text-danger">*</span></label>
                                     <input type="text" name="nm_pegawai" id="nm_pegawai"
                                         class="form-control modern-input" required placeholder="Nama Lengkap">
@@ -574,7 +849,7 @@
                     <img id="detail-foto" src="../images/default.png" class="photo-preview mb-3"
                         style="width: 120px; height: 120px; border-width: 5px;">
                     <h4 id="detail-nama" class="fw-bold mb-1"></h4>
-                    <p id="detail-nip" class="opacity-75 small mb-0"></p>
+                    <p id="detail-nip-nrk" class="opacity-75 small mb-0"></p>
                 </div>
                 <div class="detail-body">
                     <div class="text-center mb-4">
@@ -626,46 +901,7 @@
     </div>
 </div>
 
-<!-- === MODAL: RIWAYAT KEPEGAWAIAN === -->
-<div class="modal fade" id="modalRiwayat" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content modern-modal border-0 shadow-lg">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <div>
-                    <h5 class="modal-title fw-bold">
-                        <i class="fas fa-history me-2 text-info"></i>Riwayat Kepegawaian
-                    </h5>
-                    <p class="text-muted small mb-0" id="riwayat-nama-pegawai"></p>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0">Daftar Riwayat</h6>
-                    <button type="button" class="btn btn-primary btn-sm btn-rounded px-3" id="tombolTambahRiwayat">
-                        <i class="fas fa-plus me-1"></i> Tambah
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle" id="tabelRiwayat">
-                        <thead class="bg-light">
-                            <tr>
-                                <th class="small fw-bold">Kategori</th>
-                                <th class="small fw-bold">Deskripsi</th>
-                                <th class="small fw-bold">TMT</th>
-                                <th class="small fw-bold">No. SK</th>
-                                <th class="small fw-bold text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody id="isiTabelRiwayat">
-                            <!-- Loaded via AJAX -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- === MODAL: FORM RIWAYAT === -->
 <div class="modal fade" id="modalFormRiwayat" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
@@ -695,7 +931,8 @@
                         </div>
                         <div class="col-12">
                             <label class="modern-label">Deskripsi / Keterangan</label>
-                            <textarea name="deskripsi" id="riwayat_deskripsi" class="form-control modern-input" rows="2" required placeholder="Contoh: Penata Muda / IIIa atau Kepala Seksi..."></textarea>
+                            <textarea name="deskripsi" id="riwayat_deskripsi" class="form-control modern-input" rows="2"
+                                required placeholder="Contoh: Penata Muda / IIIa atau Kepala Seksi..."></textarea>
                         </div>
                         <div class="col-md-6">
                             <label class="modern-label">TMT (Terhitung Mulai Tanggal)</label>
@@ -703,7 +940,8 @@
                         </div>
                         <div class="col-md-6">
                             <label class="modern-label">No. SK</label>
-                            <input type="text" name="no_sk" id="riwayat_no_sk" class="form-control modern-input" placeholder="Nomor Surat Keputusan">
+                            <input type="text" name="no_sk" id="riwayat_no_sk" class="form-control modern-input"
+                                placeholder="Nomor Surat Keputusan">
                         </div>
                         <div class="col-md-6">
                             <label class="modern-label">Tanggal SK</label>
@@ -717,19 +955,16 @@
                 </form>
             </div>
             <div class="modal-footer border-0 p-4 pt-0">
-                <button type="button" class="btn btn-light btn-rounded px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" form="formRiwayat" class="btn btn-primary btn-rounded px-5 fw-bold">Simpan</button>
+                <button type="button" class="btn btn-light btn-rounded px-4 fw-bold"
+                    data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="formRiwayat"
+                    class="btn btn-primary btn-rounded px-5 fw-bold">Simpan</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- === SCRIPTS === -->
-<script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
-<script src="https://cdn.datatables.net/2.3.8/js/dataTables.bootstrap5.js"></script>
-<script src="https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.js"></script>
-<script src="https://cdn.datatables.net/responsive/3.0.3/js/responsive.bootstrap5.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
     $(document).ready(function () {
@@ -741,7 +976,6 @@
             if (typeof bootstrap !== 'undefined') {
                 modalPegawai = new bootstrap.Modal(document.getElementById('modalPegawai'));
                 modalDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
-                modalRiwayat = new bootstrap.Modal(document.getElementById('modalRiwayat'));
                 modalFormRiwayat = new bootstrap.Modal(document.getElementById('modalFormRiwayat'));
             } else {
                 setTimeout(initModals, 100);
@@ -759,141 +993,21 @@
         // Toastr Config
         toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
 
-        // DataTable Initialization
-        const table = new DataTable('#tabelPegawai', {
-            layout: { 
-                topStart: null, 
-                topEnd: null, 
-                bottomStart: 'info', 
-                bottomEnd: 'paging' 
-            },
-            responsive: {
-                details: {
-                    type: 'column',
-                    target: 'tr'
-                }
-            },
-            paging: true,
-            pageLength: 10,
-            order: [[2, 'asc']],
-            ajax: { url: ajaxUrl, type: "GET", data: { action: "muatDataJSON" } },
-            columns: [
-                { 
-                    data: null, 
-                    className: "text-center align-middle dtr-control", 
-                    orderable: false,
-                    render: (data, type, row, meta) => `<span class="fw-bold text-secondary opacity-75 small">${meta.row + 1}</span>` 
-                },
-                {
-                    data: "foto",
-                    className: "text-center align-middle",
-                    responsivePriority: 3,
-                    render: (data) => {
-                        const path = data ? '../file/pegawai/' + data : '../images/default.png';
-                        return `<img src="${path}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 38px; height: 38px; object-fit: cover;">`;
-                    }
-                },
-                {
-                    data: null,
-                    className: "align-middle",
-                    responsivePriority: 1,
-                    render: (data, type, row) => `
-                    <div class="d-flex align-items-center gap-2">
-                        <div style="line-height: 1.3;">
-                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">${row.nm_pegawai}</div>
-                            <div class="text-muted extra-small d-flex align-items-center gap-1">
-                                <i class="fas fa-id-badge opacity-50"></i> ${row.nip || '-'}
-                            </div>
-                        </div>
-                    </div>`
-                },
-                { data: "tempat_lahir", className: "align-middle small text-muted", responsivePriority: 10 },
-                { data: "tgl_lahir", className: "align-middle small text-muted", responsivePriority: 10, render: (data) => formatDate(data) },
-                {
-                    data: "jenis_kelamin",
-                    className: "text-center align-middle small",
-                    responsivePriority: 9,
-                    render: (data) => data === 'L' ? '<span class="text-primary fw-bold">L</span>' : '<span class="text-danger fw-bold">P</span>'
-                },
-                { data: "pendidikan", className: "align-middle small", responsivePriority: 8 },
-                { data: "jabatan", className: "align-middle small fw-medium", responsivePriority: 5 },
-                { data: "pangkat", className: "align-middle small text-muted", responsivePriority: 7 },
-                { data: "golongan", className: "align-middle small text-muted", responsivePriority: 7 },
-                { data: "unit_kerja", className: "align-middle small fw-medium", responsivePriority: 6 },
-                {
-                    data: "status_pegawai",
-                    className: "align-middle text-center",
-                    responsivePriority: 4,
-                    render: (data) => {
-                        const s = (data || '').toLowerCase();
-                        let cls = 'badge-soft-lainnya';
-                        if (s.includes('pns')) cls = 'badge-soft-pns';
-                        else if (s.includes('pppk')) cls = 'badge-soft-pppk';
-                        else if (s.includes('honorer')) cls = 'badge-soft-honorer';
-                        return `<span class="badge-soft ${cls}">${data || '-'}</span>`;
-                    }
-                },
-                {
-                    data: "status",
-                    className: "text-center align-middle",
-                    responsivePriority: 11,
-                    render: (data, type, row) => {
-                        const isChecked = (data == '1' || data == 'Aktif') ? 'checked' : '';
-                        return `<div class="form-check form-switch d-flex justify-content-center m-0">
-                                <input class="form-check-input status-switch" type="checkbox" role="switch" data-id="${row.id}" ${isChecked} style="cursor: pointer; width: 2.2em; height: 1.1em;">
-                            </div>`;
-                    }
-                },
-                {
-                    data: null,
-                    className: "text-center align-middle",
-                    responsivePriority: 2,
-                    render: (data, type, row) => `
-                    <div class="d-flex justify-content-center gap-1">
-                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-riwayat" 
-                            data-id="${row.id}" data-nama="${row.nm_pegawai}" style="width:30px; height:30px;" title="Riwayat Kepegawaian" data-bs-toggle="tooltip">
-                            <i class="fas fa-history text-info" style="font-size: 0.8rem;"></i>
-                        </button>
-                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-view" 
-                            data-id="${row.id}" style="width:30px; height:30px;" title="Detail" data-bs-toggle="tooltip">
-                            <i class="fas fa-eye text-primary" style="font-size: 0.8rem;"></i>
-                        </button>
-                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-edit" 
-                            data-id="${row.id}" style="width:30px; height:30px;" title="Edit" data-bs-toggle="tooltip">
-                            <i class="fas fa-edit text-warning" style="font-size: 0.8rem;"></i>
-                        </button>
-                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-hapus" 
-                            data-id="${row.id}" style="width:30px; height:30px;" title="Hapus" data-bs-toggle="tooltip">
-                            <i class="fas fa-trash text-danger" style="font-size: 0.8rem;"></i>
-                        </button>
-                    </div>`
-                }
-            ],
-            language: { search: "Cari:", info: "Menampilkan _START_ - _END_ dari _TOTAL_ data", zeroRecords: "Tidak ada data ditemukan" },
-            drawCallback: function (settings) {
-                const api = this.api();
-                const total = api.page.info().recordsTotal;
-                $('#totalPegawaiBadge').text(total + ' Pegawai');
-
-                // Initialize Tooltips
-                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-                tooltipTriggerList.map(function (tooltipTriggerEl) {
-                    return new bootstrap.Tooltip(tooltipTriggerEl);
-                });
-            }
+        // Simple Search
+        $('#customSearch').on('keyup', function () {
+            const value = $(this).val().toLowerCase();
+            $('#tabelPegawai tbody tr').filter(function () {
+                $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+            });
+            $('#totalPegawaiBadge').text($('#tabelPegawai tbody tr:visible').length + ' Pegawai');
         });
 
-        // Custom Search
-        $('#customSearch').on('keyup', function () { table.search(this.value).draw(); });
+        // Initialize Total
+        $('#totalPegawaiBadge').text($('#tabelPegawai tbody tr').length + ' Pegawai');
 
         // Refresh
         $('#tombolRefresh').click(function () {
-            const btn = $(this);
-            btn.find('i').addClass('fa-spin');
-            table.ajax.reload(() => {
-                setTimeout(() => btn.find('i').removeClass('fa-spin'), 500);
-                toastr.success('Data diperbarui');
-            }, false);
+            location.reload();
         });
 
         // Form: Create
@@ -926,7 +1040,7 @@
                     if (res.status === 'success') {
                         modalPegawai.hide();
                         toastr.success(res.message);
-                        table.ajax.reload(null, false);
+                        setTimeout(() => location.reload(), 800);
                     } else toastr.error(res.message);
                 }
             });
@@ -938,7 +1052,7 @@
             $.get(ajaxUrl, { action: 'ambil', id: id }, (res) => {
                 if (res.status === 'success') {
                     const d = res.data;
-                    $('#pegawai_id').val(d.id); $('#nip').val(d.nip); $('#nm_pegawai').val(d.nm_pegawai);
+                    $('#pegawai_id').val(d.id); $('#nip').val(d.nip); $('#nrk').val(d.nrk); $('#nm_pegawai').val(d.nm_pegawai);
                     $('#tempat_lahir').val(d.tempat_lahir); $('#tgl_lahir').val(d.tgl_lahir); $('#jenis_kelamin').val(d.jenis_kelamin);
                     $('#jabatan').val(d.jabatan); $('#pangkat').val(d.pangkat); $('#golongan').val(d.golongan);
                     $('#unit_kerja').val(d.unit_kerja); $('#status_pegawai').val(d.status_pegawai); $('#pendidikan').val(d.pendidikan);
@@ -959,7 +1073,7 @@
                 if (res.status === 'success') {
                     const d = res.data;
                     $('#detail-nama').text(d.nm_pegawai || '-');
-                    $('#detail-nip').text('NIP: ' + (d.nip || '-'));
+                    $('#detail-nip-nrk').text('NIP: ' + (d.nip || '-') + (d.nrk ? ' | NRK: ' + d.nrk : ''));
                     $('#detail-jabatan').text(d.jabatan || 'Staf');
 
                     let ttl = '-';
@@ -1004,47 +1118,24 @@
             const id = $(this).data('id');
             if (confirm('Hapus data pegawai ini?')) {
                 $.post(ajaxUrl, { action: 'hapus', id: id }, (res) => {
-                    if (res.status === 'success') { toastr.success(res.message); table.ajax.reload(null, false); }
+                    if (res.status === 'success') {
+                        toastr.success(res.message);
+                        setTimeout(() => location.reload(), 800);
+                    }
                 }, 'json');
             }
         });
 
         // === RIWAYAT LOGIC ===
 
-        const loadRiwayat = (pegawai_id) => {
-            $.get(ajaxUrl, { action: 'muatRiwayat', pegawai_id: pegawai_id }, (res) => {
-                let html = '';
-                if (res.data && res.data.length > 0) {
-                    res.data.forEach(item => {
-                        const fileBtn = item.file_lampiran ? `<a href="../file/riwayat/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded" title="Lihat SK"><i class="fas fa-file-pdf text-danger"></i></a>` : '';
-                        html += `
-                        <tr>
-                            <td><span class="badge bg-light text-dark small">${item.kategori}</span></td>
-                            <td class="small fw-medium">${item.deskripsi}</td>
-                            <td class="small">${formatDate(item.tmt)}</td>
-                            <td class="small text-muted">${item.no_sk || '-'} ${fileBtn}</td>
-                            <td class="text-center">
-                                <div class="d-flex justify-content-center gap-1">
-                                    <button class="btn btn-link text-warning p-0 edit-riwayat" data-id="${item.id}" title="Edit"><i class="fas fa-edit"></i></button>
-                                    <button class="btn btn-link text-danger p-0 hapus-riwayat" data-id="${item.id}" title="Hapus"><i class="fas fa-trash"></i></button>
-                                </div>
-                            </td>
-                        </tr>`;
-                    });
-                } else {
-                    html = '<tr><td colspan="5" class="text-center text-muted py-3 small italic">Belum ada data riwayat</td></tr>';
-                }
-                $('#isiTabelRiwayat').html(html);
-            }, 'json');
-        };
-
-        $(document).on('click', '.tombol-riwayat', function () {
+        // Specific for Guru Dashboard (No Modal)
+        $('#tombolTambahRiwayatGuru').click(function () {
             const id = $(this).data('id');
-            const nama = $(this).data('nama');
+            $('#formRiwayat')[0].reset();
             $('#pegawai_id_riwayat').val(id);
-            $('#riwayat-nama-pegawai').text(nama);
-            loadRiwayat(id);
-            modalRiwayat.show();
+            $('#id_riwayat, #file_lama_riwayat').val('');
+            $('#modalFormRiwayatLabel').text('Tambah Riwayat');
+            modalFormRiwayat.show();
         });
 
         $('#tombolTambahRiwayat').click(function () {
@@ -1085,7 +1176,12 @@
                     if (res.status === 'success') {
                         toastr.success(res.message);
                         modalFormRiwayat.hide();
-                        loadRiwayat($('#pegawai_id_riwayat').val());
+                        // For Teacher View (No Modal), we reload to refresh the PHP-rendered cards
+                        if ("<?php echo $lv; ?>" == "4") {
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            loadRiwayat($('#pegawai_id_riwayat').val());
+                        }
                     } else {
                         toastr.error(res.message);
                     }
@@ -1099,7 +1195,11 @@
                 $.post(ajaxUrl, { action: 'hapusRiwayat', id: id }, (res) => {
                     if (res.status === 'success') {
                         toastr.success(res.message);
-                        loadRiwayat($('#pegawai_id_riwayat').val());
+                        if ("<?php echo $lv; ?>" == "4") {
+                            setTimeout(() => location.reload(), 500);
+                        } else {
+                            loadRiwayat($('#pegawai_id_riwayat').val());
+                        }
                     }
                 }, 'json');
             }

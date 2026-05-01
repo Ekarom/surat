@@ -10,7 +10,11 @@ ini_set('display_errors', 0);
 if (ob_get_level()) ob_end_clean();
 ob_start();
 
-session_start();
+// Include dbconn for session consistency
+require_once 'dbconn.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 // Generate numbers (1-10)
 $num1 = rand(1, 10);

@@ -38,6 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $nip = mysqli_real_escape_string($conn, $_POST['nip'] ?? '');
+    $nrk = mysqli_real_escape_string($conn, $_POST['nrk'] ?? '');
     $nama = mysqli_real_escape_string($conn, $_POST['nama'] ?? '');
     $tempat_lahir = mysqli_real_escape_string($conn, $_POST['tempat_lahir'] ?? '');
 
@@ -69,11 +70,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     $insert = $conn->query("INSERT INTO pegawai (
-                                nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, 
+                                nip, nrk, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, 
                                 pendidikan, tgl_lulus, jabatan, pangkat, golongan, tmt_golongan,
                                 unit_kerja, status_pegawai, no_hp, email, status
                            ) VALUES (
-                                '$nip', '$nama', '$tempat_lahir', " . ($tgl_lahir ? "'$tgl_lahir'" : "NULL") . ", '$jenis_kelamin', 
+                                '$nip', '$nrk', '$nama', '$tempat_lahir', " . ($tgl_lahir ? "'$tgl_lahir'" : "NULL") . ", '$jenis_kelamin', 
                                 '$pendidikan', " . ($tgl_lulus ? "'$tgl_lulus'" : "NULL") . ", '$jabatan', '$pangkat', '$golongan', " . ($tmt_golongan ? "'$tmt_golongan'" : "NULL") . ", 
                                 '$unit_kerja', '$status_pegawai', '$no_hp', '$email', '1'
                            )");

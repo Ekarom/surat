@@ -318,7 +318,22 @@ $website2 = $data_web['website2'];
 
 // --- DYNAMIC TAPEL & SEMESTER (For Organized Upload Folders) ---
 if (session_status() === PHP_SESSION_NONE) {
-  session_start();
+    // Standardize session path to project root to ensure unified logout/session
+    // This prevents subdirectories from starting independent sessions
+    $current_script_path = str_replace('\\', '/', __DIR__);
+    $doc_root = str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT']);
+    $session_path = '/' . trim(str_replace($doc_root, '', $current_script_path), '/') . '/';
+    
+    if (PHP_VERSION_ID >= 70300) {
+        session_set_cookie_params([
+            'path' => $session_path,
+            'samesite' => 'Lax'
+        ]);
+    } else {
+        session_set_cookie_params(0, $session_path);
+    }
+    
+    session_start();
 }
 
 // Calculate Academic Year (Tapel) and Semester based on $tahun (active year from DB)

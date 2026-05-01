@@ -1,7 +1,5 @@
 <?php
 ob_start();
-session_start();
-
 include 'dbconn.php'; 
 
 // Cek Koneksi Database (Handle jika include gagal atau koneksi false)
@@ -78,7 +76,8 @@ $session_captcha = $_SESSION['captcha_answer'] ?? null;
 unset($_SESSION['captcha_answer']);
 
 if ($session_captcha === null || empty($user_captcha) || intval($user_captcha) !== intval($session_captcha)) {
-    header("Location: login.php?salah=5");
+    $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false) ? 'login_guru.php' : 'login.php';
+    header("Location: $redirect_to?salah=5");
     exit;
 }
 
@@ -88,24 +87,45 @@ if ($session_captcha === null || empty($user_captcha) || intval($user_captcha) !
 $userid = $_POST['userid'] ?? ''; 
 $password = $_POST['password'] ?? ''; 
 
-// Query Database
-$stmt = $conn->prepare('SELECT id, userid, password, email, nama, google_auth_secret, level, status, poto, nik FROM tb_user WHERE userid = ? LIMIT 1');
+// Query Database (Check both userid and nik for NIP login)
+$stmt = $conn->prepare('SELECT id, userid, password, email, nama, google_auth_secret, level, status, poto, nik FROM tb_user WHERE (userid = ? OR nik = ?) LIMIT 1');
 if ($stmt === false) {
     error_log('Prepare statement failed: ' . htmlspecialchars($conn->error));
     header("Location: login.php?salah=2"); 
     exit;
 }
-$stmt->bind_param("s", $userid);
+$stmt->bind_param("ss", $userid, $userid);
 $stmt->execute();
 $result = $stmt->get_result(); 
 $user = $result->fetch_assoc();
 $stmt->close();
 
-if ($user && password_verify($password, $user['password'])) {
+// Authentication Logic
+$is_authenticated = false;
+if ($user) {
+    // 1. Standard Password Verification
+    if (password_verify($password, $user['password'])) {
+        $is_authenticated = true;
+    } 
+    // 2. Fallback for Teacher (Level 4): Allow NRK (nik) as Password
+    elseif ($user['level'] == '4' && !empty($user['nik']) && $password === $user['nik']) {
+        $is_authenticated = true;
+    }
+}
+
+if ($is_authenticated) {
+
+    // [CEK AKSES PORTAL GURU]
+    $is_from_login_guru = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false);
+    if ($is_from_login_guru && $user['level'] != '4') {
+        header("Location: login_guru.php?salah=4");
+        exit;
+    }
 
     // [CEK STATUS]
     if ($user['status'] == '0' || $user['status'] == 'Nonaktif') {
-        header("Location: login.php?salah=2");
+        $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false) ? 'login_guru.php' : 'login.php';
+        header("Location: $redirect_to?salah=2");
         exit;
     }
 
@@ -144,14 +164,13 @@ if ($user && password_verify($password, $user['password'])) {
             exit();
         }
     } else {
-        // =================================================================================
-        // MANDATORY 2FA SETUP
-        // User WAJIB setup 2FA saat first login jika belum punya secret
-        // =================================================================================
-        $_SESSION['2fa_user_id'] = $uid;
-        if (file_exists('setup_2fa.php')) {
-             header('Location: setup_2fa.php');
-             exit();
+        // MANDATORY 2FA SETUP (Hanya untuk Admin & Staff)
+        if (in_array($user['level'], ['1', '2'])) {
+            $_SESSION['2fa_user_id'] = $uid;
+            if (file_exists('setup_2fa.php')) {
+                 header('Location: setup_2fa.php');
+                 exit();
+            }
         }
     }
 
@@ -186,7 +205,11 @@ if ($user && password_verify($password, $user['password'])) {
     $stmt_log->bind_param("sssss", $user['userid'], $nama, $waktu, $ip_address, $info_log);
     $stmt_log->execute();
 
-    header("Location: ./?");
+    if ($user['level'] == '4') {
+        header("Location: index.php?kepegawaian_dashboard_guru");
+    } else {
+        header("Location: ./?");
+    }
     exit();
 
 } else {
@@ -209,10 +232,12 @@ if ($user && password_verify($password, $user['password'])) {
     $remaining = 3 - $attempts_count;
     if ($remaining < 0) $remaining = 0;
     
+    $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false) ? 'login_guru.php' : 'login.php';
+
     if ($attempts_count >= 3) {
-        header("Location: login.php?salah=3&wait=300");
+        header("Location: $redirect_to?salah=3&wait=300");
     } else {
-        header("Location: login.php?salah=1&sisa=$remaining");
+        header("Location: $redirect_to?salah=1&sisa=$remaining");
     }
     exit();
 }

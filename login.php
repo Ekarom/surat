@@ -256,6 +256,7 @@ if (isset($_SESSION['error_message'])) {
                         Login
                     </button>
                 </div>
+
                 <?php
 
                 // Pastikan tidak ada spasi sebelum tag php

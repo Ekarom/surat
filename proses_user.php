@@ -104,6 +104,8 @@ if ($action == 'muat') {
                         $levelBadge = '<span class="badge bg-danger">Administrator</span>';
                     } elseif ($row['level'] == '2') {
                         $levelBadge = '<span class="badge bg-warning text-dark">Staff</span>';
+                    } elseif ($row['level'] == '4') {
+                        $levelBadge = '<span class="badge bg-success">Guru</span>';
                     } else {
                         $levelBadge = '<span class="badge bg-secondary">User</span>';
                     }
@@ -242,6 +244,7 @@ if ($action == 'simpan') {
         
         $sql = "INSERT INTO tb_user (nama, userid, nik, password, level, status, poto, email, email_code, email_code_expired, ip, last_login, idu) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
+        // Ensure level is treated as string for bind_param if necessary, but "s" is used for all here.
         $stmt->bind_param("sssssssssssss", $nama, $userid, $nik, $hashed_password, $level, $statusDB, $image, $email, $email_code, $email_code_expired, $ip_user, $last_login, $idu_val);
 
     } else {

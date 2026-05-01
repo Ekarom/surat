@@ -158,16 +158,17 @@ if (!isset($conn)) {
                             </thead>
                             <tbody>
                                 <tr><td class="fw-bold text-primary">A</td><td>NIP / NIK</td><td class="text-center"><span class="text-danger fw-bold">Ya</span></td></tr>
-                                <tr><td class="fw-bold text-primary">B</td><td>Nama Lengkap</td><td class="text-center"><span class="text-danger fw-bold">Ya</span></td></tr>
-                                <tr><td class="fw-bold text-primary">C</td><td>Tempat Lahir</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">D</td><td>Tanggal Lahir</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">E</td><td>Gender (L/P)</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">F</td><td>Pendidikan</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">G</td><td>Jabatan</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">H</td><td>Pangkat</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">I</td><td>Golongan</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">J</td><td>Unit Kerja</td><td class="text-center text-muted">Tidak</td></tr>
-                                <tr><td class="fw-bold text-primary">K</td><td>Status Pegawai</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">B</td><td>NRK</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">C</td><td>Nama Lengkap</td><td class="text-center"><span class="text-danger fw-bold">Ya</span></td></tr>
+                                <tr><td class="fw-bold text-primary">D</td><td>Tempat Lahir</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">E</td><td>Tanggal Lahir</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">F</td><td>Gender (L/P)</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">G</td><td>Pendidikan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">H</td><td>Jabatan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">I</td><td>Pangkat</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">J</td><td>Golongan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">K</td><td>Unit Kerja</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">L</td><td>Status Pegawai</td><td class="text-center text-muted">Tidak</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -253,20 +254,21 @@ if (!isset($conn)) {
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: new URLSearchParams({
                         nip: row[0] || '',
-                        nama: row[1] || '',
-                        tempat_lahir: row[2] || '',
-                        tgl_lahir: row[3] || '',
-                        jenis_kelamin: row[4] || '',
-                        pendidikan: row[5] || '',
-                        jabatan: row[6] || '',
-                        pangkat: row[7] || '',
-                        golongan: row[8] || '',
-                        unit_kerja: row[9] || '',
-                        status_pegawai: row[10] || '',
-                        tgl_lulus: row[11] || '',
-                        tmt_golongan: row[12] || '',
-                        no_hp: row[13] || '',
-                        email: row[14] || ''
+                        nrk: row[1] || '',
+                        nama: row[2] || '',
+                        tempat_lahir: row[3] || '',
+                        tgl_lahir: row[4] || '',
+                        jenis_kelamin: row[5] || '',
+                        pendidikan: row[6] || '',
+                        jabatan: row[7] || '',
+                        pangkat: row[8] || '',
+                        golongan: row[9] || '',
+                        unit_kerja: row[10] || '',
+                        status_pegawai: row[11] || '',
+                        tgl_lulus: row[12] || '',
+                        tmt_golongan: row[13] || '',
+                        no_hp: row[14] || '',
+                        email: row[15] || ''
                     })
                 });
                 const res = await response.json();
@@ -282,7 +284,7 @@ if (!isset($conn)) {
     }
 
     function downloadTemplate() {
-        const header = [["NIP", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "Tanggal Lulus", "TMT Golongan", "No hp", "Email"]];
+        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "Tanggal Lulus", "TMT Golongan", "No hp", "Email"]];
         const worksheet = XLSX.utils.aoa_to_sheet(header);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
