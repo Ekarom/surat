@@ -71,6 +71,21 @@ foreach ($columns_to_ensure as $col => $type) {
     }
 }
 
+// Migration for riwayat_kepegawaian
+$createRiwayatTable = "CREATE TABLE IF NOT EXISTS riwayat_kepegawaian (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    pegawai_id INT NOT NULL,
+    kategori VARCHAR(50),
+    deskripsi TEXT,
+    tmt DATE,
+    no_sk VARCHAR(100),
+    tgl_sk DATE,
+    file_lampiran VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pegawai_id) REFERENCES pegawai(id) ON DELETE CASCADE
+)";
+$conn->query($createRiwayatTable);
+
 
 $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : '';
 
@@ -82,6 +97,20 @@ function uploadFoto($file) {
     }
     $file_extension = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
     $new_filename = 'pegawai_' . time() . '_' . rand(100, 999) . '.' . $file_extension;
+    $target_file = $target_dir . $new_filename;
+    if (move_uploaded_file($file["tmp_name"], $target_file)) {
+        return $new_filename;
+    }
+    return false;
+}
+
+function uploadSK($file) {
+    $target_dir = "../file/riwayat/";
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0777, true);
+    }
+    $file_extension = strtolower(pathinfo($file["name"], PATHINFO_EXTENSION));
+    $new_filename = 'sk_' . time() . '_' . rand(100, 999) . '.' . $file_extension;
     $target_file = $target_dir . $new_filename;
     if (move_uploaded_file($file["tmp_name"], $target_file)) {
         return $new_filename;
@@ -219,6 +248,98 @@ if ($action == 'hapus') {
         echo json_encode(['status' => 'success', 'message' => 'Data pegawai berhasil dihapus!']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal menghapus data.']);
+    }
+    exit;
+}
+
+// --- RIWAYAT: MUAT DATA ---
+if ($action == 'muatRiwayat') {
+    header('Content-Type: application/json');
+    $pegawai_id = $_GET['pegawai_id'];
+    $query = "SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt DESC, created_at DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $pegawai_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+    echo json_encode(['status' => 'success', 'data' => $data]);
+    exit;
+}
+
+// --- RIWAYAT: AMBIL SATU ---
+if ($action == 'ambilRiwayat') {
+    header('Content-Type: application/json');
+    $id = $_GET['id'];
+    $stmt = $conn->prepare("SELECT * FROM riwayat_kepegawaian WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    $stmt->execute();
+    $data = $stmt->get_result()->fetch_assoc();
+    echo json_encode(['status' => 'success', 'data' => $data]);
+    exit;
+}
+
+// --- RIWAYAT: SIMPAN ---
+if ($action == 'simpanRiwayat') {
+    header('Content-Type: application/json');
+    $id = $_POST['id_riwayat'] ?? '';
+    $pegawai_id = $_POST['pegawai_id_riwayat'];
+    $kategori = $_POST['kategori'];
+    $deskripsi = $_POST['deskripsi'];
+    $tmt = !empty($_POST['tmt']) ? $_POST['tmt'] : null;
+    $no_sk = $_POST['no_sk'];
+    $tgl_sk = !empty($_POST['tgl_sk']) ? $_POST['tgl_sk'] : null;
+    $file_lama = $_POST['file_lama_riwayat'] ?? '';
+
+    $file_lampiran = $file_lama;
+    if (isset($_FILES['file_lampiran']) && $_FILES['file_lampiran']['error'] == 0) {
+        $upload = uploadSK($_FILES['file_lampiran']);
+        if ($upload) {
+            $file_lampiran = $upload;
+            if (!empty($file_lama) && file_exists("../file/riwayat/" . $file_lama)) {
+                unlink("../file/riwayat/" . $file_lama);
+            }
+        }
+    }
+
+    if (empty($id)) {
+        $sql = "INSERT INTO riwayat_kepegawaian (pegawai_id, kategori, deskripsi, tmt, no_sk, tgl_sk, file_lampiran) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("issssss", $pegawai_id, $kategori, $deskripsi, $tmt, $no_sk, $tgl_sk, $file_lampiran);
+    } else {
+        $sql = "UPDATE riwayat_kepegawaian SET kategori=?, deskripsi=?, tmt=?, no_sk=?, tgl_sk=?, file_lampiran=? WHERE id=?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ssssssi", $kategori, $deskripsi, $tmt, $no_sk, $tgl_sk, $file_lampiran, $id);
+    }
+
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Riwayat berhasil disimpan!']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Gagal menyimpan riwayat: ' . $stmt->error]);
+    }
+    exit;
+}
+
+// --- RIWAYAT: HAPUS ---
+if ($action == 'hapusRiwayat') {
+    header('Content-Type: application/json');
+    $id = $_POST['id'];
+    $stmt_cek = $conn->prepare("SELECT file_lampiran FROM riwayat_kepegawaian WHERE id = ?");
+    $stmt_cek->bind_param("i", $id);
+    $stmt_cek->execute();
+    $res = $stmt_cek->get_result()->fetch_assoc();
+    if ($res && !empty($res['file_lampiran']) && file_exists("../file/riwayat/" . $res['file_lampiran'])) {
+        unlink("../file/riwayat/" . $res['file_lampiran']);
+    }
+
+    $stmt = $conn->prepare("DELETE FROM riwayat_kepegawaian WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    if ($stmt->execute()) {
+        echo json_encode(['status' => 'success', 'message' => 'Riwayat berhasil dihapus!']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Gagal menghapus riwayat.']);
     }
     exit;
 }

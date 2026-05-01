@@ -8,7 +8,7 @@
 
 <!-- === EXTERNAL ASSETS === -->
 <link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.bootstrap5.css">
-<link rel="stylesheet" href="https://cdn.datatables.net/fixedcolumns/5.0.5/css/fixedColumns.bootstrap5.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/responsive/3.0.3/css/responsive.bootstrap5.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
 <style>
@@ -43,57 +43,134 @@
         background: #fff;
         border-radius: var(--sap-border-radius);
         border: none;
-        box-shadow: var(--sap-shadow-sm);
-        transition: box-shadow 0.3s ease;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
     }
 
     .modern-card:hover {
-        box-shadow: var(--sap-shadow-md);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
 
     .modern-card-header {
         background-color: #fff;
-        border-bottom: 1px solid var(--sap-gray-50);
-        padding: 1rem 1.5rem;
+        border-bottom: 1px solid var(--sap-gray-100);
+        padding: 1.25rem 1.5rem;
     }
 
     /* Table Styles */
     .table-modern thead th {
-        font-size: 0.75rem;
-        font-weight: 700;
+        font-size: 0.7rem;
+        font-weight: 800;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.05em;
         color: var(--sap-secondary);
-        padding: 1rem 0.75rem;
-        border-bottom: 1px solid var(--sap-gray-100) !important;
+        padding: 1.1rem 0.75rem;
+        border-bottom: 2px solid var(--sap-gray-100) !important;
         background-color: var(--sap-gray-50);
         border-top: none;
+        white-space: nowrap;
     }
 
     .table-modern tbody td {
-        padding: 0.85rem 0.75rem;
+        padding: 1rem 0.75rem;
         vertical-align: middle;
-        border-bottom: 1px solid #f8fafc;
-        font-size: 0.875rem;
+        border-bottom: 1px solid #f1f5f9;
+        font-size: 0.85rem;
+        color: #334155;
+        transition: background-color 0.2s;
+    }
+
+    .table-modern tbody tr:hover td {
+        background-color: rgba(79, 70, 229, 0.02) !important;
     }
 
     .table-modern.table-striped tbody tr:nth-of-type(odd) {
         background-color: #fafbfc;
     }
 
-    /* DataTables FixedColumns Shadow */
-    .dtfc-fixed-left,
-    .dtfc-fixed-right {
-        background-color: #fff !important;
-        z-index: 5;
+    /* Custom Scrollbar for Table */
+    .table-responsive::-webkit-scrollbar {
+        height: 8px;
+        width: 8px;
     }
 
-    .table-modern.dataTable tr>.dtfc-fixed-left:last-child {
-        box-shadow: 5px 0 10px -5px rgba(0, 0, 0, 0.1);
+    .table-responsive::-webkit-scrollbar-track {
+        background: #f1f5f9;
     }
 
-    .table-modern.dataTable tr>.dtfc-fixed-right:first-child {
-        box-shadow: -5px 0 10px -5px rgba(0, 0, 0, 0.1);
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    /* DataTables Responsive Child Row Style */
+    table.dataTable.dtr-inline.collapsed>tbody>tr>td.dtr-control:before,
+    table.dataTable.dtr-inline.collapsed>tbody>tr>th.dtr-control:before {
+        background-color: var(--sap-primary);
+        border: 2px solid #fff;
+        box-shadow: var(--sap-shadow-sm);
+        font-family: "Font Awesome 6 Free";
+        content: "\f0fe";
+        font-weight: 900;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+        font-size: 10px;
+    }
+
+    table.dataTable.dtr-inline.collapsed>tbody>tr.parent>td.dtr-control:before,
+    table.dataTable.dtr-inline.collapsed>tbody>tr.parent>th.dtr-control:before {
+        background-color: var(--sap-danger);
+        content: "\f146";
+    }
+
+    .dtr-details {
+        width: 100%;
+        padding: 1rem;
+        background: var(--sap-gray-50);
+        border-radius: 0.75rem;
+    }
+
+    .dtr-title {
+        font-weight: 700;
+        color: var(--sap-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        margin-right: 1rem;
+    }
+
+    /* Badges Style */
+    .badge-soft {
+        font-weight: 600;
+        padding: 0.35em 0.8em;
+        border-radius: 50px;
+        font-size: 0.75rem;
+    }
+
+    .badge-soft-pns {
+        background-color: rgba(79, 70, 229, 0.1);
+        color: #4f46e5;
+    }
+
+    .badge-soft-pppk {
+        background-color: rgba(14, 165, 233, 0.1);
+        color: #0ea5e9;
+    }
+
+    .badge-soft-honorer {
+        background-color: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .badge-soft-lainnya {
+        background-color: rgba(100, 116, 139, 0.1);
+        color: #64748b;
     }
 
     /* Modals */
@@ -196,23 +273,72 @@
         margin-bottom: 0;
     }
 
-    /* Utility Classes */
-    .btn-rounded {
-        border-radius: 50px;
+    /* Custom Search Bar */
+    #customSearch {
+        transition: all 0.3s ease;
+        border: 1px solid transparent !important;
+    }
+
+    #customSearch:focus {
+        width: 300px !important;
+        background-color: #fff !important;
+        border-color: var(--sap-primary) !important;
+        box-shadow: 0 0 0 4px var(--sap-primary-light) !important;
     }
 
     .bg-soft-primary {
         background-color: var(--sap-primary-light);
         color: var(--sap-primary);
+        font-weight: 600;
     }
 
-    .bg-soft-success {
-        background-color: rgba(16, 185, 129, 0.1);
-        color: var(--sap-success);
+    .btn-square {
+        border-radius: 0.5rem;
     }
 
-    .extra-small {
-        font-size: 0.75rem;
+    .btn-rounded {
+        border-radius: 50px;
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Pagination Styling */
+    .page-link {
+        border: none;
+        background: transparent;
+        color: var(--sap-secondary);
+        font-weight: 600;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.9rem;
+        border-radius: 0.75rem !important;
+        transition: all 0.2s;
+        margin: 0 2px;
+    }
+
+    .page-link:hover {
+        background-color: var(--sap-gray-100);
+        color: var(--sap-primary);
+    }
+
+    .page-item.active .page-link {
+        background: var(--sap-primary-gradient);
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3);
+    }
+
+    .page-item.disabled .page-link {
+        background: transparent;
+        opacity: 0.5;
+    }
+
+    .dataTables_info {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--sap-secondary);
     }
 </style>
 
@@ -235,8 +361,8 @@
     </div>
 
     <!-- === MAIN TABLE CARD === -->
-    <div class="modern-card">
-        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+    <div class="card">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
             <div class="d-flex align-items-center gap-2">
                 <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
                     id="tombolTambahPegawai">
@@ -260,8 +386,8 @@
         </div>
 
         <div class="card-body p-0">
-            <div class="table-responsive">
-                <table id="tabelPegawai" class="table table-modern table-striped text-nowrap w-100">
+            <div class="p-3">
+                <table id="tabelPegawai" class="table table-modern table-striped w-100">
                     <thead>
                         <tr>
                             <th class="text-center">No</th>
@@ -500,22 +626,123 @@
     </div>
 </div>
 
+<!-- === MODAL: RIWAYAT KEPEGAWAIAN === -->
+<div class="modal fade" id="modalRiwayat" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content modern-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <div>
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-history me-2 text-info"></i>Riwayat Kepegawaian
+                    </h5>
+                    <p class="text-muted small mb-0" id="riwayat-nama-pegawai"></p>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0">Daftar Riwayat</h6>
+                    <button type="button" class="btn btn-primary btn-sm btn-rounded px-3" id="tombolTambahRiwayat">
+                        <i class="fas fa-plus me-1"></i> Tambah
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle" id="tabelRiwayat">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="small fw-bold">Kategori</th>
+                                <th class="small fw-bold">Deskripsi</th>
+                                <th class="small fw-bold">TMT</th>
+                                <th class="small fw-bold">No. SK</th>
+                                <th class="small fw-bold text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="isiTabelRiwayat">
+                            <!-- Loaded via AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- === MODAL: FORM RIWAYAT === -->
+<div class="modal fade" id="modalFormRiwayat" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-modal border-0 shadow-lg">
+            <div class="modal-header border-0 pb-0 pt-4 px-4">
+                <h5 class="modal-title fw-bold" id="modalFormRiwayatLabel">Form Riwayat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formRiwayat" enctype="multipart/form-data">
+                    <input type="hidden" name="id_riwayat" id="id_riwayat">
+                    <input type="hidden" name="pegawai_id_riwayat" id="pegawai_id_riwayat">
+                    <input type="hidden" name="file_lama_riwayat" id="file_lama_riwayat">
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="modern-label">Kategori</label>
+                            <select name="kategori" id="riwayat_kategori" class="form-select modern-input" required>
+                                <option value="Pangkat">Riwayat Pangkat/Golongan</option>
+                                <option value="Jabatan">Riwayat Jabatan</option>
+                                <option value="Pendidikan">Riwayat Pendidikan</option>
+                                <option value="Diklat">Riwayat Diklat/Pelatihan</option>
+                                <option value="Penghargaan">Penghargaan</option>
+                                <option value="Lainnya">Lainnya</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="modern-label">Deskripsi / Keterangan</label>
+                            <textarea name="deskripsi" id="riwayat_deskripsi" class="form-control modern-input" rows="2" required placeholder="Contoh: Penata Muda / IIIa atau Kepala Seksi..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="modern-label">TMT (Terhitung Mulai Tanggal)</label>
+                            <input type="date" name="tmt" id="riwayat_tmt" class="form-control modern-input">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="modern-label">No. SK</label>
+                            <input type="text" name="no_sk" id="riwayat_no_sk" class="form-control modern-input" placeholder="Nomor Surat Keputusan">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="modern-label">Tanggal SK</label>
+                            <input type="date" name="tgl_sk" id="riwayat_tgl_sk" class="form-control modern-input">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="modern-label">Lampiran SK (PDF/JPG)</label>
+                            <input type="file" name="file_lampiran" id="riwayat_file" class="form-control modern-input">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 p-4 pt-0">
+                <button type="button" class="btn btn-light btn-rounded px-4 fw-bold" data-bs-dismiss="modal">Batal</button>
+                <button type="submit" form="formRiwayat" class="btn btn-primary btn-rounded px-5 fw-bold">Simpan</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- === SCRIPTS === -->
 <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
 <script src="https://cdn.datatables.net/2.3.8/js/dataTables.bootstrap5.js"></script>
-<script src="https://cdn.datatables.net/fixedcolumns/5.0.5/js/dataTables.fixedColumns.js"></script>
+<script src="https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.js"></script>
+<script src="https://cdn.datatables.net/responsive/3.0.3/js/responsive.bootstrap5.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
 <script>
     $(document).ready(function () {
         const ajaxUrl = 'proses_pegawai.php';
-        let modalPegawai, modalDetail;
+        let modalPegawai, modalDetail, modalRiwayat, modalFormRiwayat;
 
         // Initialize Modals
         const initModals = () => {
             if (typeof bootstrap !== 'undefined') {
                 modalPegawai = new bootstrap.Modal(document.getElementById('modalPegawai'));
                 modalDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
+                modalRiwayat = new bootstrap.Modal(document.getElementById('modalRiwayat'));
+                modalFormRiwayat = new bootstrap.Modal(document.getElementById('modalFormRiwayat'));
             } else {
                 setTimeout(initModals, 100);
             }
@@ -534,60 +761,111 @@
 
         // DataTable Initialization
         const table = new DataTable('#tabelPegawai', {
-            layout: { topStart: null, topEnd: null, bottomStart: 'info', bottomEnd: null },
-            fixedColumns: { left: 3, right: 2 },
-            paging: false,
-            scrollCollapse: true,
-            scrollX: true,
-            scrollY: '50vh',
+            layout: { 
+                topStart: null, 
+                topEnd: null, 
+                bottomStart: 'info', 
+                bottomEnd: 'paging' 
+            },
+            responsive: {
+                details: {
+                    type: 'column',
+                    target: 'tr'
+                }
+            },
+            paging: true,
+            pageLength: 10,
             order: [[2, 'asc']],
             ajax: { url: ajaxUrl, type: "GET", data: { action: "muatDataJSON" } },
             columns: [
-                { data: null, className: "text-center align-middle", render: (data, type, row, meta) => meta.row + 1 },
+                { 
+                    data: null, 
+                    className: "text-center align-middle dtr-control", 
+                    orderable: false,
+                    render: (data, type, row, meta) => `<span class="fw-bold text-secondary opacity-75 small">${meta.row + 1}</span>` 
+                },
                 {
                     data: "foto",
                     className: "text-center align-middle",
+                    responsivePriority: 3,
                     render: (data) => {
                         const path = data ? '../file/pegawai/' + data : '../images/default.png';
-                        return `<img src="${path}" class="rounded-circle shadow-sm" style="width: 38px; height: 38px; object-fit: cover; border: 2px solid #fff;">`;
+                        return `<img src="${path}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 38px; height: 38px; object-fit: cover;">`;
                     }
                 },
                 {
                     data: null,
                     className: "align-middle",
+                    responsivePriority: 1,
                     render: (data, type, row) => `
-                    <div style="line-height: 1.4;">
-                        <div class="fw-bold text-dark small">${row.nm_pegawai}</div>
-                        <div class="text-muted extra-small mt-1">${row.nip || '-'}</div>
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="line-height: 1.3;">
+                            <div class="fw-bold text-dark" style="font-size: 0.9rem;">${row.nm_pegawai}</div>
+                            <div class="text-muted extra-small d-flex align-items-center gap-1">
+                                <i class="fas fa-id-badge opacity-50"></i> ${row.nip || '-'}
+                            </div>
+                        </div>
                     </div>`
                 },
-                { data: "tempat_lahir", className: "align-middle small" },
-                { data: "tgl_lahir", className: "align-middle small", render: (data) => formatDate(data) },
-                { data: "jenis_kelamin", className: "text-center align-middle small" },
-                { data: "pendidikan", className: "align-middle small" },
-                { data: "jabatan", className: "align-middle small" },
-                { data: "pangkat", className: "align-middle small" },
-                { data: "golongan", className: "align-middle small" },
-                { data: "unit_kerja", className: "align-middle small" },
-                { data: "status_pegawai", className: "align-middle small" },
+                { data: "tempat_lahir", className: "align-middle small text-muted", responsivePriority: 10 },
+                { data: "tgl_lahir", className: "align-middle small text-muted", responsivePriority: 10, render: (data) => formatDate(data) },
+                {
+                    data: "jenis_kelamin",
+                    className: "text-center align-middle small",
+                    responsivePriority: 9,
+                    render: (data) => data === 'L' ? '<span class="text-primary fw-bold">L</span>' : '<span class="text-danger fw-bold">P</span>'
+                },
+                { data: "pendidikan", className: "align-middle small", responsivePriority: 8 },
+                { data: "jabatan", className: "align-middle small fw-medium", responsivePriority: 5 },
+                { data: "pangkat", className: "align-middle small text-muted", responsivePriority: 7 },
+                { data: "golongan", className: "align-middle small text-muted", responsivePriority: 7 },
+                { data: "unit_kerja", className: "align-middle small fw-medium", responsivePriority: 6 },
+                {
+                    data: "status_pegawai",
+                    className: "align-middle text-center",
+                    responsivePriority: 4,
+                    render: (data) => {
+                        const s = (data || '').toLowerCase();
+                        let cls = 'badge-soft-lainnya';
+                        if (s.includes('pns')) cls = 'badge-soft-pns';
+                        else if (s.includes('pppk')) cls = 'badge-soft-pppk';
+                        else if (s.includes('honorer')) cls = 'badge-soft-honorer';
+                        return `<span class="badge-soft ${cls}">${data || '-'}</span>`;
+                    }
+                },
                 {
                     data: "status",
                     className: "text-center align-middle",
+                    responsivePriority: 11,
                     render: (data, type, row) => {
                         const isChecked = (data == '1' || data == 'Aktif') ? 'checked' : '';
-                        return `<div class="form-check form-switch d-flex justify-content-center">
-                                <input class="form-check-input status-switch" type="checkbox" role="switch" data-id="${row.id}" ${isChecked}>
+                        return `<div class="form-check form-switch d-flex justify-content-center m-0">
+                                <input class="form-check-input status-switch" type="checkbox" role="switch" data-id="${row.id}" ${isChecked} style="cursor: pointer; width: 2.2em; height: 1.1em;">
                             </div>`;
                     }
                 },
                 {
                     data: null,
                     className: "text-center align-middle",
+                    responsivePriority: 2,
                     render: (data, type, row) => `
                     <div class="d-flex justify-content-center gap-1">
-                        <button class="btn btn-primary btn-square p-0 d-flex align-items-center justify-content-center tombol-view" data-id="${row.id}" style="width:28px; height:28px;" title="Detail"><i class="la la-eye"></i></button>
-                        <button class="btn btn-warning btn-square p-0 d-flex align-items-center justify-content-center tombol-edit" data-id="${row.id}" style="width:28px; height:28px;" title="Edit"><i class="la la-edit"></i></button>
-                        <button class="btn btn-danger btn-square p-0 d-flex align-items-center justify-content-center tombol-hapus" data-id="${row.id}" style="width:28px; height:28px;" title="Hapus"><i class="la la-trash"></i></button>
+                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-riwayat" 
+                            data-id="${row.id}" data-nama="${row.nm_pegawai}" style="width:30px; height:30px;" title="Riwayat Kepegawaian" data-bs-toggle="tooltip">
+                            <i class="fas fa-history text-info" style="font-size: 0.8rem;"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-view" 
+                            data-id="${row.id}" style="width:30px; height:30px;" title="Detail" data-bs-toggle="tooltip">
+                            <i class="fas fa-eye text-primary" style="font-size: 0.8rem;"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-edit" 
+                            data-id="${row.id}" style="width:30px; height:30px;" title="Edit" data-bs-toggle="tooltip">
+                            <i class="fas fa-edit text-warning" style="font-size: 0.8rem;"></i>
+                        </button>
+                        <button class="btn btn-sm btn-light border shadow-sm btn-rounded d-flex align-items-center justify-content-center tombol-hapus" 
+                            data-id="${row.id}" style="width:30px; height:30px;" title="Hapus" data-bs-toggle="tooltip">
+                            <i class="fas fa-trash text-danger" style="font-size: 0.8rem;"></i>
+                        </button>
                     </div>`
                 }
             ],
@@ -596,6 +874,12 @@
                 const api = this.api();
                 const total = api.page.info().recordsTotal;
                 $('#totalPegawaiBadge').text(total + ' Pegawai');
+
+                // Initialize Tooltips
+                const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
             }
         });
 
@@ -696,7 +980,7 @@
                     $('#detail-pendidikan-tgl').text(pend || '-');
 
                     $('#detail-unit').text(d.unit_kerja || '-');
-                    $('#detail-status_pegawai').text(d.status_pegawai || '-');
+                    $('#detail-status-pegawai').text(d.status_pegawai || '-');
                     $('#detail-hp').text(d.no_hp || '-');
                     $('#detail-email').text(d.email || '-');
                     const foto = d.foto ? '../file/pegawai/' + d.foto : '../images/default.png';
@@ -721,6 +1005,102 @@
             if (confirm('Hapus data pegawai ini?')) {
                 $.post(ajaxUrl, { action: 'hapus', id: id }, (res) => {
                     if (res.status === 'success') { toastr.success(res.message); table.ajax.reload(null, false); }
+                }, 'json');
+            }
+        });
+
+        // === RIWAYAT LOGIC ===
+
+        const loadRiwayat = (pegawai_id) => {
+            $.get(ajaxUrl, { action: 'muatRiwayat', pegawai_id: pegawai_id }, (res) => {
+                let html = '';
+                if (res.data && res.data.length > 0) {
+                    res.data.forEach(item => {
+                        const fileBtn = item.file_lampiran ? `<a href="../file/riwayat/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded" title="Lihat SK"><i class="fas fa-file-pdf text-danger"></i></a>` : '';
+                        html += `
+                        <tr>
+                            <td><span class="badge bg-light text-dark small">${item.kategori}</span></td>
+                            <td class="small fw-medium">${item.deskripsi}</td>
+                            <td class="small">${formatDate(item.tmt)}</td>
+                            <td class="small text-muted">${item.no_sk || '-'} ${fileBtn}</td>
+                            <td class="text-center">
+                                <div class="d-flex justify-content-center gap-1">
+                                    <button class="btn btn-link text-warning p-0 edit-riwayat" data-id="${item.id}" title="Edit"><i class="fas fa-edit"></i></button>
+                                    <button class="btn btn-link text-danger p-0 hapus-riwayat" data-id="${item.id}" title="Hapus"><i class="fas fa-trash"></i></button>
+                                </div>
+                            </td>
+                        </tr>`;
+                    });
+                } else {
+                    html = '<tr><td colspan="5" class="text-center text-muted py-3 small italic">Belum ada data riwayat</td></tr>';
+                }
+                $('#isiTabelRiwayat').html(html);
+            }, 'json');
+        };
+
+        $(document).on('click', '.tombol-riwayat', function () {
+            const id = $(this).data('id');
+            const nama = $(this).data('nama');
+            $('#pegawai_id_riwayat').val(id);
+            $('#riwayat-nama-pegawai').text(nama);
+            loadRiwayat(id);
+            modalRiwayat.show();
+        });
+
+        $('#tombolTambahRiwayat').click(function () {
+            $('#formRiwayat')[0].reset();
+            $('#id_riwayat, #file_lama_riwayat').val('');
+            $('#modalFormRiwayatLabel').text('Tambah Riwayat');
+            modalFormRiwayat.show();
+        });
+
+        $(document).on('click', '.edit-riwayat', function () {
+            const id = $(this).data('id');
+            $.get(ajaxUrl, { action: 'ambilRiwayat', id: id }, (res) => {
+                const d = res.data;
+                $('#id_riwayat').val(d.id);
+                $('#riwayat_kategori').val(d.kategori);
+                $('#riwayat_deskripsi').val(d.deskripsi);
+                $('#riwayat_tmt').val(d.tmt);
+                $('#riwayat_no_sk').val(d.no_sk);
+                $('#riwayat_tgl_sk').val(d.tgl_sk);
+                $('#file_lama_riwayat').val(d.file_lampiran);
+                $('#modalFormRiwayatLabel').text('Edit Riwayat');
+                modalFormRiwayat.show();
+            }, 'json');
+        });
+
+        $('#formRiwayat').on('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'simpanRiwayat');
+            $.ajax({
+                url: ajaxUrl,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status === 'success') {
+                        toastr.success(res.message);
+                        modalFormRiwayat.hide();
+                        loadRiwayat($('#pegawai_id_riwayat').val());
+                    } else {
+                        toastr.error(res.message);
+                    }
+                }
+            });
+        });
+
+        $(document).on('click', '.hapus-riwayat', function () {
+            const id = $(this).data('id');
+            if (confirm('Hapus riwayat ini?')) {
+                $.post(ajaxUrl, { action: 'hapusRiwayat', id: id }, (res) => {
+                    if (res.status === 'success') {
+                        toastr.success(res.message);
+                        loadRiwayat($('#pegawai_id_riwayat').val());
+                    }
                 }, 'json');
             }
         });

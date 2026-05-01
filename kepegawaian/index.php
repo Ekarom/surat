@@ -44,7 +44,7 @@ if (!file_exists($page_to_include)) {
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>S.A.P KEPEGAWAIAN | <?php echo htmlspecialchars(ucfirst($current_page)); ?></title>
+    <title>Admin Panel Pegawai</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Stylesheets -->

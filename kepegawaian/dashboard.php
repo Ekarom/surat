@@ -52,7 +52,7 @@ if ($gender_res) {
 }
 
 // Unit Kerja Data
-$unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GROUP BY unit_kerja ORDER BY count DESC LIMIT 5");
+$unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GROUP BY unit_kerja ORDER BY count ASC LIMIT 5");
 
 // Employment Status Chart Data
 $status_labels = []; $status_values = [];
@@ -175,7 +175,7 @@ if ($status_res) {
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
                 <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-warning"></i> Pegawai Terbaru</h6>
-                <a href="?page=data" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">Semua Data <i class="fas fa-arrow-right ms-1"></i></a>
+                <a href="?data_pegawai" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">Semua Data <i class="fas fa-arrow-right ms-1"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -192,7 +192,7 @@ if ($status_res) {
                         </thead>
                         <tbody>
                             <?php
-                            $recent = $conn->query("SELECT * FROM pegawai ORDER BY id DESC LIMIT 5");
+                            $recent = $conn->query("SELECT * FROM pegawai ORDER BY id ASC LIMIT 5");
                             if ($recent && $recent->num_rows > 0):
                                 $no = 1;
                                 while ($row = $recent->fetch_assoc()): ?>
