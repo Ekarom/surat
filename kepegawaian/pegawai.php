@@ -13,7 +13,6 @@ $lv = $_SESSION['level'] ?? '';
 $nik = $_SESSION['nik'] ?? '';
 ?>
 
-<!-- === EXTERNAL ASSETS === -->
 
 <style>
     /* CSS Variables & Core Styles */
@@ -388,8 +387,7 @@ $nik = $_SESSION['nik'] ?? '';
             </div>
 
             <div class="card-body p-0">
-                <div class="table-responsive" style="max-height: 600px;">
-                    <table id="tabelPegawai" class="table table-standard mb-0">
+                    <table class="table table-striped">
                         <thead>
                             <tr>
                                 <th class="text-center" width="50">No</th>
@@ -982,6 +980,16 @@ $nik = $_SESSION['nik'] ?? '';
             }
         };
         initModals();
+
+        // DataTable Init
+        if ($.fn.DataTable) {
+            $('.content table.table').DataTable({
+                scrollY: 450,
+                scrollX: true,
+                scrollCollapse: true,
+                paging: false,
+            });
+        }
 
         // Helpers
         const formatDate = (dateStr) => {

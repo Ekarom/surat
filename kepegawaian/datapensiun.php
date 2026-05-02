@@ -101,7 +101,7 @@ if ($res) {
         </div>
 
         <div class="card-body p-0">
-            <div class="table-responsive">
+            <div>
                 <table class="table table-hover align-middle mb-0 w-100" id="retirementTable">
                     <thead class="bg-darks">
                         <tr>
@@ -196,7 +196,7 @@ if ($res) {
 </style>
 
 <!-- DataTables Integration -->
-<link rel="stylesheet" href="https://cdn.datatables.net/2.3.8/css/dataTables.bootstrap5.css">
+<link rel="stylesheet" href="../plugins/css/datatables.min.css">
 <script src="https://cdn.datatables.net/2.3.8/js/dataTables.js"></script>
 <script src="https://cdn.datatables.net/2.3.8/js/dataTables.bootstrap5.js"></script>
 

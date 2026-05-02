@@ -1,0 +1,78 @@
+/* ==========================================
+           FORM VALIDATION STYLES
+           ========================================== */
+.warna:valid {
+    background-color: #18c5dbff;
+}
+
+.custom {
+    width: 200px !important;
+}
+
+/* ==========================================
+           SIDEBAR & NAVBAR STYLES
+           ========================================== */
+.main-sidebar {
+    background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.nav-sidebar .nav-item {
+    margin-bottom: 5px;
+}
+
+.nav-sidebar .nav-link {
+    border-radius: 10px !important;
+    color: #ecf0f1 !important;
+    transition: all 0.3s ease;
+}
+
+.nav-sidebar .nav-link:hover,
+.nav-sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    transform: translateX(5px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.nav-sidebar .nav-icon {
+    color: #fff !important;
+    opacity: 0.8;
+}
+
+.brand-link {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    text-decoration: none !important;
+}
+
+.user-panel {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.user-panel a {
+    text-decoration: none !important;
+}
+
+/* Global Menu Gradient Class */
+.bg-menu-gradient {
+    background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
+    color: #fff !important;
+    border-bottom: none;
+}
+
+.main-header {
+    background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
+    color: #fff !important;
+    border-bottom: none;
+}
+
+/* Nav Tabs Styling */
+.nav-tabs .nav-link.active {
+    background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
+    color: #fff !important;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+/* ==========================================
+   BADGE SQUARE & ACTION BUTTONS
+   ========================================== */
+

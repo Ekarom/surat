@@ -553,7 +553,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                 }
                 $db_exists = false;
                 if ($res = $mysqli_check->query("SHOW DATABASES LIKE '$backup_db'")) {
-                    if ($res->num_rows > 0) $db_exists = true;
+                    if ($res->num_rows > 0)
+                        $db_exists = true;
                     $res->free();
                 }
                 $mysqli_check->close();
@@ -571,24 +572,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                 } else {
                     $db_host_only = $db_host;
                 }
-                
+
                 // Ganti localhost ke 127.0.0.1 untuk stabilitas di Windows
-                if ($db_host_only === 'localhost') $db_host_only = '127.0.0.1';
+                if ($db_host_only === 'localhost')
+                    $db_host_only = '127.0.0.1';
 
                 $timestamp = date('Y-m-d_H-i-s');
                 $backup_file = BACKUP_DIR . "/{$backup_db}_{$timestamp}.sql.gz";
-                
+
                 // Perbaikan pemanggilan mysqldump untuk Windows
                 $mysqldump_bin = $mysql_path . 'mysqldump.exe';
-                if (!file_exists($mysqldump_bin)) $mysqldump_bin = 'mysqldump'; 
-                
+                if (!file_exists($mysqldump_bin))
+                    $mysqldump_bin = 'mysqldump';
+
                 // Cari folder plugin (penting untuk error caching_sha2_password)
                 $plugin_flag = "";
                 $plugin_dir = realpath($mysql_path . '../lib/plugin');
                 if ($plugin_dir) {
                     $plugin_flag = " --plugin-dir=" . escapeshellarg(str_replace('\\', '/', $plugin_dir));
                 }
-                
+
                 $cmd_dump_only = "\"$mysqldump_bin\"$plugin_flag -h " . escapeshellarg($db_host_only) . " -P $db_port -u {$db_user_escaped}{$pass_flag} --skip-lock-tables --routines --triggers {$backup_db_escaped}";
 
                 // Debug: Catat perintah yang dijalankan (tanpa password untuk keamanan)
@@ -601,7 +604,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                     2 => ["pipe", "w"]   // STDERR
                 ];
 
-                $gz_file = gzopen($backup_file, 'wb9'); 
+                $gz_file = gzopen($backup_file, 'wb9');
                 if (!$gz_file) {
                     throw new Exception("Gagal membuka file backup untuk ditulis: " . htmlspecialchars($backup_file));
                 }
@@ -610,17 +613,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 
                 if (!is_resource($process)) {
                     gzclose($gz_file);
-                    unlink($backup_file); 
+                    unlink($backup_file);
                     throw new Exception("Gagal memulai proses mysqldump.");
                 }
 
                 // Alirkan STDOUT (SQL) dari mysqldump langsung ke file .gz
                 stream_set_blocking($pipes[1], true);
                 while (!feof($pipes[1])) {
-                    gzwrite($gz_file, fread($pipes[1], 8192)); 
+                    gzwrite($gz_file, fread($pipes[1], 8192));
                 }
 
-                $error_output = stream_get_contents($pipes[2]); 
+                $error_output = stream_get_contents($pipes[2]);
 
                 // Tutup semua resource
                 fclose($pipes[1]);
@@ -630,7 +633,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 
                 if ($return_var !== 0) {
                     if (file_exists($backup_file)) {
-                        unlink($backup_file); 
+                        unlink($backup_file);
                     }
                     // Tambahkan saran jika error 1049
                     $extra_tip = (strpos($error_output, '1049') !== false) ? "\nTip: Pastikan database '$backup_db' sudah dibuat melalui menu 'Kloning DB' sebelum di-backup." : "";
@@ -829,8 +832,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 // ======================================================================\
 // TAMPILAN HTML (UI)
 // ======================================================================\
-// Jika bukan request AJAX, tampilkan halaman HTML
 ?>
+
+
 <style>
     .blinking-text {
         animation-name: color-blink;
@@ -944,25 +948,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                             <div class="card-header bg-menu-gradient p-0 pt-1">
                                 <ul class="nav nav-tabs" id="custom-tabs-three-tab" role="tablist">
                                     <li class="nav-item">
-                                        <a class="nav-link" id="dbset-tab-link" data-bs-toggle="tab" href="#brd-dbset"
+                                        <a class="nav-link" id="dbset-tab-link" data-toggle="tab" href="#brd-dbset"
                                             role="tab" aria-controls="brd-dbset" aria-selected="false"><i
-                                                class="fas fa-users-cog mr-1"></i> Set Database User</a>
+                                                class="las la-users-cog mr-1"></i> Set Database User</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link active" id="clone-tab-link" data-bs-toggle="tab"
+                                        <a class="nav-link active" id="clone-tab-link" data-toggle="tab"
                                             href="#brd-clone" role="tab" aria-controls="brd-clone" aria-selected="true"
                                             title="Clone Database digunakan 1 kali setahun sebelum luluskan kelas 9. Setelah diclone login ulang menggunakan tahun Tapel terbaru kemudian baru luluskan kelas 9 dan Naikan kelas 7 & 8"><i
-                                                class="fas fa-copy mr-1"></i> Kloning DB</a>
+                                                class="las la-copy mr-1"></i> Kloning DB</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" id="backup-tab-link" data-bs-toggle="tab" href="#brd-backup"
+                                        <a class="nav-link" id="backup-tab-link" data-toggle="tab" href="#brd-backup"
                                             role="tab" aria-controls="brd-backup" aria-selected="false"><i
-                                                class="fas fa-save mr-1"></i> Backup DB</a>
+                                                class="las la-save mr-1"></i> Backup DB</a>
                                     </li>
                                     <li class="nav-item">
-                                        <a class="nav-link" id="restore-tab-link" data-bs-toggle="tab"
+                                        <a class="nav-link" id="restore-tab-link" data-toggle="tab"
                                             href="#brd-restore" role="tab" aria-controls="brd-restore"
-                                            aria-selected="false"><i class="fas fa-upload mr-1"></i> Restore DB</a>
+                                            aria-selected="false"><i class="las la-upload mr-1"></i> Restore DB</a>
                                     </li>
                                 </ul>
                             </div>
@@ -977,23 +981,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                                 <h5>Pengaturan Database User</h5>
                                                 <button type="button" class="btn btn-sm btn-info mb-2"
                                                     id="refreshDbSet">
-                                                    <i class="fas fa-sync mr-1"></i> Refresh Data
+                                                    <i class="las la-sync mr-1"></i> Refresh Data
                                                 </button>
-                                                <div class="table-responsive">
-                                                    <table class="table table-bordered table-striped table-hover">
+                                                <div>
+                                                    <table class="table table-striped" style="width:100%">
                                                         <thead>
                                                             <tr>
                                                                 <th>ID</th>
                                                                 <th>Nama Database</th>
                                                                 <th>Tahun</th>
                                                                 <th>Status</th>
-                                                                <th>Aksi</th>
+                                                                <th class="text-center">Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="dbsetTableBody">
-                                                            <tr>
-                                                                <td colspan="5" class="text-center">Memuat data...</td>
-                                                            </tr>
+                                                            <!-- Data loaded via DataTables -->
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -1018,8 +1020,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                                     </div>
                                                 </div>
                                                 <div class="col-md-2 text-center align-self-center">
-                                                    <i class="fas fa-arrow-right fa-2x d-none d-md-block mt-3"></i>
-                                                    <i class="fas fa-arrow-down fa-2x d-md-none mb-2"></i>
+                                                    <i class="las la-arrow-right la-2x d-none d-md-block mt-3"></i>
+                                                    <i class="las la-arrow-down la-2x d-md-none mb-2"></i>
                                                 </div>
                                                 <div class="col-md-5">
                                                     <div class="form-group">
@@ -1033,7 +1035,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                                 </div>
                                             </div>
                                             <button type="submit" id="cloneButton" class="btn btn-primary"><i
-                                                    class="fas fa-copy mr-1"></i> Mulai Kloning</button>
+                                                    class="las la-copy mr-1"></i> Mulai Kloning</button>
                                         </form>
                                         <hr>
                                         <label>Log Kloning:</label>
@@ -1056,7 +1058,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                                         </select>
                                                     </div>
                                                     <button type="submit" id="backupButton" class="btn btn-success"><i
-                                                            class="fas fa-save mr-1"></i> Buat Backup</button>
+                                                            class="las la-save mr-1"></i> Buat Backup</button>
                                                 </form>
                                                 <hr>
                                                 <label>Log Backup:</label>
@@ -1065,26 +1067,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                             <div class="col-md-6">
                                                 <h5>Daftar File Backup (di Server)</h5>
                                                 <button type="button" class="btn btn-sm btn-info mb-2"
-                                                    id="refreshBackupList"><i class="fas fa-sync mr-1"></i> Refresh
+                                                    id="refreshBackupList"><i class="las la-sync mr-1"></i> Refresh
                                                     Daftar</button>
                                                 <button type="button" class="btn btn-sm btn-secondary mb-2 ml-1"
-                                                    id="openBackupFolder"><i class="fas fa-folder-open mr-1"></i> Open
+                                                    id="openBackupFolder"><i class="las la-folder-open mr-1"></i> Open
                                                     Folder</button>
-                                                <div class="table-responsive"
-                                                    style="max-height: 400px; overflow-y: auto;">
-                                                    <table class="table table-sm table-bordered table-hover">
-                                                        <thead style="position: sticky; top: 0;">
+                                                <div>
+                                                    <table class="table table-sm table-bordered table-hover nowrap"
+                                                        style="width:100%">
+                                                        <thead class="bg-menu-gradient text-white">
                                                             <tr>
                                                                 <th>Nama File</th>
                                                                 <th>Ukuran</th>
-                                                                <th>Aksi</th>
+                                                                <th class="text-center">Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody id="backupListTableBody">
-                                                            <tr>
-                                                                <td colspan="3" class="text-center">Memuat daftar...
-                                                                </td>
-                                                            </tr>
+                                                            <!-- Data loaded via DataTables -->
                                                         </tbody>
                                                     </table>
                                                 </div>
@@ -1124,7 +1123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                                 </div>
                                             </div>
                                             <button type="submit" id="restoreButton" class="btn btn-warning"><i
-                                                    class="fas fa-upload mr-1"></i> Mulai Restore</button>
+                                                    class="las la-upload mr-1"></i> Mulai Restore</button>
                                         </form>
                                         <hr>
                                         <label>Log Restore:</label>
@@ -1141,7 +1140,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                             </div>
                             <!-- /.card-body -->
                             <div id="loadingOverlay" class="loading-overlay" style="display: none;">
-                                <i class="fas fa-spinner fa-spin fa-3x"></i>
+                                <i class="las la-spinner la-spin la-3x"></i>
                             </div>
                         </div>
                         <!-- /.card -->
@@ -1210,12 +1209,28 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
 
         const loadingOverlay = document.getElementById('loadingOverlay');
 
-        const backupListTableBody = document.getElementById('backupListTableBody');
         const refreshBackupListButton = document.getElementById('refreshBackupList');
 
         const thisScriptUrl = '<?php echo htmlspecialchars(basename(__FILE__)); ?>';
 
+        let dtDbSet = null;
+        let dtBackup = null;
         let cachedDatabases = null; // Cache untuk daftar database
+
+        // Inisialisasi DataTables secara global (Standardisasi)
+        $('table.table').DataTable({
+            scrollY: 450,
+            scrollX: true,
+            scrollCollapse: true,
+            paging: false,
+            // fixedColumns:   {
+            //     leftColumns: 3
+            // }
+        });
+
+        // Ambil instance untuk manipulasi data
+        dtDbSet = $('#brd-dbset table.table').DataTable();
+        dtBackup = $('#brd-backup table.table').DataTable();
 
         // --- Fungsi Logging ---
         const logClone = (message, type = 'info') => logToEl(cloneLog, message, type);
@@ -1324,7 +1339,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
             // Cek jika sumber dan target sama (khusus tab clone)
             if (inputEl.id === 'target_db_clone' && sourceDb === targetDbName) {
                 logFn(`PERINGATAN: Database sumber dan target sama (${targetDbName}).`, 'warn');
-                buttonEl.innerHTML = '<i class="fas fa-ban mr-1"></i> Target Sama';
+                buttonEl.innerHTML = '<i class="las la-ban mr-1"></i> Target Sama';
                 buttonEl.classList.add('btn-secondary');
                 buttonEl.classList.remove('btn-primary', 'btn-danger', 'btn-warning');
                 buttonEl.disabled = true;
@@ -1338,15 +1353,15 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 if (exists) {
                     logFn(`PERINGATAN: Database target '${targetDbName}' sudah ada. Operasi akan menimpa data!`, 'warn');
                     buttonEl.innerHTML = buttonEl.id === 'cloneButton'
-                        ? '<i class="fas fa-copy mr-1"></i> Mulai Kloning (Timpa)'
-                        : '<i class="fas fa-upload mr-1"></i> Mulai Restore (Timpa)';
+                        ? '<i class="las la-copy mr-1"></i> Mulai Kloning (Timpa)'
+                        : '<i class="las la-upload mr-1"></i> Mulai Restore (Timpa)';
 
                     buttonEl.classList.remove('btn-primary', 'btn-secondary', 'btn-warning');
                     buttonEl.classList.add('btn-danger');
                 } else {
                     buttonEl.innerHTML = buttonEl.id === 'cloneButton'
-                        ? '<i class="fas fa-copy mr-1"></i> Mulai Kloning'
-                        : '<i class="fas fa-upload mr-1"></i> Mulai Restore';
+                        ? '<i class="las la-copy mr-1"></i> Mulai Kloning'
+                        : '<i class="las la-upload mr-1"></i> Mulai Restore';
 
                     buttonEl.classList.remove('btn-danger', 'btn-secondary');
                     buttonEl.classList.add(buttonEl.id === 'cloneButton' ? 'btn-primary' : 'btn-warning');
@@ -1378,74 +1393,61 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
 
         // --- Fungsi Tab Backup ---
         async function loadBackupList() {
-            backupListTableBody.innerHTML = '<tr><td colspan="3" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat...</td></tr>';
             const formData = new FormData();
             formData.append('action', 'get_backup_list');
 
             const data = await sendAjax(formData);
-            backupListTableBody.innerHTML = ''; // Bersihkan
+            dtBackup.clear();
 
             if (data.success && data.backups) {
-                if (data.backups.length === 0) {
-                    backupListTableBody.innerHTML = '<tr><td colspan="3" class="text-center">Belum ada file backup.</td></tr>';
-                    return;
-                }
                 data.backups.forEach(file => {
-                    const row = backupListTableBody.insertRow();
                     const sizeMB = (file.size / 1024 / 1024).toFixed(2);
                     const fileDate = new Date(file.date * 1000).toLocaleString('id-ID');
 
-                    row.innerHTML = `
-                            <td>
-                                ${escapeHTML(file.name)}<br>
-                                <small class="text-muted">${fileDate}</small>
-                            </td>
-                            <td>${sizeMB} MB</td>
-                            <td>
-                                <a href="${thisScriptUrl}?download=${encodeURIComponent(file.name)}" class="btn btn-xs btn-success" download title="Download">
-                                    <i class="fas fa-download"></i>
-                                </a>
-                                <button class="btn btn-xs btn-danger delete-backup-btn" data-file="${escapeHTML(file.name)}" title="Hapus">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            </td>
-                        `;
+                    dtBackup.row.add([
+                        `<strong>${escapeHTML(file.name)}</strong><br><small class="text-muted">${fileDate}</small>`,
+                        `<span class="badge bg-light text-dark border">${sizeMB} MB</span>`,
+                        `<div class="text-center">
+                            <a href="${thisScriptUrl}?download=${encodeURIComponent(file.name)}" class="btn btn-xs btn-success shadow-sm" download title="Download">
+                                <i class="las la-download"></i>
+                            </a>
+                            <button class="btn btn-xs btn-danger shadow-sm delete-backup-btn" data-file="${escapeHTML(file.name)}" title="Hapus">
+                                <i class="las la-trash"></i>
+                            </button>
+                        </div>`
+                    ]);
                 });
+                dtBackup.draw();
             } else {
-                backupListTableBody.innerHTML = `<tr><td colspan="3" class="text-center log-error">Gagal memuat daftar: ${escapeHTML(data.message)}</td></tr>`;
+                logBackup(data.message || 'Gagal memuat daftar backup', 'error');
             }
         }
 
         // --- Event Listener untuk Hapus Backup ---
-        if (backupListTableBody) {
-            backupListTableBody.addEventListener('click', async (e) => {
-                const deleteButton = e.target.closest('.delete-backup-btn');
-                if (deleteButton) {
-                    e.preventDefault();
-                    const fileName = deleteButton.dataset.file;
-                    if (!confirm(`Apakah Anda yakin ingin menghapus file "${fileName}"?`)) {
-                        return;
-                    }
+        $('#brd-backup table.table').on('click', '.delete-backup-btn', async function (e) {
+            e.preventDefault();
+            const fileName = $(this).data('file');
+            if (!confirm(`Apakah Anda yakin ingin menghapus file "${fileName}"?`)) {
+                return;
+            }
 
-                    showLoading(true);
-                    logBackup(`Menghapus file ${fileName}...`, 'warn');
+            showLoading(true);
+            logBackup(`Menghapus file ${fileName}...`, 'warn');
 
-                    const formData = new FormData();
-                    formData.append('action', 'delete_backup');
-                    formData.append('file_to_delete', fileName);
+            const formData = new FormData();
+            formData.append('action', 'delete_backup');
+            formData.append('file_to_delete', fileName);
 
-                    const data = await sendAjax(formData);
+            const data = await sendAjax(formData);
 
-                    if (data.success) {
-                        logBackup(data.message, 'success');
-                        loadBackupList(); // Muat ulang daftar setelah hapus
-                    } else {
-                        logBackup(data.message, 'error');
-                    }
-                    showLoading(false);
-                }
-            });
-        }
+            if (data.success) {
+                logBackup(data.message, 'success');
+                loadBackupList(); // Muat ulang daftar setelah hapus
+            } else {
+                logBackup(data.message, 'error');
+            }
+            showLoading(false);
+        });
 
         // --- Event Listener Refresh Daftar Backup ---
         refreshBackupListButton.addEventListener('click', loadBackupList);
@@ -1469,13 +1471,10 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
         }
 
         // --- Event Listener untuk link tab ---
-        $('a[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
             const targetTab = $(e.target).attr("href"); // Tab yang baru aktif
             if (targetTab === '#brd-backup') {
-                // Hanya muat jika daftar masih kosong (atau saat pertama kali)
-                if (backupListTableBody.textContent.includes('Memuat') || backupListTableBody.children.length === 0) {
-                    loadBackupList();
-                }
+                loadBackupList();
             }
         });
 
@@ -1502,7 +1501,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 }
 
                 cloneButton.disabled = true;
-                cloneButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Mengkloning...';
+                cloneButton.innerHTML = '<i class="las la-spinner la-spin mr-1"></i> Mengkloning...';
                 showLoading(true);
                 logClone(`Memulai kloning dari '${sourceDb}' ke '${targetDb}'...`, 'info');
 
@@ -1516,7 +1515,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 }
 
                 cloneButton.disabled = false;
-                cloneButton.innerHTML = '<i class="fas fa-copy mr-1"></i> Mulai Kloning';
+                cloneButton.innerHTML = '<i class="las la-copy mr-1"></i> Mulai Kloning';
                 showLoading(false);
             });
         }
@@ -1537,7 +1536,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 }
 
                 backupButton.disabled = true;
-                backupButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Membackup...';
+                backupButton.innerHTML = '<i class="las la-spinner la-spin mr-1"></i> Membackup...';
                 showLoading(true);
                 logBackup(`Memulai backup database '${backupDb}'...`, 'info');
 
@@ -1552,7 +1551,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 }
 
                 backupButton.disabled = false;
-                backupButton.innerHTML = '<i class="fas fa-save mr-1"></i> Buat Backup';
+                backupButton.innerHTML = '<i class="las la-save mr-1"></i> Buat Backup';
                 showLoading(false);
             });
         }
@@ -1583,7 +1582,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 }
 
                 restoreButton.disabled = true;
-                restoreButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Merestore...';
+                restoreButton.innerHTML = '<i class="las la-spinner la-spin mr-1"></i> Merestore...';
                 showLoading(true);
                 logRestore(`Mengunggah file dan memulai restore ke '${targetDb}'...`, 'info');
 
@@ -1614,7 +1613,7 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                     })
                     .finally(() => {
                         restoreButton.disabled = false;
-                        restoreButton.innerHTML = '<i class="fas fa-upload mr-1"></i> Mulai Restore';
+                        restoreButton.innerHTML = '<i class="las la-upload mr-1"></i> Mulai Restore';
                         showLoading(false);
                         // Reset form
                         restoreForm.reset();
@@ -1638,99 +1637,77 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
         };
 
         async function loadDbSet() {
-            dbsetTableBody.innerHTML = '<tr><td colspan="5" class="text-center"><i class="fas fa-spinner fa-spin"></i> Memuat...</td></tr>';
             const formData = new FormData();
             formData.append('action', 'get_dbset');
 
             const data = await sendAjax(formData);
-
-            // DEBUG: Log response untuk debugging
-            console.log('get_dbset response:', data);
-            if (data.database_used) {
-                console.log('Database used:', data.database_used);
-            }
-
-            dbsetTableBody.innerHTML = '';
+            dtDbSet.clear();
 
             if (data.success && data.data) {
-                console.log('Data found:', data.data.length, 'rows');
-                if (data.data.length === 0) {
-                    dbsetTableBody.innerHTML = '<tr><td colspan="5" class="text-center">Tidak ada data.</td></tr>';
-                    return;
-                }
                 data.data.forEach(row => {
-                    const tr = document.createElement('tr');
                     const isAktif = row.aktif == 1;
                     const statusBadge = isAktif
-                        ? '<span class="badge badge-success">Aktif</span>'
-                        : '<span class="badge badge-secondary">Tidak Aktif</span>';
+                        ? '<span class="badge badge-success badge-pill px-3">Aktif</span>'
+                        : '<span class="badge badge-secondary badge-pill px-3">Tidak Aktif</span>';
 
-                    const btnClass = isAktif ? 'btn-success' : 'btn-outline-secondary';
-                    const btnText = isAktif ? '<i class="fas fa-check-circle"></i> Selected' : '<i class="fas fa-power-off"></i> Set Aktif';
+                    const btnClass = isAktif ? 'btn-success' : 'btn-outline-primary';
+                    const btnText = isAktif ? '<i class="las la-check-circle"></i> Selected' : '<i class="las la-power-off"></i> Set Aktif';
                     const nextStatus = isAktif ? 0 : 1;
 
-                    tr.innerHTML = `
-                        <td>${escapeHTML(row.id)}</td>
-                        <td>${escapeHTML(row.dbname)}</td>
-                        <td>${escapeHTML(row.tahun)}</td>
-                        <td>${statusBadge}</td>
-                        <td>
-                            <button class="btn btn-sm ${btnClass} toggle-aktif-btn" 
+                    dtDbSet.row.add([
+                        row.id,
+                        `<span class="font-weight-bold text-primary">${escapeHTML(row.dbname)}</span>`,
+                        row.tahun,
+                        statusBadge,
+                        `<div class="text-center">
+                            <button class="btn btn-sm ${btnClass} shadow-sm toggle-aktif-btn" 
                                 data-id="${row.id}" 
                                 data-next-status="${nextStatus}">
                                 ${btnText}
                             </button>
-                        </td>
-                    `;
-                    dbsetTableBody.appendChild(tr);
+                        </div>`
+                    ]);
                 });
+                dtDbSet.draw();
             } else {
-                console.error('Failed to load dbset:', data);
-                const errorMsg = data.message || 'Error tidak diketahui';
-                dbsetTableBody.innerHTML = `<tr><td colspan="5" class="text-center text-danger">Gagal memuat data: ${escapeHTML(errorMsg)}</td></tr>`;
-                logDbSet(errorMsg, 'error');
+                logDbSet(data.message || 'Gagal memuat data dbset', 'error');
             }
         }
 
         // Event Listener untuk tombol toggle aktif
-        if (dbsetTableBody) {
-            dbsetTableBody.addEventListener('click', async (e) => {
-                const btn = e.target.closest('.toggle-aktif-btn');
-                if (btn) {
-                    e.preventDefault();
-                    const id = btn.dataset.id;
-                    const nextStatus = btn.dataset.nextStatus;
+        $('#brd-dbset table.table').on('click', '.toggle-aktif-btn', async function (e) {
+            e.preventDefault();
+            const id = $(this).data('id');
+            const nextStatus = $(this).data('nextStatus');
 
-                    // Dialog Peringatan dan Input Password
-                    const password = prompt("PERINGATAN: Mengubah database aktif akan mempengaruhi seluruh sistem.\n\nMasukkan password Anda untuk konfirmasi:");
+            // Dialog Peringatan dan Input Password
+            const password = prompt("PERINGATAN: Mengubah database aktif akan mempengaruhi seluruh sistem.\n\nMasukkan password Anda untuk konfirmasi:");
 
-                    if (password === null) {
-                        return; // User cancel
-                    }
-                    if (password.trim() === "") {
-                        alert("Password tidak boleh kosong.");
-                        return;
-                    }
+            if (password === null) {
+                return; // User cancel
+            }
+            if (password.trim() === "") {
+                alert("Password tidak boleh kosong.");
+                return;
+            }
 
-                    showLoading(true);
-                    const formData = new FormData();
-                    formData.append('action', 'update_dbset_status');
-                    formData.append('id', id);
-                    formData.append('aktif', nextStatus);
-                    formData.append('password', password);
+            showLoading(true);
+            const formData = new FormData();
+            formData.append('action', 'update_dbset_status');
+            formData.append('id', id);
+            formData.append('aktif', nextStatus);
+            formData.append('password', password);
 
-                    const data = await sendAjax(formData);
+            const data = await sendAjax(formData);
 
-                    if (data.success) {
-                        logDbSet(data.message, 'success');
-                        loadDbSet(); // Reload data
-                    } else {
-                        logDbSet(data.message, 'error');
-                    }
-                    showLoading(false);
-                }
-            });
-        }
+            if (data.success) {
+                logDbSet(data.message, 'success');
+                loadDbSet(); // Reload data
+            } else {
+                logDbSet(data.message, 'error');
+            }
+            showLoading(false);
+        });
 
         // Refresh button
         if (refreshDbSetButton) {

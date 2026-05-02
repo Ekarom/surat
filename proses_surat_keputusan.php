@@ -78,27 +78,16 @@ function resolvePdfPath($filename, $baseDir) {
 }
 
 function buatTabelHtml($dataRows, $offset, $level) {
-    if (empty($dataRows)) {
-        return '<div class="alert alert-warning text-center">Tidak ada data ditemukan.</div>';
-    }
+    if (empty($dataRows)) return '<div class="alert alert-warning text-center">Tidak ada data ditemukan.</div>';
 
-    $html = '<table class="table table-striped table-hover align-middle">';
-    $html .= '<thead class="bg-menu-gradient text-center"><tr>
-                <th>No</th>
-                <th>No Surat</th>
-                <th>Ditujukan</th>
-                <th>Perihal</th>
-                <th>Tgl Dokumen</th>';
-
-    if ($level == '1' || $level == '2' || $level == '3') { 
-        $html .= '<th>View</th>';
-    }
-
-    if ($level == '1' || $level == '2') { 
-        $html .= '<th>Edit</th>';
-        $html .= '<th>Del</th>';
-    }
-
+    $html = '<table class="table table-striped table-hover align-middle" style="width:100%">';
+    $html .= '<thead><tr>
+                <th class="text-center" width="50">No</th>
+                <th width="150">No Surat</th>
+                <th width="200">Ditujukan</th>
+                <th width="300">Perihal</th>
+                <th width="120" class="text-center">Tgl Dokumen</th>';
+    if ($level == '1' || $level == '2' || $level == '3') $html .= '<th width="120" class="text-center">Aksi</th>';
     $html .= '</tr></thead><tbody>';
     
     $no = $offset + 1;
@@ -111,48 +100,33 @@ function buatTabelHtml($dataRows, $offset, $level) {
 
         $tgl_formatted = '-';
         if (!empty($row['tgl_dokumen'])) {
-            try { $tgl_formatted = (new DateTime($row['tgl_dokumen']))->format('d M Y'); } catch(Exception $e) {}
+            try { $tgl_formatted = (new DateTime($row['tgl_dokumen']))->format('d/m/Y'); } catch(Exception $e) {}
         }
-        
-        $viewDisabled = empty($file) ? 'disabled' : '';
         
         $html .= "<tr>
                 <td class=\"text-center\">{$no}</td>
-                <td>{$no_surat}</td>
+                <td class=\"fw-bold text-primary\">{$no_surat}</td>
                 <td>{$ditujukan}</td>
-                <td>{$perihal}</td>
-                <td>{$tgl_formatted}</td>";
+                <td><div class=\"text-truncate\" style=\"max-width: 300px;\">{$perihal}</div></td>
+                <td class=\"text-center\">{$tgl_formatted}</td>";
 
-        // Tombol View
-        $html .= "<td class=\"text-center\">";
         if ($level == '1' || $level == '2' || $level == '3') {
-            $html .= "<button class=\"btn btn-info btn-sm tombol-view\" 
-                            data-id=\"{$id}\" data-file=\"{$file}\" 
-                            title=\"Lihat Detail\" {$viewDisabled}>
-                        <i class=\"fas fa-eye\"></i>
-                      </button>";
-        }
-        $html .= "</td>";
+            $html .= "<td class=\"text-center\"><div class=\"d-flex justify-content-center gap-1\">";
+            
+            // View Button
+            $opacity = empty($file) ? 'opacity-50' : '';
+            $html .= "<span class=\"badge-square badge badge-info text-white tombol-view {$opacity}\" data-id=\"{$id}\" title=\"Lihat PDF\"><i class=\"la la-eye\"></i></span>";
 
-        // Tombol Edit
-        if ($level == '1' || $level == '2') {
-            $html .= "<td class=\"text-center\">
-                        <button class=\"btn btn-warning btn-sm tombol-edit\" 
-                                data-id=\"{$id}\" title=\"Edit\">
-                            <i class=\"fas fa-pencil-alt\"></i>
-                        </button>
-                      </td>";
-        }
-
-        // Tombol Hapus
-        if ($level == '1' || $level == '2') {
-            $html .= "<td class=\"text-center\">
-                        <button class=\"btn btn-danger btn-sm tombol-hapus\" 
-                                data-id=\"{$id}\" data-nama=\"{$no_surat}\" 
-                                title=\"Hapus\">
-                            <i class=\"fas fa-trash-alt\"></i>
-                        </button>
-                      </td>";
+            if ($level == '1' || $level == '2') {
+                // Edit Button
+                $html .= "<span class=\"badge-square badge badge-warning text-white tombol-edit\" data-id=\"{$id}\" title=\"Edit Data\"><i class=\"la la-edit\"></i></span>";
+                
+                // Delete Button
+                if ($level == '1') {
+                    $html .= "<span class=\"badge-square badge badge-danger text-white tombol-hapus\" data-id=\"{$id}\" data-nama=\"{$no_surat}\" title=\"Hapus Data\"><i class=\"la la-trash\"></i></span>";
+                }
+            }
+            $html .= "</div></td>";
         }
 
         $html .= "</tr>";
@@ -325,7 +299,7 @@ function simpanData($conn, $action) {
 
         for ($i = 0; $i < $count; $i++) {
             if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                 if ($files['size'][$i] > MAX_FILE_SIZE) throw new Exception('File melebihi batas 1MB.');
+                 if ($files['size'][$i] > MAX_FILE_SIZE) throw new Exception('File melebihi batas 2MB.');
                  
                  $fileExt = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
                  if (!in_array($fileExt, ALLOWED_EXTENSIONS)) throw new Exception('Ekstensi file tidak diizinkan. Hanya PDF.');

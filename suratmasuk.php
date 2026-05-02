@@ -11,8 +11,10 @@ $sysTapel = $tahunsklh;
 $sysSmt = '1';
 
 // Normalisasi Semester
-if (strtolower($sysSmt) === 'ganjil') $sysSmt = '1';
-if (strtolower($sysSmt) === 'genap') $sysSmt = '2';
+if (strtolower($sysSmt) === 'ganjil')
+    $sysSmt = '1';
+if (strtolower($sysSmt) === 'genap')
+    $sysSmt = '2';
 
 // Normalisasi Tapel (2024/2025 -> 2024-2025)
 $cleanTapel = str_replace(['/', '\\'], '-', $sysTapel);
@@ -25,7 +27,6 @@ $kategori_options = '';
 $jenis_options = '';
 $dari_options = '';
 $unit_options = '';
-
 
 // Memastikan variabel $conn valid sebelum digunakan.
 if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
@@ -61,20 +62,35 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
     // 5. Ambil data tahun dari database (SHOW DATABASES LIKE 'sas_%')
     $tahun_options = "<option value=''>Semua</option>";
 
+    // [MODIFIKASI] Ambil tahun aktif dari GET atau session
+    $tahun_aktif = $_GET['tahun'] ?? (isset($tahunsklh) ? $tahunsklh : ($_SESSION['tahundb'] ?? ''));
+
     $sql_dbs = mysqli_query($conn, "SHOW DATABASES LIKE 'sas_%'");
     if ($sql_dbs) {
         while ($row = mysqli_fetch_array($sql_dbs)) {
             $dbname = $row[0];
-            // Filter hanya yang formatnya sas_ANGKA
             if (preg_match('/^sas_(\d+)$/', $dbname, $matches)) {
                 $thn = $matches[1];
-                $activeYear = isset($tahunsklh) ? $tahunsklh : (isset($_SESSION['tahundb']) ? $_SESSION['tahundb'] : '');
-                $selected = ($activeYear == $thn) ? 'selected' : '';
+                $selected = ($tahun_aktif == $thn) ? 'selected' : '';
                 $tahun_options .= "<option value=\"$thn\" $selected>$thn</option>";
             }
         }
-    } else {
-        $tahun_options .= "<!-- Error showing databases: " . mysqli_error($conn) . " -->";
+    }
+
+    // 6. Ambil Data Surat Masuk secara Statis (Ganti AJAX)
+    $dataRows = [];
+    if (!empty($tahun_aktif)) {
+        try {
+            $conn->select_db("sas_" . $tahun_aktif);
+            $sql_data = mysqli_query($conn, "SELECT * FROM dokumenmasuk ORDER BY id ASC");
+            if ($sql_data) {
+                while ($row = mysqli_fetch_assoc($sql_data)) {
+                    $dataRows[] = $row;
+                }
+            }
+        } catch (Exception $e) {
+            // Gagal switch db
+        }
     }
 } else {
     // Tangani kasus jika conn gagal atau $conn tidak terdefinisi
@@ -90,17 +106,27 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
     <!-- Overlay Loading (Optional, jika diperlukan) -->
-    <div id="loading-overlay" class="d-none" style="position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); z-index:9999; display:flex; align-items:center; justify-content:center;">
+    <div id="loading-overlay" class="d-none"
+        style="position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); z-index:9999; display:flex; align-items:center; justify-content:center;">
         <div class="spinner-border text-primary" role="status">
-            <span class="visually-hidden">Loading...</span>
+            <span class="sr-only">Loading...</span>
         </div>
     </div>
 
+    <!-- <div class="content-wrapper"> -->
     <!-- Content Header (Page header) -->
     <section class="content-header">
         <div class="container-fluid">
             <div class="row mb-2">
-                <h1>SURAT MASUK</h1>
+                <div class="col-sm-6">
+                    <h1>Surat Masuk</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active">Surat Masuk</li>
+                    </ol>
+                </div>
             </div>
         </div><!-- /.container-fluid -->
     </section>
@@ -112,8 +138,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                 <div class="col-12">
                     <div class="card card-outline primary sm">
                         <!-- Header Kontrol -->
-                        <div class="card-header bg-menu-gradient">
-                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                        <div class="card-header">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap">
                                 <!-- Tombol Tambah di Kiri -->
                                 <div>
                                     <?php if ($lv == "1" || $lv == "2") { ?>
@@ -124,388 +150,550 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                 </div>
 
                                 <!-- Kontrol Filter/Pencarian di Kanan -->
-                                  <div class="d-flex align-items-center gap-2 flex-wrap">
-                                    <label for="year-filter" class="form-label mb-0 text-nowrap">Tahun:</label>
-                                    <select class="form-select form-select-sm" id="year-filter" style="width: auto;">
+                                <div class="d-flex align-items-center flex-wrap">
+                                    <label for="year-filter" class="mr-2 mb-0 text-nowrap">Tahun:</label>
+                                    <select class="custom-select custom-select-sm" id="year-filter"
+                                        style="width: auto;">
                                         <?php echo $tahun_options; ?>
                                     </select>
-
-                                    <label for="records-per-page" class="form-label mb-0 text-nowrap">Tampil:</label>
-                                    <select class="form-select form-select-sm" id="records-per-page" aria-label="Jumlah data per halaman" style="width: auto;">
-                                        <?php echo $records_per_page_options; ?> 
-                                        <option value="5">5 per page</option> 
-                                        <option value="10">10 per page</option>
-                                        <option value="25">25 per page</option>
-                                        <option value="50">50 per page</option>
-                                        <option value="100">100 per page</option>
-                                        <option value="150">150 per page</option>
-                                        <option value="200">200 per page</option>
-                                    </select>
-                                    <div class="input-group" style="width: auto; max-width: 250px;">
-                                              <div class="input-group-prepend">
-                                                <div class="input-group-text"><i class="fa fa-search" style="font-size: 15px; color:blue;"></i></div>
-                                              </div>
-                                      <input type="text" class="form-control form-control-sm" placeholder="Cari data surat..." id="search-box">
-                                    </div>
                                 </div>
                             </div>
                         </div>
                         <!-- /.card-header -->
 
                         <div class="card-body">
-                            <div class="table-responsive" id="data-masuk">
-                                <!-- Data tabel dimuat di sini oleh AJAX -->
+                            <table class="table table-striped" style="width:100%;">
+                                <thead class="box-shadow-0 bg-gradient-x-secondary">
+                                    <tr class="text-white">
+                                        <th width="50">No</th>
+                                        <th width="200px">No Dokumen</th>
+                                        <th width="100px">Tgl Diterima</th>
+                                        <th width="200px">Dari</th>
+                                        <th width="200px">Perihal</th>
+                                        <th width="100px">Jenis</th>
+                                        <th width="100px">Kategori</th>
+                                        <th class="text-center">View</th>
+                                        <th class="text-center">Edit</th>
+                                        <th class="text-center">Hapus</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $no = 1;
+                                    foreach ($dataRows as $row):
+                                        $id = (int) $row['id'];
+                                        $no_dokumen = htmlspecialchars($row['no_dokumen'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $perihal = htmlspecialchars($row['perihal'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $file = htmlspecialchars($row['pdf'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $dari = htmlspecialchars($row['dari'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $jns_dokumen = htmlspecialchars($row['jns_dokumen'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $kategori = htmlspecialchars($row['kategori'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $catatan = htmlspecialchars($row['catatan'] ?? '', ENT_QUOTES, 'UTF-8');
+                                        $tgl_dokumen = $row['tgl_dokumen'] ?? '';
+                                        $tgl_diterima = $row['tgl_diterima'] ?? '';
+
+                                        $tgl_formatted = '-';
+                                        if (!empty($tgl_diterima)) {
+                                            try {
+                                                $tgl_formatted = (new DateTime($tgl_diterima))->format('d M Y');
+                                            } catch (Exception $e) {
+                                            }
+                                        }
+                                        ?>
+                                        <tr>
+                                            <td class="text-center"><?php echo $no++; ?></td>
+                                            <td class="text-left"><?php echo $no_dokumen; ?></td>
+                                            <td class="text-left"><?php echo $tgl_formatted; ?></td>
+                                            <td class="text-left"><?php echo $dari; ?></td>
+                                            <td class="text-left"><?php echo $perihal; ?></td>
+                                            <td class="text-left"><?php echo $jns_dokumen; ?></td>
+                                            <td class="text-left"><?php echo $kategori; ?></td>
+                                            <td class="text-center">
+                                                <?php if ($lv == '1' || $lv == '2' || $lv == '3'): ?>
+                                                    <span
+                                                        class="btn-view-pdf badge badge-info badge-square <?php echo empty($file) ? 'opacity-50' : ''; ?>"
+                                                        data-id="<?php echo $id; ?>" title="Lihat PDF">
+                                                        <i class="la la-eye"></i>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <?php if ($lv == '1' || $lv == '2'): ?>
+                                                    <span class="btn-edit badge badge-warning badge-square"
+                                                        data-id="<?php echo $id; ?>" title="Edit">
+                                                        <i class="la la-edit"></i>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <?php if ($lv == '1' || $lv == '2'): ?>
+                                                    <span class="btn-delete badge badge-danger badge-square"
+                                                        data-id="<?php echo $id; ?>" data-nama="<?php echo $no_dokumen; ?>"
+                                                        title="Hapus">
+                                                        <i class="la la-trash"></i>
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+
+
+
+                    </div>
+                    <!-- /.card-footer -->
+                </div>
+                <!-- /.card -->
+            </div>
+            <!-- /.col -->
+        </div>
+        <!-- /.row -->
+</div>
+<!-- /.container-fluid -->
+</section>
+<!-- /.content -->
+
+
+<!-- =================================================================== -->
+<!-- |                      MODAL KONFIRMASI HAPUS                     | -->
+<!-- =================================================================== -->
+<div class="modal fade" id="modalHapus" tabindex="-1" aria-labelledby="modalHapusLabel">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="modalHapusLabel"><i class="fas fa-exclamation-triangle"></i> Notifikasi
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+
+            <div class="modal-body">
+                Apakah Anda yakin ingin menghapus data surat:
+                <br>
+                <strong><span id="detail-hapus"></span></strong>?
+                <br><br>
+                Tindakan ini tidak dapat dibatalkan.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal"><i class="fas fa-times"></i>
+                    Tutup</button>
+                <button type="button" class="btn btn-danger" id="tombolKonfirmasiHapus"><i class="fas fa-trash"></i>
+                    Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- |                      MODAL NOTIFIKASI ALERT                     | -->
+<!-- =================================================================== -->
+<div class="modal fade" id="modalNotifikasi" tabindex="-1" aria-labelledby="modalNotifikasiLabel">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" id="notifikasi-header">
+                <h5 class="modal-title" id="modalNotifikasiLabel">
+                    <i id="notifikasi-icon" class="mr-2"></i>
+                    <span id="notifikasi-title">Notifikasi</span>
+                </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <div class="modal-body" id="notifikasi-body">
+                <!-- Pesan notifikasi akan diisi di sini oleh JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary custom" data-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================================================================== -->
+<!-- |                      MODAL VIEW DETAIL                          | -->
+<!-- =================================================================== -->
+<div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header box-shadow-0 bg-gradient-x-info text-white">
+                <b class="modal-title" id="viewModalLabel">Lihat Dokumen</b>
+            </div>
+            <div class="modal-body">
+                <div id="view_pdf_container" class="mb-3">
+                    <iframe id="pdf_viewer"
+                        style="width: 100%; height: 60vh; border: 1px solid #dee2e6; border-radius: .25rem;"
+                        src=""></iframe>
+                </div>
+                <table class="table table-bordered table-striped">
+                    <tbody>
+                        <tr>
+                            <th style="width: 30%;">No Surat</th>
+                            <td id="view_no_dokumen"></td>
+                        </tr>
+                        <tr>
+                            <th>Jenis Dokumen</th>
+                            <td id="view_jns_dokumen"></td>
+                        </tr>
+                        <tr>
+                            <th>Dari</th>
+                            <td id="view_dari"></td>
+                        </tr>
+                        <tr>
+                            <th>Perihal</th>
+                            <td id="view_perihal"></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal Diterima</th>
+                            <td id="view_tgl_diterima"></td>
+                        </tr>
+                        <tr>
+                            <th>Tanggal Dokumen</th>
+                            <td id="view_tgl_dokumen"></td>
+                        </tr>
+                        <tr>
+                            <th>Kategori</th>
+                            <td id="view_kategori"></td>
+                        </tr>
+                        <tr>
+                            <th>Catatan</th>
+                            <td id="view_catatan"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary custom" data-dismiss="modal"><i class="fas fa-times"></i>
+                    Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- =================================================================== -->
+<!-- |                      MODAL FORM DATA                            | -->
+<!-- =================================================================== -->
+<div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header box-shadow-0 bg-gradient-x-info">
+                <b class="modal-title" id="formModalLabel">Form Data Surat</b>
+            </div>
+            <!-- Pastikan 'enctype' ada untuk upload file -->
+            <form id="form-surat" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- Input tersembunyi untuk ID dan aksi -->
+                    <input type="hidden" id="id" name="id">
+                    <input type="hidden" id="action" name="action" value="simpan">
+                    <input type="hidden" id="file_lama" name="file_lama">
+                    <!-- Untuk menyimpan nama file saat edit -->
+
+                    <div class="row">
+                        <!-- Kolom Kiri: Informasi Utama & Perihal -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="no_dokumen"><i class="fas fa-file-alt"></i> No Surat
+                                    <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="no_dokumen" name="no_dokumen" required>
+                            </div>
+
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label for="tgl_dokumen" class="small fw-bold text-muted text-uppercase mb-1"><i
+                                            class="fas fa-calendar"></i> Tgl Surat</label>
+                                    <input type="date" class="form-control" id="tgl_dokumen" name="tgl_dokumen">
+                                </div>
+                                <div class="col-6">
+                                    <label for="tgl_diterima" class="small fw-bold text-muted text-uppercase mb-1"><i
+                                            class="fas fa-calendar-check"></i> Tgl Terima</label>
+                                    <input type="date" class="form-control" id="tgl_diterima" name="tgl_diterima">
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="dari"><i class="fas fa-user"></i> Dari</label>
+                                <input class="form-control" list="list_dari" id="dari" name="dari">
+                                <datalist id="list_dari">
+                                    <?php echo $dari_options; ?>
+                                </datalist>
+                            </div>
+
+                            <div class="mb-0">
+                                <label for="perihal"><i class="fas fa-align-left"></i>
+                                    Perihal</label>
+                                <textarea class="form-control" id="perihal" name="perihal" rows="4"></textarea>
                             </div>
                         </div>
-                        <!-- /.card-body -->
+                        <!-- /.col-md-6 -->
 
-                        <div class="card-footer d-flex justify-content-between align-items-center flex-wrap">
-                            <div id="records-info-container" class="text-muted small mb-2 mb-md-0">
-                                <!-- Info jumlah data dimuat di sini -->
+                        <!-- Kolom Kanan: Klasifikasi, Catatan & Lampiran -->
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="jns_dokumen"><i class="fas fa-folder"></i> Jenis
+                                    Dokumen <span class="text-danger">*</span></label>
+                                <input class="custom-select w-100" list="list_jns_dokumen" id="jns_dokumen"
+                                    name="jns_dokumen" required>
+                                <datalist id="list_jns_dokumen">
+                                    <?php echo $jenis_options; ?>
+                                </datalist>
                             </div>
-                            <div id="pagination-container">
-                                <!-- Navigasi paginasi dimuat di sini -->
+
+                            <div class="mb-3">
+                                <label for="kategori"><i class="fas fa-tags"></i>
+                                    Kategori</label>
+                                <input class="custom-select w-100" list="list_kategori" id="kategori" name="kategori">
+                                <datalist id="list_kategori">
+                                    <?php echo $kategori_options; ?>
+                                </datalist>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="catatan"><i class="fas fa-sticky-note"></i>
+                                    Catatan</label>
+                                <textarea class="form-control" id="catatan" name="catatan" rows="2"></textarea>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="form-label fw-bold"><i class="fas fa-paperclip"></i> Lampiran File
+                                    (.pdf)</label>
+                                <div id="drop-zone" class="border rounded p-2 bg-white"
+                                    style="border-style: dashed !important; border-width: 2px !important;">
+                                    <input class="d-none" type="file" id="pdf" name="pdf" accept=".pdf" multiple>
+
+                                    <!-- Header: Button & Drag Text -->
+                                    <div class="d-flex align-items-center mb-2 px-1">
+                                        <button type="button"
+                                            class="btn btn-sm btn-light border-0 px-2 py-1 mr-2 shadow-sm"
+                                            id="choose-file-btn"
+                                            style="background-color: #f3f4f6; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
+                                            <i class="fas fa-folder-open mr-1"></i> Pilih...
+                                        </button>
+                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                            atau drag file kesini.
+                                        </div>
+                                    </div>
+
+                                    <!-- Existing Files -->
+                                    <div id="info_file_lama" class="mb-2 d-none">
+                                        <div id="link_file_lama" class="d-flex flex-column gap-1"></div>
+                                    </div>
+
+                                    <!-- New Files List -->
+                                    <div id="file-list" class="mb-2 d-flex flex-column gap-1"></div>
+
+                                    <!-- Footer Info -->
+                                    <div class="border-top pt-2 d-flex justify-content-between align-items-center px-1">
+                                        <div class="small fw-bold text-secondary">
+                                            <i class="fas fa-chart-pie mr-1"></i> Total Berkas:
+                                        </div>
+                                        <div class="small">
+                                            <span id="file-size" class="text-primary fw-bold"
+                                                style="font-size: 0.9rem;">0 B</span>
+                                            <span class="text-muted ml-1" style="font-size: 0.75rem;">(Maks
+                                                2MB)</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                        <!-- /.card-footer -->
+                        <!-- /.col-md-6 -->
                     </div>
-                    <!-- /.card -->
+                    <!-- /.row -->
                 </div>
-                <!-- /.col -->
-            </div>
-            <!-- /.row -->
-        </div>
-        <!-- /.container-fluid -->
-    </section>
-    <!-- /.content -->
+                <!-- /.modal-body -->
 
-    <!-- =================================================================== -->
-    <!-- |                      MODAL KONFIRMASI HAPUS                     | -->
-    <!-- =================================================================== -->
-    <div class="modal fade" id="modalHapus" tabindex="-1" aria-labelledby="modalHapusLabel">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title" id="modalHapusLabel"><i class="fas fa-exclamation-triangle"></i> Notifikasi</h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                </div>
-
-                <div class="modal-body">
-                    Apakah Anda yakin ingin menghapus data surat:
-                    <br>
-                    <strong><span id="detail-hapus"></span></strong>?
-                    <br><br>
-                    Tindakan ini tidak dapat dibatalkan.
-                </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times"></i> Tutup</button>
-                    <button type="button" class="btn btn-danger" id="tombolKonfirmasiHapus"><i class="fas fa-trash"></i> Hapus</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- =================================================================== -->
-    <!-- |                      MODAL NOTIFIKASI ALERT                     | -->
-    <!-- =================================================================== -->
-    <div class="modal fade" id="modalNotifikasi" tabindex="-1" aria-labelledby="modalNotifikasiLabel">
-        <div class="modal-dialog modal-dialog-lg">
-            <div class="modal-content">
-                <div class="modal-header" id="notifikasi-header">
-                    <h5 class="modal-title" id="modalNotifikasiLabel">
-                        <i id="notifikasi-icon" class="fas fa-info-circle me-2"></i>
-                        <span id="notifikasi-title">Notifikasi</span>
-                    </h5>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                </div>
-                <div class="modal-body" id="notifikasi-body">
-                    <!-- Pesan notifikasi akan diisi di sini oleh JavaScript -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary custom" data-bs-dismiss="modal">Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- =================================================================== -->
-    <!-- |                      MODAL VIEW DETAIL                          | -->
-    <!-- =================================================================== -->
-    <div class="modal fade" id="viewModal" tabindex="-1" aria-labelledby="viewModalLabel" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <b class="modal-title" id="viewModalLabel">Lihat Dokumen</b>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <div id="view_pdf_container" class="mb-3">
-                        <iframe id="pdf_viewer" style="width: 100%; height: 60vh; border: 1px solid #dee2e6; border-radius: .25rem;" src=""></iframe>
-                    </div>
-                    <table class="table table-bordered table-striped">
-                        <tbody>
-                            <tr>
-                                <th style="width: 30%;">No Surat</th>
-                                <td id="view_no_dokumen"></td>
-                            </tr>
-                            <tr>
-                                <th>Jenis Dokumen</th>
-                                <td id="view_jns_dokumen"></td>
-                            </tr>
-                            <tr>
-                                <th>Dari</th>
-                                <td id="view_dari"></td>
-                            </tr>
-                            <tr>
-                                <th>Perihal</th>
-                                <td id="view_perihal"></td>
-                            </tr>
-                            <tr>
-                                <th>Tanggal Diterima</th>
-                                <td id="view_tgl_diterima"></td>
-                            </tr>
-                            <tr>
-                                <th>Tanggal Dokumen</th>
-                                <td id="view_tgl_dokumen"></td>
-                            </tr>
-                            <tr>
-                                <th>Kategori</th>
-                                <td id="view_kategori"></td>
-                            </tr>
-                            <tr>
-                                <th>Catatan</th>
-                                <td id="view_catatan"></td>
-                            </tr>
-                            <!-- Tambahan baris untuk link download/view manual jika perlu -->
-                            <tr>
-                                <th>File</th>
-                                <td id="view_pdf"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary custom" data-bs-dismiss="modal"><i class="fas fa-times"></i> Tutup</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- =================================================================== -->
-    <!-- |                      MODAL FORM DATA                            | -->
-    <!-- =================================================================== -->
-    <div class="modal fade" id="formModal" tabindex="-1" aria-labelledby="formModalLabel" data-bs-backdrop="static">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-menu-gradient">
-                    <b class="modal-title" id="formModalLabel"><i class="fas fa-plus"></i> Form Data Surat</b>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
+                    <button type="button" class="btn btn-secondary custom" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary custom" id="tombol-simpan">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Simpan
                     </button>
                 </div>
-                <!-- Pastikan 'enctype' ada untuk upload file -->
-                <form id="form-surat" enctype="multipart/form-data">
-                    <div class="modal-body">
-                        <!-- Input tersembunyi untuk ID dan aksi -->
-                        <input type="hidden" id="id" name="id">
-                        <input type="hidden" id="action" name="action" value="simpan">
-                        <input type="hidden" id="file_lama" name="file_lama"> <!-- Untuk menyimpan nama file saat edit -->
-
-
-
-                        <div class="row">
-                            <!-- Kolom Kiri: Informasi Utama & Perihal -->
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="no_dokumen" class="form-label"><i class="fas fa-file-alt"></i> No Surat <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="no_dokumen" name="no_dokumen" required>
-                                </div>
-
-                                <div class="row mb-3">
-                                    <div class="col-6">
-                                        <label for="tgl_dokumen" class="form-label small fw-bold text-muted text-uppercase mb-1"><i class="fas fa-calendar"></i> Tgl Surat</label>
-                                        <input type="date" class="form-control" id="tgl_dokumen" name="tgl_dokumen">
-                                    </div>
-                                    <div class="col-6">
-                                        <label for="tgl_diterima" class="form-label small fw-bold text-muted text-uppercase mb-1"><i class="fas fa-calendar-check"></i> Tgl Terima</label>
-                                        <input type="date" class="form-control" id="tgl_diterima" name="tgl_diterima">
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="dari" class="form-label"><i class="fas fa-user"></i> Dari</label>
-                                    <input class="form-control" list="list_dari" id="dari" name="dari">
-                                    <datalist id="list_dari">
-                                        <?php echo $dari_options; ?>
-                                    </datalist>
-                                </div>
-
-                                <div class="mb-0">
-                                    <label for="perihal" class="form-label"><i class="fas fa-align-left"></i> Perihal</label>
-                                    <textarea class="form-control" id="perihal" name="perihal" rows="4"></textarea>
-                                </div>
-                            </div>
-                            <!-- /.col-md-6 -->
-
-                            <!-- Kolom Kanan: Klasifikasi, Catatan & Lampiran -->
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="jns_dokumen" class="form-label"><i class="fas fa-folder"></i> Jenis Dokumen <span class="text-danger">*</span></label>
-                                    <input class="form-control" list="list_jns_dokumen" id="jns_dokumen" name="jns_dokumen" required>
-                                    <datalist id="list_jns_dokumen">
-                                        <?php echo $jenis_options; ?>
-                                    </datalist>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="kategori" class="form-label"><i class="fas fa-tags"></i> Kategori</label>
-                                    <input class="form-control" list="list_kategori" id="kategori" name="kategori">
-                                    <datalist id="list_kategori">
-                                        <?php echo $kategori_options; ?>
-                                    </datalist>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="catatan" class="form-label"><i class="fas fa-sticky-note"></i> Catatan</label>
-                                    <textarea class="form-control" id="catatan" name="catatan" rows="2"></textarea>
-                                </div>
-
-                                <div class="mb-0">
-                                    <label class="form-label fw-bold"><i class="fas fa-paperclip"></i> Lampiran File (.pdf)</label>
-                                    <div id="drop-zone" class="border rounded p-2 bg-white" style="border-style: dashed !important; border-width: 2px !important;">
-                                        <input class="d-none" type="file" id="pdf" name="pdf" accept=".pdf" multiple>
-                                        
-                                        <!-- Header: Button & Drag Text -->
-                                        <div class="d-flex align-items-center mb-2 px-1">
-                                            <button type="button" class="btn btn-sm btn-light border-0 px-2 py-1 me-2 shadow-sm" id="choose-file-btn" style="background-color: #f3f4f6; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
-                                                <i class="fas fa-folder-open me-1"></i> Pilih...
-                                            </button>
-                                            <div class="text-muted" style="font-size: 0.75rem;">
-                                                atau drag file kesini.
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Existing Files -->
-                                        <div id="info_file_lama" class="mb-2 d-none">
-                                             <div id="link_file_lama" class="d-flex flex-column gap-1"></div>
-                                        </div>
-
-                                        <!-- New Files List -->
-                                        <div id="file-list" class="mb-2 d-flex flex-column gap-1"></div>
-                                        
-                                        <!-- Footer Info -->
-                                        <div class="border-top pt-2 d-flex justify-content-between align-items-center px-1">
-                                            <div class="small fw-bold text-secondary">
-                                                <i class="fas fa-chart-pie me-1"></i> Total Berkas:
-                                            </div>
-                                            <div class="small">
-                                                <span id="file-size" class="text-primary fw-bold" style="font-size: 0.9rem;">0 B</span>
-                                                <span class="text-muted ms-1" style="font-size: 0.75rem;">(Maks 2MB)</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <!-- /.col-md-6 -->
-                        </div>
-                        <!-- /.row -->
-                    </div>
-                    <!-- /.modal-body -->
-
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary custom" data-bs-dismiss="modal"><i class="fas fa-times"></i> Tutup</button>
-                        <button type="submit" class="btn btn-primary custom" id="tombol-simpan">
-                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                            <i class="fas fa-save"></i> Simpan
-                        </button>
-                    </div>
-                </form>
-            </div>
+            </form>
         </div>
     </div>
-    <!-- AKHIR MODAL FORM -->
-
 </div>
-<!-- /.content-wrapper -->
+<!-- AKHIR MODAL FORM -->
+
+<!-- =================================================================== -->
+<!-- |                      MODAL EDIT DATA                            | -->
+<!-- =================================================================== -->
+<div class="modal fade" id="modalEdit" tabindex="-1" aria-labelledby="modalEditLabel" data-backdrop="static">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header box-shadow-0 bg-gradient-x-primary text-white">
+                <b class="modal-title" id="modalEditLabel">Edit Data Surat</b>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close"><span
+                        aria-hidden="true">&times;</span></button>
+            </div>
+            <form id="form-surat-edit" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" id="edit_id" name="id">
+                    <input type="hidden" name="action" value="edit">
+                    <input type="hidden" id="edit_file_lama" name="file_lama">
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_no_dokumen">No Surat <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="edit_no_dokumen" name="no_dokumen" required>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-6">
+                                    <label for="edit_tgl_dokumen"
+                                        class="small fw-bold text-muted text-uppercase mb-1">Tgl
+                                        Surat</label>
+                                    <input type="date" class="form-control" id="edit_tgl_dokumen" name="tgl_dokumen">
+                                </div>
+                                <div class="col-6">
+                                    <label for="edit_tgl_diterima"
+                                        class="small fw-bold text-muted text-uppercase mb-1"><i
+                                            class="fas fa-calendar-check"></i> Tgl Terima</label>
+                                    <input type="date" class="form-control" id="edit_tgl_diterima" name="tgl_diterima">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_dari"><i class="fas fa-user"></i> Dari</label>
+                                <input class="form-control" list="list_dari" id="edit_dari" name="dari">
+                            </div>
+                            <div class="mb-0">
+                                <label for="edit_perihal"><i class="fas fa-align-left"></i>
+                                    Perihal</label>
+                                <textarea class="form-control" id="edit_perihal" name="perihal" rows="4"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="edit_jns_dokumen"><i class="fas fa-folder"></i> Jenis
+                                    Dokumen <span class="text-danger">*</span></label>
+                                <input class="custom-select w-100" list="list_jns_dokumen" id="edit_jns_dokumen"
+                                    name="jns_dokumen" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_kategori"><i class="fas fa-tags"></i>
+                                    Kategori</label>
+                                <input class="custom-select w-100" list="list_kategori" id="edit_kategori"
+                                    name="kategori">
+                            </div>
+                            <div class="mb-3">
+                                <label for="edit_catatan"><i class="fas fa-sticky-note"></i>
+                                    Catatan</label>
+                                <textarea class="form-control" id="edit_catatan" name="catatan" rows="2"></textarea>
+                            </div>
+                            <div class="mb-0">
+                                <label class="form-label fw-bold"><i class="fas fa-paperclip"></i> Update Lampiran
+                                    (.pdf)</label>
+                                <div id="edit_drop-zone" class="border rounded p-2 bg-white"
+                                    style="border-style: dashed !important; border-width: 2px !important;">
+                                    <input class="d-none" type="file" id="edit_pdf" name="pdf[]" accept=".pdf" multiple>
+                                    <div class="d-flex align-items-center mb-2 px-1">
+                                        <button type="button"
+                                            class="btn btn-sm btn-light border-0 px-2 py-1 mr-2 shadow-sm"
+                                            id="edit_choose-file-btn"
+                                            style="background-color: #f3f4f6; color: #4338ca; font-weight: 600; font-size: 0.8rem;">
+                                            <i class="fas fa-folder-open mr-1"></i> Pilih...
+                                        </button>
+                                        <div class="text-muted" style="font-size: 0.75rem;">atau drag file kesini.</div>
+                                    </div>
+                                    <div id="edit_info_file_lama" class="mb-2 d-none">
+                                        <div id="edit_link_file_lama" class="d-flex flex-column gap-1"></div>
+                                    </div>
+                                    <div id="edit_file-list" class="mb-2 d-flex flex-column gap-1"></div>
+                                    <div class="border-top pt-2 d-flex justify-content-between align-items-center px-1">
+                                        <div class="small fw-bold text-secondary"><i class="fas fa-chart-pie mr-1"></i>
+                                            Total:</div>
+                                        <div class="small"><span id="edit_file-size" class="text-primary fw-bold"
+                                                style="font-size: 0.9rem;">0 B</span> <span class="text-muted ml-1"
+                                                style="font-size: 0.75rem;">(Maks 2MB)</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary custom" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary custom" id="edit_tombol-simpan">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- AKHIR MODAL EDIT -->
+
 
 <script>
-    $(document).ready(function() {
-
+    $(document).ready(function () {
         // --- 1. Variabel Global ---
-        var currentPage = 1;
-        var searchTimer; // Untuk debounce pencarian
 
-        // [VALIDASI] Daftar field mandatory
-        const mandatoryFields = ['no_dokumen', 'jns_dokumen', 'dari', 'perihal', 'tgl_diterima', 'tgl_dokumen', 'kategori', 'catatan'];
+        // [VALIDASI] Daftar field mandatory - Dikurangi agar lebih fleksibel (catatan & kategori opsional)
+        const mandatoryFields = ['no_dokumen', 'jns_dokumen', 'dari', 'perihal', 'tgl_diterima', 'tgl_dokumen'];
 
         /**
-         * Mengecek apakah semua field mandatory sudah terisi.
-         * Mengupdate UI tombol simpan dan memberikan feedback visual.
+         * Helper untuk menampilkan/menyembunyikan modal dengan Bootstrap 5 Native JS.
          */
+        function manageModal(id, action) {
+            const el = $(`#${id}`);
+            if (!el.length) return;
+            el.modal(action);
+        }
+
         function checkFormCompletion() {
             let isComplete = true;
-            
             mandatoryFields.forEach(fieldId => {
                 const input = $(`#${fieldId}`);
-                const value = input.val() ? input.val().trim() : '';
-                
-                if (value === '') {
-                    isComplete = false;
-                }
+                const val = input.val();
+                if (input.length && (!val || val.toString().trim() === '')) isComplete = false;
             });
-
-            // [VALIDASI] Cek keberadaan file
-            const fileLama = $('#file_lama').val();
-            const hasNewFile = selectedFiles.length > 0;
-            const hasExistingFile = fileLama && fileLama.trim() !== '';
-            
-            if (!hasNewFile && !hasExistingFile) {
-                isComplete = false;
-            }
 
             const btn = $('#tombol-simpan');
             if (isComplete) {
-                btn.prop('disabled', false)
-                   .removeClass('btn-secondary')
-                   .addClass('btn-primary')
-                   .html('<i class="fas fa-save"></i> Simpan');
+                btn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary').html('<i class="fas fa-save"></i> Simpan');
             } else {
-                btn.prop('disabled', true)
-                   .removeClass('btn-primary')
-                   .addClass('btn-secondary')
-                   .html('<i class="fas fa-exclamation-circle"></i> Lengkapi Data');
+                btn.prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary').html('<i class="fas fa-exclamation-circle"></i> Lengkapi Data');
             }
-            
-            return isComplete;
+        }
+
+        function checkEditFormCompletion() {
+            let isComplete = true;
+            mandatoryFields.forEach(fieldId => {
+                const input = $(`#edit_${fieldId}`);
+                const val = input.val();
+                if (input.length && (!val || val.toString().trim() === '')) isComplete = false;
+            });
+
+            const btn = $('#edit_tombol-simpan');
+            if (isComplete) {
+                btn.prop('disabled', false).removeClass('btn-secondary').addClass('btn-primary').html('<i class="fas fa-save"></i> Simpan Perubahan');
+            } else {
+                btn.prop('disabled', true).removeClass('btn-primary').addClass('btn-secondary').html('<i class="fas fa-exclamation-circle"></i> Lengkapi Data');
+            }
         }
 
         // Jalankan pengecekan setiap kali ada input pada field mandatory
         mandatoryFields.forEach(fieldId => {
-            $(`#${fieldId}`).on('input change', function() {
+            $(`#${fieldId}`).on('input change', function () {
                 checkFormCompletion();
-                
-                // Feedback visual real-time
-                if ($(this).val() && $(this).val().trim() !== '') {
-                    $(this).removeClass('is-invalid').addClass('is-valid');
-                } else {
-                    $(this).removeClass('is-valid').addClass('is-invalid');
-                }
+                const val = $(this).val();
+                if (val && val.toString().trim() !== '') $(this).removeClass('is-invalid').addClass('is-valid');
+                else $(this).removeClass('is-valid').addClass('is-invalid');
+            });
+            $(`#edit_${fieldId}`).on('input change', function () {
+                checkEditFormCompletion();
+                const val = $(this).val();
+                if (val && val.toString().trim() !== '') $(this).removeClass('is-invalid').addClass('is-valid');
+                else $(this).removeClass('is-valid').addClass('is-invalid');
             });
         });
 
-        // [PERUBAHAN] Mengganti fungsi placeholder dengan modal notifikasi kustom
-        // Buat instance modal Bootstrap sekali saja di luar fungsi
-        var modalNotifikasi = new bootstrap.Modal(document.getElementById('modalNotifikasi'));
-
         /**
          * Menampilkan notifikasi kustom menggunakan modal Bootstrap.
-         * @param {string} message - Pesan yang akan ditampilkan.
-         * @param {string} status - Tipe notifikasi ('success', 'error', 'warning', 'info').
          */
         function tampilkanNotifikasi(message, status) {
             var header = $('#notifikasi-header');
@@ -513,108 +701,51 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
             var title = $('#notifikasi-title');
             var body = $('#notifikasi-body');
 
-            // Hapus kelas warna dan ikon sebelumnya
             header.removeClass('bg-success bg-danger bg-warning bg-info text-white text-dark');
-            icon.removeClass('fa-check-circle fa-times-circle fa-exclamation-triangle fa-info-circle');
+            icon.removeClass('fas fa-check-circle fa-times-circle fa-exclamation-triangle fa-info-circle');
 
-            // Atur tampilan modal berdasarkan status
             switch (status) {
                 case 'success':
                     header.addClass('bg-success text-white');
                     icon.addClass('fas fa-check-circle');
-                    title.text('Notifikasi');
+                    title.text('Berhasil');
                     break;
                 case 'error':
                     header.addClass('bg-danger text-white');
                     icon.addClass('fas fa-times-circle');
-                    title.text('Notifikasi');
+                    title.text('Error');
                     break;
                 case 'warning':
-                    header.addClass('bg-warning text-dark'); // Teks gelap agar terbaca di background kuning
+                    header.addClass('bg-warning text-dark');
                     icon.addClass('fas fa-exclamation-triangle');
-                    title.text('Notifikasi');
+                    title.text('Peringatan');
                     break;
-                default: // 'info' atau status tidak dikenal
+                default:
                     header.addClass('bg-info text-white');
                     icon.addClass('fas fa-info-circle');
-                    title.text('Notifikasi');
+                    title.text('Informasi');
                     break;
             }
 
-            // Set pesan
-            body.html(message); // Gunakan .html() agar bisa merender tag seperti <br>
-
-            // Tampilkan modal
-            modalNotifikasi.show();
-        }
-
-
-        // --- 2. Fungsi Utama: muatdata() ---
-        // Fungsi ini adalah inti dari aplikasi, memuat data via AJAX
-        function muatdata(page) {
-            currentPage = page; // Simpan halaman saat ini
-            var records = $('#records-per-page').val();
-            var search = $('#search-box').val();
-            var tahun = $('#year-filter').val();
-
-            // Tampilkan loading overlay
-            $('#loading-overlay').removeClass('d-none');
-
-            $.ajax({
-                url: 'proses_surat_masuk.php',
-                type: 'GET',
-                data: {
-                    action: 'muatData',
-                    page: page,
-                    limit: records,
-                    search: search,
-                    tahun: tahun
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        $('#data-masuk').html(response.data.table);
-                        $('#pagination-container').html(response.data.pagination);
-                        $('#records-info-container').html(response.data.recordsInfo);
-                    } else {
-                        // Tampilkan error jika server merespon dengan 'error'
-                        tampilkanNotifikasi(response.message || 'Gagal memuat data.', 'error');
-                        $('#data-masuk').html('<div class="alert alert-danger">Gagal memuat data.</div>');
-                        $('#pagination-container').html('');
-                        $('#records-info-container').html('');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    // Tampilkan error jika AJAX request gagal total
-                    console.error("AJAX Error:", textStatus, errorThrown, jqXHR.responseText);
-                    tampilkanNotifikasi('Terjadi kesalahan server saat memuat data.', 'error');
-                    $('#data-masuk').html('<div class="alert alert-danger">Error: ' + errorThrown + '</div>');
-                },
-                complete: function() {
-                    // Sembunyikan loading overlay
-                    $('#loading-overlay').addClass('d-none');
-                }
-            });
+            body.html(message);
+            manageModal('modalNotifikasi', 'show');
         }
 
 
         function makeModalsDraggable() {
             let activeModal = null;
-            let offset = {
-                x: 0,
-                y: 0
-            };
-            document.addEventListener('mousedown', function(e) {
+            let offset = { x: 0, y: 0 };
+            document.addEventListener('mousedown', function (e) {
                 const header = e.target.closest('.modal-header');
                 if (header && header.closest('.modal-dialog')) {
                     activeModal = header.closest('.modal-dialog');
                     const rect = activeModal.getBoundingClientRect();
                     offset.x = e.clientX - rect.left;
                     offset.y = e.clientY - rect.top;
-                    document.body.style.userSelect = 'none'; // Mencegah seleksi teks saat drag
+                    document.body.style.userSelect = 'none';
                 }
             });
-            document.addEventListener('mousemove', function(e) {
+            document.addEventListener('mousemove', function (e) {
                 if (activeModal) {
                     e.preventDefault();
                     activeModal.style.margin = '0';
@@ -622,129 +753,81 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                     activeModal.style.left = `${e.clientX - offset.x}px`;
                 }
             });
-            document.addEventListener('mouseup', function() {
+            document.addEventListener('mouseup', function () {
                 activeModal = null;
                 document.body.style.userSelect = '';
             });
         }
 
+        $('.content table.table').DataTable({
+            scrollY: 450,
+            scrollX: true,
+            scrollCollapse: true,
+            paging: false,
+        });
+
         // --- 3. Panggilan Awal ---
-        // Panggil muatdata saat halaman pertama kali dimuat
-        muatdata(1);
         makeModalsDraggable();
 
-        // --- 4. Event Listeners (Kontrol Data) ---
-
-        // Listener untuk 'Year Filter'
-        $('#year-filter').on('change', function() {
-            muatdata(1); // Reset ke halaman 1
-        });
-
-        // Listener untuk 'Records per Page'
-        $('#records-per-page').on('change', function() {
-            muatdata(1); // Selalu reset ke halaman 1
-        });
-
-        // Listener untuk 'Search' (dengan debounce)
-        $('#search-box').on('keyup', function() {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(function() {
-                muatdata(1); // Selalu reset ke halaman 1
-            }, 300); // Tunggu 300ms setelah user berhenti mengetik
-        });
-
-        // Listener untuk Paginasi (Event Delegation)
-        $('#pagination-container').on('click', '.page-link', function(e) {
-            e.preventDefault();
-            var page = $(this).data('page');
-            if (page) {
-                muatdata(page);
-            }
+        $('#year-filter').on('change', function () {
+            var thn = $(this).val();
+            window.location.href = 'suratmasuk.php?tahun=' + thn;
         });
 
 
-        // Listener for View Button - Fetch data via AJAX to avoid truncation
-        $('#data-masuk').on('click', '.tombol-view', function() {
+        $('.content table.table').on('click', '.btn-view, .tombol-view, .btn-view-pdf', function () {
             var id = $(this).data('id');
-            var tahun = $('#year-filter').val();
-            
-            // Show loading
             var container = $('#view_pdf_container');
-            container.html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
-            
-            // Fetch complete data via AJAX
+
             $.ajax({
                 url: 'proses_surat_masuk.php',
                 type: 'GET',
-                data: {
-                    action: 'ambil',
-                    id: id,
-                    tahun: tahun
-                },
+                data: { action: 'ambil', id: id, tahun: $('#year-filter').val() },
                 dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        var data = response.data;
-                        
-                        // Populate modal fields
-                        $('#view_no_dokumen').text(data.no_dokumen || '-');
-                        $('#view_jns_dokumen').text(data.jns_dokumen || '-');
-                        $('#view_dari').text(data.dari || '-');
-                        $('#view_perihal').text(data.perihal || '-');
-                        $('#view_tgl_dokumen').text(data.tgl_diterima || '-');
-                        $('#view_tgl_diterima').text(data.tgl_diterima || '-');
-                        $('#view_kategori').text(data.kategori || '-');
-                        $('#view_catatan').text(data.catatan || '-');
-
-                        container.empty();
-                        $('#view_pdf').empty();
-
-                        var file = data.pdf;
-                        if (file) {
-                            var files = file.split('|');
-                            
-                            // If single file, show iframe
-                            if (files.length === 1 && files[0].trim() !== '') {
-                                var path = encodeURI('file/berkas-masuk/' + files[0]);
-                                var iframe = $('<iframe>', {
-                                    src: path,
-                                    style: 'width: 100%; height: 60vh; border: 1px solid #dee2e6; border-radius: .25rem;'
-                                });
-                                container.append(iframe);
-                                
-                                // Also link in table
-                                $('#view_pdf').html('<a href="' + path + '" target="_blank" class="btn btn-sm btn-primary"><i class="fas fa-download"></i> Download</a>');
-
-                            } else if (files.length > 1) {
-                                // Multiple files: Show list of buttons
-                                var listHtml = '<div class="list-group">';
-                                files.forEach(function(f, index) {
-                                    if(f.trim() !== '') {
-                                        var path = encodeURI('file/berkas-masuk/' + f);
-                                        var name = f.split('/').pop(); // Show only filename
-                                        listHtml += '<a href="' + path + '" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">';
-                                        listHtml += '<span><i class="fas fa-file-pdf text-danger me-2"></i> File ' + (index + 1) + '</span>';
-                                        listHtml += '<span class="badge bg-primary rounded-pill"><i class="fas fa-external-link-alt"></i> Buka</span>';
-                                        listHtml += '</a>';
-                                    }
-                                });
-                                listHtml += '</div>';
-                                container.html(listHtml);
-                                $('#view_pdf').text(files.length + ' Berkas Dilampirkan');
-                            }
-                        } else {
-                            container.html('<div class="alert alert-info text-center">Tidak ada dokumen fisik yang dilampirkan.</div>');
-                            $('#view_pdf').text('-');
-                        }
-
-                        $('#viewModal').modal('show');
-                    } else {
-                        tampilkanNotifikasi(response.message || 'Gagal mengambil data.', 'error');
+                success: function (data) {
+                    if (data.error) {
+                        tampilkanNotifikasi(data.error, 'error');
+                        return;
                     }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX Error:", textStatus, errorThrown);
-                    tampilkanNotifikasi('Terjadi kesalahan saat mengambil data.', 'error');
+
+                    $('#view_no_dokumen').text(data.no_dokumen || '-');
+                    $('#view_jns_dokumen').text(data.jns_dokumen || '-');
+                    $('#view_dari').text(data.dari || '-');
+                    $('#view_perihal').text(data.perihal || '-');
+                    $('#view_tgl_dokumen').text(data.tgl_dokumen || '-');
+                    $('#view_tgl_diterima').text(data.tgl_diterima || '-');
+                    $('#view_kategori').text(data.kategori || '-');
+                    $('#view_catatan').text(data.catatan || '-');
+
+                    container.empty();
+                    var file = data.pdf;
+                    if (file) {
+                        var files = file.toString().split('|');
+                        if (files.length === 1 && files[0].trim() !== '') {
+                            var path = encodeURI('file/berkas-masuk/' + files[0]);
+                            var iframe = $('<iframe>', {
+                                src: path,
+                                style: 'width: 100%; height: 60vh; border: 1px solid #dee2e6; border-radius: .25rem;'
+                            });
+                            container.append(iframe);
+                        } else if (files.length > 1) {
+                            var listHtml = '<div class="list-group">';
+                            files.forEach(function (f, index) {
+                                if (f.trim() !== '') {
+                                    var path = encodeURI('file/berkas-masuk/' + f);
+                                    listHtml += '<a href="' + path + '" target="_blank" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">';
+                                    listHtml += '<span><i class="la la-file-pdf text-danger me-2"></i> File ' + (index + 1) + '</span>';
+                                    listHtml += '<span class="badge bg-primary rounded-pill"><i class="la la-external-link-alt"></i> Buka</span>';
+                                    listHtml += '</a>';
+                                }
+                            });
+                            listHtml += '</div>';
+                            container.html(listHtml);
+                        }
+                    } else {
+                        container.html('<div class="alert alert-info text-center">Tidak ada dokumen fisik yang dilampirkan.</div>');
+                    }
+                    manageModal('viewModal', 'show');
                 }
             });
         });
@@ -752,21 +835,13 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
 
 
 
-        // --- 4. Drag and Drop File Upload (Multi-File Support) ---
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('pdf');
-        const chooseFileBtn = document.getElementById('choose-file-btn');
-        const fileList = document.getElementById('file-list');
-        const fileSizeDisplay = document.getElementById('file-size');
-        
-        // Array to store selected files (simulating the FileList)
+        // --- 4. Drag and Drop File Upload ---
         let selectedFiles = [];
-        let existingFilesMap = {}; // Map to store existing file sizes {filename: size}
+        let existingFilesMap = {};
         const MAX_FILES = 1;
         const MAX_total_SIZE_MB = 2;
         const MAX_TOTAL_SIZE_BYTES = MAX_total_SIZE_MB * 1024 * 1024;
 
-        // Helper function to format file size
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 B';
             const k = 1024;
@@ -775,15 +850,19 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Update UI logic
-        function updateUI() {
-            fileList.innerHTML = '';
+        function updateUI(forceIsEdit = null) {
+            const isEditModal = forceIsEdit !== null ? forceIsEdit : $('#modalEdit').hasClass('show');
+            const targetList = isEditModal ? document.getElementById('edit_file-list') : document.getElementById('file-list');
+            const targetSize = isEditModal ? document.getElementById('edit_file-size') : document.getElementById('file-size');
+
+            if (!targetList || !targetSize) return;
+
+            targetList.innerHTML = '';
             let totalSize = 0;
 
-            // Tambahkan ukuran dari file yang sudah ada (di edit mode)
-            Object.values(existingFilesMap).forEach(size => {
-                totalSize += size;
-            });
+            if (isEditModal) {
+                Object.values(existingFilesMap).forEach(size => { totalSize += size; });
+            }
 
             selectedFiles.forEach((file, index) => {
                 totalSize += file.size;
@@ -791,72 +870,48 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                 div.className = 'p-2 bg-light border rounded d-flex align-items-center justify-content-between';
                 div.innerHTML = `
                     <div class="d-flex align-items-center flex-grow-1 overflow-hidden">
-                        <div class="me-3 text-primary bg-white p-2 rounded shadow-sm">
-                             <i class="fas fa-file-alt fa-lg"></i>
-                        </div>
+                        <div class="me-3 text-primary bg-white p-2 rounded shadow-sm"><i class="la la-file-alt fa-lg"></i></div>
                         <div class="overflow-hidden">
-                             <a href="#" class="text-decoration-none fw-bold text-primary text-truncate d-block" title="${file.name}">${file.name}</a>
-                             <div class="text-muted small">Ukuran Berkas: ${formatFileSize(file.size)}</div>
+                            <span class="fw-bold text-primary text-truncate d-block" title="${file.name}">${file.name}</span>
+                            <div class="text-muted small">Ukuran: ${formatFileSize(file.size)}</div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-link text-danger p-0 ms-2 remove-file-btn" data-index="${index}" title="Hapus file">
-                        <i class="fas fa-trash-alt"></i>
-                    </button>
+                    <button type="button" class="btn btn-link text-danger p-0 ms-2 remove-file-btn" data-index="${index}"><i class="fas fa-trash-alt"></i></button>
                 `;
-                fileList.appendChild(div);
+                targetList.appendChild(div);
             });
 
-            fileSizeDisplay.innerHTML = `${formatFileSize(totalSize)} <span class="text-muted fw-normal">/ ${MAX_total_SIZE_MB} MB</span>`;
-            
-            // Validation visual feedback
-            if (totalSize > MAX_TOTAL_SIZE_BYTES) {
-                 fileSizeDisplay.classList.add('text-danger', 'fw-bold');
-            } else {
-                 fileSizeDisplay.classList.remove('text-danger', 'fw-bold');
-            }
+            targetSize.innerHTML = `${formatFileSize(totalSize)} <span class="text-muted fw-normal">/ ${MAX_total_SIZE_MB} MB</span>`;
+            if (totalSize > MAX_TOTAL_SIZE_BYTES) targetSize.classList.add('text-danger', 'fw-bold');
+            else targetSize.classList.remove('text-danger', 'fw-bold');
 
             // Bind remove events
-            document.querySelectorAll('.remove-file-btn').forEach(btn => {
-                btn.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const index = parseInt(this.getAttribute('data-index'));
-                    removeFile(index);
-                });
+            $(targetList).find('.remove-file-btn').on('click', function (e) {
+                e.stopPropagation();
+                removeFile(parseInt($(this).data('index')));
             });
-            
-            // Trigger checkFormCompletion
-            checkFormCompletion();
+
+            if (isEditModal) checkEditFormCompletion();
+            else checkFormCompletion();
         }
 
         function addFiles(newFiles) {
-            let currentTotalSize = selectedFiles.reduce((acc, f) => acc + f.size, 0);
-            let addedCount = 0;
+            const isEditModal = $('#modalEdit').hasClass('show');
+            let existingSize = 0;
+            if (isEditModal) {
+                Object.values(existingFilesMap).forEach(size => { existingSize += size; });
+            }
+
+            let currentTotalSize = selectedFiles.reduce((acc, f) => acc + f.size, 0) + existingSize;
 
             Array.from(newFiles).forEach(file => {
-                // Validate Type
-                if (file.type !== 'application/pdf' && !file.name.toLowerCase().endsWith('.pdf')) {
-                    toastr["warning"](`File "${file.name}" bukan PDF.`);
-                    return;
-                }
-                
-                // Validate Count
-                if (selectedFiles.length + addedCount >= MAX_FILES) {
-                    toastr["warning"]("Maksimal 1 berkas.");
-                    return;
-                }
-                
-                // Validate Size
-                if (currentTotalSize + file.size > MAX_TOTAL_SIZE_BYTES) {
-                    toastr["warning"](`Total ukuran melebihi ${MAX_total_SIZE_MB} MB.`);
-                    return;
-                }
-
+                if (!file.name.toLowerCase().endsWith('.pdf')) { tampilkanNotifikasi(`File "${file.name}" bukan PDF.`, 'warning'); return; }
+                if (selectedFiles.length >= MAX_FILES) { tampilkanNotifikasi("Maksimal 1 berkas baru.", 'warning'); return; }
+                if (currentTotalSize + file.size > MAX_TOTAL_SIZE_BYTES) { tampilkanNotifikasi(`Total ukuran melebihi ${MAX_total_SIZE_MB} MB (termasuk file lama).`, 'warning'); return; }
                 selectedFiles.push(file);
                 currentTotalSize += file.size;
-                addedCount++;
             });
-
-            if (addedCount > 0) updateUI();
+            updateUI();
         }
 
         function removeFile(index) {
@@ -866,202 +921,191 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
 
         function clearFiles() {
             selectedFiles = [];
-            existingFilesMap = {}; // Reset existing map
-            fileInput.value = ''; // Reset input
+            existingFilesMap = {};
+            $('#pdf').val('');
+            $('#edit_pdf').val('');
             updateUI();
         }
 
-        // --- Drag & Drop Event Listeners ---
-        if (dropZone && fileInput) {
-             function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-             
-             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, preventDefaults, false);
-                document.body.addEventListener(eventName, preventDefaults, false);
-            });
+        function initDragDrop(dzId, inputId, btnId) {
+            const dz = document.getElementById(dzId);
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (!dz || !input || !btn) return;
 
+            function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                dz.addEventListener(eventName, preventDefaults, false);
+            });
             ['dragenter', 'dragover'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => {
-                    dropZone.style.backgroundColor = '#e7f3ff';
-                    dropZone.style.borderColor = '#0d6efd';
-                }, false);
+                dz.addEventListener(eventName, () => { dz.style.backgroundColor = '#e7f3ff'; dz.style.borderColor = '#0d6efd'; }, false);
             });
-
             ['dragleave', 'drop'].forEach(eventName => {
-                dropZone.addEventListener(eventName, () => {
-                    dropZone.style.backgroundColor = '#f8f9fa';
-                    dropZone.style.borderColor = '#dee2e6';
-                }, false);
+                dz.addEventListener(eventName, () => { dz.style.backgroundColor = '#f8f9fa'; dz.style.borderColor = '#dee2e6'; }, false);
             });
-
-            dropZone.addEventListener('drop', (e) => {
-                const dt = e.dataTransfer;
-                addFiles(dt.files);
-            }, false);
-
-            chooseFileBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                fileInput.click();
-            });
-
-            fileInput.addEventListener('change', function() {
-                addFiles(this.files);
-                // Clear value to allow selecting same file again if needed (though we handle it via array)
-                this.value = ''; 
-            });
-
-             // Reset when modal closed
-             $('#formModal').on('hidden.bs.modal', function() {
-                clearFiles();
-            });
+            dz.addEventListener('drop', (e) => { addFiles(e.dataTransfer.files); }, false);
+            btn.addEventListener('click', (e) => { e.stopPropagation(); input.click(); });
+            input.addEventListener('change', function () { addFiles(this.files); this.value = ''; });
         }
+
+        initDragDrop('drop-zone', 'pdf', 'choose-file-btn');
+        initDragDrop('edit_drop-zone', 'edit_pdf', 'edit_choose-file-btn');
+
+        $('#formModal, #modalEdit').on('hidden.bs.modal', function () { clearFiles(); });
 
 
 
         // --- 5. Event Listeners (CRUD) ---
 
-        // Tombol Tambah: Buka modal dan reset form
-        $('#tombol-tambah').on('click', function() {
-            $('#form-surat')[0].reset(); // Reset form
-            $('#form-surat').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid'); // Reset visual validation
-            $('#action').val('simpan'); // Set aksi ke 'Simpan' (tambah baru)
-            $('#id').val(''); // Kosongkan ID
-            $('#file_lama').val(''); // Kosongkan file lama
-            $('#formModalLabel').text('Tambah Data Surat').prepend('<i class="fas fa-plus"></i> ');
-            
-            // Inisialisasi status tombol
+        $('#tombol-tambah').on('click', function () {
+            $('#form-surat')[0].reset();
+            $('#form-surat').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
+            $('#action').val('simpan');
+            $('#id').val('');
+            $('#file_lama').val('');
+            $('#formModalLabel').html('<i class="fas fa-plus"></i> Tambah Data Surat');
+
             checkFormCompletion();
-            
-            $('#info_file_lama').addClass('d-none'); // Sembunyikan info file lama
-            $('#pdf').prop('required', false); // File tidak wajib saat tambah baru (sesuaikan kebutuhan)
-            clearFiles(); // Reset upload zone display
-            $('#formModal').modal('show');
+            $('#info_file_lama').addClass('d-none');
+            clearFiles();
+            manageModal('formModal', 'show');
         });
 
-        // Listener untuk Tombol Edit (Event Delegation)
-        $('#data-masuk').on('click', '.tombol-edit', function() {
+        $('.content table.table').on('click', '.btn-edit, .tombol-edit', function () {
             var id = $(this).data('id');
-            var tahun = $('#year-filter').val(); // Ambil tahun dari filter
-
-            // Ambil data untuk di-edit
             $.ajax({
                 url: 'proses_surat_masuk.php',
                 type: 'GET',
-                data: {
-                    action: 'ambil',
-                    id: id,
-                    tahun: tahun // Kirim parameter tahun
-                },
+                data: { action: 'ambil', id: id, tahun: $('#year-filter').val() },
                 dataType: 'json',
-                success: function(data) {
-                    if (data.status === 'success') {
-                        // Isi form dengan data
-                        $('#action').val('edit');
-                        $('#id').val(data.data.id);
-                        $('#no_dokumen').val(data.data.no_dokumen);
-                        $('#jns_dokumen').val(data.data.jns_dokumen);
-                        $('#dari').val(data.data.dari);
-                        $('#perihal').val(data.data.perihal);
-                        // Format tanggal untuk input type="date" (YYYY-MM-DD)
-                        $('#tgl_dokumen').val(data.data.tgl_dokumen_raw);
-                        $('#tgl_diterima').val(data.data.tgl_diterima_raw);
-                        $('#kategori').val(data.data.kategori);
-                        $('#catatan').val(data.data.catatan);
-                        $('#file_lama').val(data.data.pdf);
-                        existingFilesMap = data.data.file_sizes_map || {};
-                        updateUI(); // Segera hitung total size termasuk file lama
+                success: function (data) {
+                    if (data.error) {
+                        tampilkanNotifikasi(data.error, 'error');
+                        return;
+                    }
+                    $('#edit_id').val(data.id);
+                    $('#edit_no_dokumen').val(data.no_dokumen);
+                    $('#edit_jns_dokumen').val(data.jns_dokumen);
+                    $('#edit_dari').val(data.dari);
+                    $('#edit_perihal').val(data.perihal);
+                    $('#edit_tgl_dokumen').val(data.tgl_dokumen);
+                    $('#edit_tgl_diterima').val(data.tgl_diterima);
+                    $('#edit_kategori').val(data.kategori);
+                    $('#edit_catatan').val(data.catatan);
+                    $('#edit_file_lama').val(data.pdf);
 
-                        // Tampilkan info file lama jika ada
-                        if (data.data.pdf) {
-                            $('#info_file_lama').removeClass('d-none');
-                            var files = data.data.pdf.split('|');
-                            var fileLinks = '';
-                            
-                            files.forEach(function(f, index) {
-                                if(f.trim() !== '') {
-                                    var pdfPath = encodeURI('file/berkas-masuk/' + f);
-                                    var fileName = f.split('/').pop();
-                                    fileLinks += `
-                                    <div class="p-2 bg-light border rounded d-flex align-items-center justify-content-between mb-2 existing-file-item" data-filename="${f}">
-                                        <div class="d-flex align-items-center flex-grow-1 overflow-hidden">
-                                            <div class="me-3 text-primary bg-white p-2 rounded shadow-sm">
-                                                <i class="fas fa-file-alt fa-lg"></i>
-                                            </div>
-                                            <div class="overflow-hidden">
-                                                <a href="${pdfPath}" target="_blank" class="text-decoration-none fw-bold text-primary text-truncate d-block" title="${fileName}">${fileName}</a>
-                                                <div class="text-muted small">Ukuran: ${formatFileSize(data.data.file_sizes_map[f] || 0)}</div>
-                                            </div>
+                    if (data.pdf) {
+                        $('#edit_info_file_lama').removeClass('d-none');
+                        var files = data.pdf.toString().split('|');
+                        var fileLinks = '';
+                        files.forEach(function (f) {
+                            if (f.trim() !== '') {
+                                var path = encodeURI('file/berkas-masuk/' + f);
+                                var fileName = f.split('/').pop();
+                                fileLinks += `
+                                <div class="p-2 bg-light border rounded d-flex align-items-center justify-content-between mb-2 existing-file-item" data-filename="${f}">
+                                    <div class="d-flex align-items-center flex-grow-1 overflow-hidden">
+                                        <div class="me-3 text-primary bg-white p-2 rounded shadow-sm"><i class="la la-file-alt fa-lg"></i></div>
+                                        <div class="overflow-hidden">
+                                            <a href="${path}" target="_blank" class="text-decoration-none fw-bold text-primary text-truncate d-block">${fileName}</a>
                                         </div>
-                                        <button type="button" class="btn btn-link text-danger p-0 ms-2 hapus-file-lama-btn" title="Hapus file">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>`;
-                                }
-                            });
-                            
-                            $('#link_file_lama').html(fileLinks);
-                            // We don't use href on the container anymore, links are inside
-                            $('#link_file_lama').removeAttr('href').removeAttr('target'); 
-
-                        } else {
-                            $('#info_file_lama').addClass('d-none');
-                        }
-
-                        // Saat edit, file tidak wajib di-upload ulang
-                        $('#pdf').prop('required', false);
-                        
-                        // Clear selected files array from JS variable
-                        selectedFiles = [];
-                        $('#formModalLabel').html('<i class="fas fa-edit"></i> Edit Data Surat');
-
-
-                        // Reset visual validation and trigger check
-                        $('#form-surat').find('.is-valid, .is-invalid').removeClass('is-valid is-invalid');
-                        mandatoryFields.forEach(fieldId => {
-                            const val = $(`#${fieldId}`).val();
-                            if (val && val.trim() !== '') {
-                                $(`#${fieldId}`).addClass('is-valid');
-                            } else {
-                                $(`#${fieldId}`).addClass('is-invalid');
+                                    </div>
+                                    <button type="button" class="btn btn-link text-danger p-0 ms-2 hapus-file-lama-btn" title="Hapus file"><i class="la la-trash-alt"></i></button>
+                                </div>`;
                             }
                         });
-                        checkFormCompletion();
-
-                        // Tampilkan modal
-                        $('#formModalLabel').html('<i class="fas fa-edit"></i> Edit Data Surat');
-                        $('#formModal').modal('show');
+                        $('#edit_link_file_lama').html(fileLinks);
                     } else {
-                        tampilkanNotifikasi(data.message || 'Gagal mengambil data.', 'error');
+                        $('#edit_info_file_lama').addClass('d-none');
                     }
-                },
-                error: function() {
-                    tampilkanNotifikasi('Gagal mengambil data dari server.', 'error');
+
+                    updateUI(true);
+                    manageModal('modalEdit', 'show');
+
+                    mandatoryFields.forEach(fieldId => {
+                        const input = $(`#edit_${fieldId}`);
+                        const val = input.val();
+                        if (val && val.toString().trim() !== '') input.addClass('is-valid').removeClass('is-invalid');
+                        else input.addClass('is-invalid').removeClass('is-valid');
+                    });
                 }
             });
         });
 
+        $('#link_file_lama, #edit_link_file_lama').on('click', '.hapus-file-lama-btn', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-        // Proses Simpan / Edit (Form Submit)
-        $('#form-surat').on('submit', function(e) {
-            e.preventDefault(); // Mencegah submit form standar
+            const isEditModal = $(this).closest('.modal').attr('id') === 'modalEdit';
+            const fileInputId = isEditModal ? '#edit_file_lama' : '#file_lama';
+            const infoContainerId = isEditModal ? '#edit_info_file_lama' : '#info_file_lama';
+            const linkContainerId = isEditModal ? '#edit_link_file_lama' : '#link_file_lama';
 
-            var formData = new FormData(this);
-            var button = $('#tombol-simpan');
-            var spinner = button.find('.spinner-border');
+            if (!confirm('Apakah Anda yakin ingin menghapus file lampiran ini?')) return;
 
-            // --- APPEND SELECTED FILES MANUALLY ---
-            // Remove existing pdf entries if any (though usually empty if fileInput contains nothing)
-            formData.delete('pdf'); 
-            formData.delete('pdf[]'); // Just in case
-            
-            // Append each file from our array
-            if (selectedFiles.length > 0) {
-                selectedFiles.forEach((file) => {
-                    formData.append('pdf[]', file);
-                });
+            var itemDiv = $(this).closest('.existing-file-item');
+            var filenameToRemove = itemDiv.data('filename');
+
+            itemDiv.remove();
+
+            if ($(linkContainerId).children().length === 0) {
+                $(infoContainerId).addClass('d-none');
             }
 
-            // Tampilkan loading di tombol
+            var currentFilesStr = $(fileInputId).val();
+            if (currentFilesStr) {
+                var currentFiles = currentFilesStr.split('|');
+                var newFiles = currentFiles.filter(f => f !== filenameToRemove);
+                $(fileInputId).val(newFiles.join('|'));
+                delete existingFilesMap[filenameToRemove];
+                updateUI(isEditModal);
+            }
+        });
+
+
+        $('.content table.table').on('click', '.btn-delete', function () {
+            var id = $(this).data('id'), nama = $(this).data('nama');
+            $('#detail-hapus').text(nama);
+            $('#tombolKonfirmasiHapus').data('id', id);
+            manageModal('modalHapus', 'show');
+        });
+
+        $('#tombolKonfirmasiHapus').on('click', function () {
+            var id = $(this).data('id');
+            var button = $(this);
+            var originalButtonText = button.html();
+
+            button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Menghapus...');
+
+            $.ajax({
+                url: 'proses_surat_masuk.php',
+                type: 'POST',
+                data: { action: 'hapus', id: id, tahun: $('#year-filter').val() },
+                dataType: 'json',
+                success: function (response) {
+                    tampilkanNotifikasi(response.message, response.status);
+                    if (response.status === 'success') {
+                        setTimeout(() => { window.location.reload(); }, 1000);
+                    }
+                },
+                complete: function () {
+                    button.prop('disabled', false).html(originalButtonText);
+                    manageModal('modalHapus', 'hide');
+                }
+            });
+        });
+
+        $('#form-surat-edit').on('submit', function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+            var button = $('#edit_tombol-simpan');
+            var spinner = button.find('.spinner-border');
+
+            formData.append('tahun', $('#year-filter').val());
+            if (selectedFiles.length > 0) {
+                selectedFiles.forEach((file) => { formData.append('pdf[]', file); });
+            }
+
             button.prop('disabled', true);
             spinner.removeClass('d-none');
 
@@ -1070,122 +1114,62 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                 type: 'POST',
                 data: formData,
                 dataType: 'json',
-                contentType: false, // Wajib false untuk FormData
-                processData: false, // Wajib false untuk FormData
-                success: function(response) {
+                contentType: false,
+                processData: false,
+                success: function (response) {
                     tampilkanNotifikasi(response.message, response.status);
                     if (response.status === 'success') {
-                        $('#formModal').modal('hide');
-                        muatdata(currentPage); // Muat ulang data
+                        manageModal('modalEdit', 'hide');
+                        setTimeout(() => { window.location.reload(); }, 1000);
                     }
                 },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("Form Submit Error:", textStatus, errorThrown, jqXHR.responseText);
-                    tampilkanNotifikasi('Terjadi kesalahan server. Periksa console.', 'error');
-                },
-                complete: function() {
+                complete: function () {
                     button.prop('disabled', false);
                     spinner.addClass('d-none');
                 }
             });
         });
 
-        // 6. Listener untuk Tombol Hapus File Lama (Existing Files)
-        $('#link_file_lama').on('click', '.hapus-file-lama-btn', function(e) {
+
+        $('#form-surat').on('submit', function (e) {
             e.preventDefault();
-            e.stopPropagation();
 
-            // Confirm deletion
-            if(!confirm('Apakah Anda yakin ingin menghapus file lampiran ini? (Perubahan akan disimpan setelah Anda mengklik tombol Simpan)')) return;
+            var formData = new FormData(this);
+            var button = $('#tombol-simpan');
+            var spinner = button.find('.spinner-border');
 
-            var itemDiv = $(this).closest('.existing-file-item');
-            var filenameToRemove = itemDiv.data('filename');
-            
-            // Remove from UI
-            itemDiv.remove();
-
-            // Check if no files left
-            if ($('#link_file_lama').children().length === 0) {
-                 $('#info_file_lama').addClass('d-none');
+            formData.append('tahun', $('#year-filter').val());
+            if (selectedFiles.length > 0) {
+                selectedFiles.forEach((file) => { formData.append('pdf[]', file); });
             }
 
-            // Update Hidden Input #file_lama & Map existing sizes
-            var currentFilesStr = $('#file_lama').val();
-            if (currentFilesStr) {
-                var currentFiles = currentFilesStr.split('|');
-                var newFiles = currentFiles.filter(function(f) {
-                    return f !== filenameToRemove;
-                });
-                $('#file_lama').val(newFiles.join('|'));
-                
-                // Remove from map too
-                delete existingFilesMap[filenameToRemove];
-                updateUI(); // Trigger UI update (including total size)
-            }
-
-            // Trigger completion check
-            checkFormCompletion();
-        });
-
-        // Listener untuk Tombol Hapus (Event Delegation)
-        $('#data-masuk').on('click', '.tombol-hapus', function() {
-            var id = $(this).data('id');
-            var nama = $(this).data('nama');
-
-            // Isi detail ke modal
-            $('#detail-hapus').text(nama);
-            // Simpan ID di tombol konfirmasi hapus
-            $('#tombolKonfirmasiHapus').data('id', id);
-
-            $('#modalHapus').modal('show');
-        });
-
-        // Aksi Hapus (Eksekusi setelah konfirmasi)
-        $('#tombolKonfirmasiHapus').on('click', function() {
-            var id = $(this).data('id');
-            var button = $(this);
-            var originalButtonText = button.html();
-
-            // Tampilkan spinner
-            button.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status"></span> Menghapus...');
+            button.prop('disabled', true);
+            spinner.removeClass('d-none');
 
             $.ajax({
                 url: 'proses_surat_masuk.php',
                 type: 'POST',
-                data: {
-                    action: 'hapus',
-                    id: id,
-                    tahun: $('#year-filter').val() // Kirim parameter tahun
-                },
+                data: formData,
                 dataType: 'json',
-                success: function(response) {
+                contentType: false,
+                processData: false,
+                success: function (response) {
                     tampilkanNotifikasi(response.message, response.status);
                     if (response.status === 'success') {
-                        // Jika halaman saat ini jadi kosong setelah hapus, pindah ke halaman sebelumnya
-                        // Cek jumlah baris data yang tersisa
-                        var rowCount = $('#data-masuk tbody tr').length;
-                        if (rowCount === 1 && currentPage > 1) {
-                            currentPage = currentPage - 1;
-                        }
-                        muatdata(currentPage); // Muat ulang data
+                        manageModal('formModal', 'hide');
+                        setTimeout(() => { window.location.reload(); }, 1000);
                     }
                 },
-                error: function() {
-                    tampilkanNotifikasi('Gagal menghapus data karena kesalahan server.', 'error');
-                },
-                complete: function() {
-                    // Kembalikan tombol ke keadaan semula
-                    button.prop('disabled', false).html(originalButtonText);
-                    $('#modalHapus').modal('hide'); // Tutup modal
+                complete: function () {
+                    button.prop('disabled', false);
+                    spinner.addClass('d-none');
                 }
             });
         });
 
-        // Membersihkan iframe saat modal view ditutup (menghentikan pemutaran/pemuatan)
-        $('#viewModal').on('hidden.bs.modal', function() {
+        $('#viewModal').on('hidden.bs.modal', function () {
             $(this).find('#view_pdf_container').empty();
         });
 
     });
-
 </script>

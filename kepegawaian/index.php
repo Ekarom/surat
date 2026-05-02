@@ -64,6 +64,12 @@ if (!file_exists($page_to_include)) {
     <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
+    <link rel="stylesheet" href="../plugins/css/bootstrap-extended.min.css">
+    <link rel="stylesheet" href="../plugins/css/colors.min.css">
+    <link rel="stylesheet" href="../plugins/css/palette-gradient.min.css">
+    <!-- === EXTERNAL ASSETS === -->
+    <link rel="stylesheet" href="../plugins/css/datatables.min.css">
+
     <!-- Core Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -236,7 +242,7 @@ if (!file_exists($page_to_include)) {
                     <span class="text-white text-white">Halo,
                         <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
                 <li class="nav-item">
-                    <a href="logout.php" class="nav-link btn btn-danger btn-sm text-white px-3 ms-3">Logout
+                    <a href="logout.php" class="nav-link btn btn-outline-danger btn-sm text-white px-3 ms-3">Logout
                         <i class="fa-solid fa-right-from-bracket ms-2"></i></a>
                 </li>
                 </li>
@@ -310,6 +316,9 @@ if (!file_exists($page_to_include)) {
 
     <script src="../js/toastin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/3.2.6/js/dataTables.fixedColumns.min.js"></script>
+
     <script>
         $("#sidebarToggle").click(function (e) { e.preventDefault(); $("body").toggleClass("toggled"); });
         function updateClock() {

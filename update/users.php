@@ -86,12 +86,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
 ?>
 
 <!DOCTYPE html>
-<html lang="id" data-bs-theme="dark">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Pengguna - AD UPDATE</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -163,7 +158,11 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
             overflow: hidden; 
             border-left: 3px solid transparent;
             transition: all 0.3s;
+            display: -webkit-box;
+            display: -ms-flexbox;
             display: flex;
+            -webkit-box-align: center;
+            -ms-flex-align: center;
             align-items: center;
             font-weight: 500;
         }
@@ -234,15 +233,15 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
     <main class="main-content" id="mainContent">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div class="d-flex align-items-center">
-                <button class="btn btn-outline-light me-3 border-0" id="sidebarToggle">
-                    <i class="bi bi-list fs-4"></i>
+                <button class="btn btn-outline-light mr-3 border-0" id="sidebarToggle">
+                    <i class="bi bi-list h4 mb-0"></i>
                 </button>
                 <h2 class="mb-0">Manajemen Pengguna</h2>
             </div>
             
             <div>
-               <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addModal">
-                   <i class="bi bi-plus-lg me-2"></i>Tambah User
+               <button class="btn btn-primary" data-toggle="modal" data-target="#addModal">
+                   <i class="bi bi-plus-lg mr-2"></i>Tambah User
                </button>
             </div>
         </div>
@@ -250,7 +249,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
             <?php if($message): ?>
                 <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show" role="alert">
                     <?php echo $message; ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
                 </div>
             <?php endif; ?>
 
@@ -273,9 +274,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
                                     <td><?php echo htmlspecialchars($row['nama_lengkap']); ?></td>
                                     <td><?php echo htmlspecialchars($row['username']); ?></td>
                                     <td class="text-end">
-                                        <button class="btn btn-sm btn-info btn-action me-1 text-white" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#editModal"
+                                        <button class="btn btn-sm btn-info btn-action mr-1 text-white" 
+                                                data-toggle="modal" 
+                                                data-target="#editModal"
                                                 data-id="<?php echo $row['id']; ?>"
                                                 data-nama="<?php echo htmlspecialchars($row['nama_lengkap']); ?>"
                                                 data-username="<?php echo htmlspecialchars($row['username']); ?>">
@@ -284,8 +285,8 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
                                         
                                         <?php if($row['id'] != $_SESSION['user_id']): ?>
                                         <button class="btn btn-sm btn-danger btn-action" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#deleteModal"
+                                                data-toggle="modal" 
+                                                data-target="#deleteModal"
                                                 data-id="<?php echo $row['id']; ?>"
                                                 data-nama="<?php echo htmlspecialchars($row['nama_lengkap']); ?>">
                                             <i class="bi bi-trash-fill"></i>
@@ -307,7 +308,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title">Tambah User Baru</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form method="POST">
                 <input type="hidden" name="action" value="add">
@@ -326,7 +329,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan</button>
                 </div>
             </form>
@@ -340,7 +343,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title">Edit User</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form method="POST">
                 <input type="hidden" name="action" value="edit">
@@ -360,7 +365,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
                 </div>
             </form>
@@ -374,7 +379,9 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
         <div class="modal-content bg-dark text-white border-secondary">
             <div class="modal-header border-secondary">
                 <h5 class="modal-title">Konfirmasi Hapus</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
             </div>
             <form method="POST">
                 <input type="hidden" name="action" value="delete">
@@ -383,7 +390,7 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
                     <p>Apakah Anda yakin ingin menghapus user <strong id="delete_nama"></strong>?</p>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-danger">Hapus</button>
                 </div>
             </form>
@@ -391,7 +398,8 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.getElementById('mainContent');
@@ -419,27 +427,25 @@ $result = mysqli_query($koneksi, "SELECT * FROM users ORDER BY id DESC");
     }
 
     // Script untuk mengisi data ke modal Edit
-    const editModal = document.getElementById('editModal')
-    editModal.addEventListener('show.bs.modal', event => {
-        const button = event.relatedTarget
-        const id = button.getAttribute('data-id')
-        const nama = button.getAttribute('data-nama')
-        const username = button.getAttribute('data-username')
+    $('#editModal').on('show.bs.modal', function (event) {
+        const button = $(event.relatedTarget)
+        const id = button.data('id')
+        const nama = button.data('nama')
+        const username = button.data('username')
         
-        document.getElementById('edit_id').value = id
-        document.getElementById('edit_nama').value = nama
-        document.getElementById('edit_username').value = username
+        $('#edit_id').val(id)
+        $('#edit_nama').val(nama)
+        $('#edit_username').val(username)
     })
 
     // Script untuk mengisi data ke modal Delete
-    const deleteModal = document.getElementById('deleteModal')
-    deleteModal.addEventListener('show.bs.modal', event => {
-        const button = event.relatedTarget
-        const id = button.getAttribute('data-id')
-        const nama = button.getAttribute('data-nama')
+    $('#deleteModal').on('show.bs.modal', function (event) {
+        const button = $(event.relatedTarget)
+        const id = button.data('id')
+        const nama = button.data('nama')
         
-        document.getElementById('delete_id').value = id
-        document.getElementById('delete_nama').textContent = nama
+        $('#delete_id').val(id)
+        $('#delete_nama').text(nama)
     })
 </script>
 

@@ -2,7 +2,7 @@
 // 1. Sertakan koneksi database
 include "dbconn.php";
 include "config/secure.php";
-// Alias $conn ke $sqlconn karena secure.php menggunakan $sqlconn
+// Alias $conn ke $sqlconn because secure.php uses $sqlconn
 $sqlconn = $conn;
 
 // Compatibility: Mapping session userid ke skradm jika belum ada
@@ -118,112 +118,17 @@ if ($force_change_pass) {
   <meta http-equiv="X-UA-Compatible" content="IE:edge">
   <title>Staff Surat | <?php echo ucfirst($current_page); ?> </title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-  <!-- Toastr CSS -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/api/libs/toastr.js/latest/toastr.min.js"></script>
+  <link rel="stylesheet"
+    href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
 
-  <style>
-    /* ==========================================
-           FORM VALIDATION STYLES
-           ========================================== */
-    .warna:valid {
-      background-color: #18c5dbff;
-    }
-
-    .custom {
-      width: 200px !important;
-    }
-
-    /* ==========================================
-           SIDEBAR & NAVBAR STYLES
-           ========================================== */
-    .main-sidebar {
-      background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    .nav-sidebar .nav-item {
-      margin-bottom: 5px;
-    }
-
-    .nav-sidebar .nav-link {
-      border-radius: 10px !important;
-      color: #ecf0f1 !important;
-      transition: all 0.3s ease;
-    }
-
-    .nav-sidebar .nav-link:hover,
-    .nav-sidebar .nav-link.active {
-      background-color: rgba(255, 255, 255, 0.2) !important;
-      transform: translateX(5px);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
-
-    .nav-sidebar .nav-icon {
-      color: #fff !important;
-      opacity: 0.8;
-    }
-
-    .brand-link {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-      text-decoration: none !important;
-    }
-
-    .user-panel {
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-
-    .user-panel a {
-      text-decoration: none !important;
-    }
-
-    /* Global Menu Gradient Class */
-    .bg-menu-gradient {
-      background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
-      color: #fff !important;
-      border-bottom: none;
-    }
-
-    .main-header {
-      background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
-      color: #fff !important;
-      border-bottom: none;
-    }
-
-    /* Nav Tabs Styling */
-    .nav-tabs .nav-link.active {
-      background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
-      color: #fff !important;
-      border-color: #dee2e6 #dee2e6 #fff;
-    }
-
-    /* Table Header Styling */
-    table thead th {
-      background: linear-gradient(180deg, #2c3e50 0%, #1debfaff 100%) !important;
-      color: #fff !important;
-      border-color: #5682fc;
-      text-align: center;
-    }
-
-    table td {
-      text-align: center;
-    }
-
-    .modal-header {
-      padding: 9px 15px;
-      border-bottom: 1px solid #eee;
-      background-color: white;
-      border-top-left-radius: 5px;
-      border-top-right-radius: 5px;
-    }
-  </style>
+  <link rel="stylesheet" href="plugins/css/bootstrap-extended.min.css">
+  <link rel="stylesheet" href="plugins/css/colors.min.css">
+  <link rel="stylesheet" href="plugins/css/palette-gradient.min.css">
+  <link rel="stylesheet" href="plugins/css/datatables.min.css">
+  <link rel="stylesheet" href="custom.css">
 </head>
 
 <body class="hold-transition sidebar-mini layout-fixed" style="height: auto;">
@@ -234,14 +139,14 @@ if ($force_change_pass) {
       <!-- Left navbar links -->
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+          <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="las la-bars"></i></a>
         </li>
       </ul>
       <li class="nav-item d-none d-sm-inline-block">
         Home </li>
       </ul>
 
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ml-auto">
         <li class="nav-item">
           <script type='text/javascript'>
 
@@ -317,177 +222,184 @@ if ($force_change_pass) {
 
                 <li class="nav-item">
                   <a href="?user" class="nav-link <?php echo ($current_page == 'user') ? 'active' : ''; ?>">
-                    <i class="fas bi bi-people nav-icon" style="font-size:20px;"></i>
+                    <i class="las la-user nav-icon" style="font-size:20px;"></i>
                     <p>Manajemen User</p>
                   </a>
                 </li>
 
                 <li class="nav-item">
-                  <a href="kepegawaian/" target=_blank class="nav-link <?php echo ($current_page == 'pegawai') ? 'active' : ''; ?>">
-                    <i class="nav-icon fas fa-users-cog"></i>
+                  <a href="kepegawaian/" target=_blank
+                    class="nav-link <?php echo ($current_page == 'pegawai') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-clipboard-check"></i>
                     <p>
                       Kepegawaian
                     </p>
                   </a>
                 </li>
-              <li class="nav-item">
-                <a href="?profil"
-                  class="nav-link <?php echo ($current_page == 'profil' || $current_page == 'profile') ? 'active' : ''; ?>">
-                  <i class="fas bi bi-person-badge nav-icon"></i>
-                  <p>Profil</p>
-                </a>
-              </li>
-              <li class="nav-item has-treeview">
-                <a href="#" class="nav-link">
-                  <i class="nav-icon fas bi bi-server"></i>
-                  <p>
-                    System
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="?backup_restore"
-                      class="nav-link <?php echo ($current_page == 'backup_restore') ? 'active' : ''; ?>">
-                      <i class="fas bi bi-database nav-icon"></i>
-                      <p>Backup / Restore</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="?update" class="nav-link <?php echo ($current_page == 'update') ? 'active' : ''; ?>">
-                      <i class="fas bi bi-arrow-up-circle nav-icon"></i>
-                      <p>Update</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
+                <li class="nav-item">
+                  <a href="?profil"
+                    class="nav-link <?php echo ($current_page == 'profil' || $current_page == 'profile') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-id-badge"></i>
+                    <p>Profil</p>
+                  </a>
+                </li>
+                <li class="nav-item has-treeview">
+                  <a href="#" class="nav-link">
+                    <i class="nav-icon las la-server"></i>
+                    <p>
+                      System
+                      <i class="las la-angle-left right"></i>
+                    </p>
+                  </a>
+                  <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                      <a href="?backup_restore"
+                        class="nav-link <?php echo ($current_page == 'backup_restore') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-database"></i>
+                        <p>Backup / Restore</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="?update" class="nav-link <?php echo ($current_page == 'update') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-arrow-circle-up"></i>
+                        <p>Update</p>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
 
-              <!-- Treeview Arsip Surat -->
-              <li class="nav-item has-treeview <?php echo $is_arsip_active ? 'menu-open' : ''; ?>">
-                <a href="#" class="nav-link <?php echo $is_arsip_active ? 'active' : ''; ?>">
-                  <i class="nav-icon fas bi bi-envelope"></i>
-                  <p>
-                    Arsip Surat
-                    <i class="fas fa-angle-left right"></i>
-                  </p>
-                </a>
-                <ul class="nav nav-treeview">
-                  <li class="nav-item">
-                    <a href="?suratmasuk" class="nav-link <?php echo ($current_page == 'suratmasuk') ? 'active' : ''; ?>">
-                      <i class="fas bi bi-envelope-arrow-up nav-icon"></i>
-                      <p>Surat Masuk</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="?suratkeluar" class="nav-link <?php echo ($current_page == 'suratkeluar') ? 'active' : ''; ?>">
-                      <i class="fas bi bi-envelope-arrow-down nav-icon"></i>
-                      <p>Surat Keluar</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="?suratkeputusan"
-                      class="nav-link <?php echo ($current_page == 'suratkeputusan') ? 'active' : ''; ?>">
-                      <i class="far bi bi-envelope-paper nav-icon"></i>
-                      <p>Surat Keputusan</p>
-                    </a>
-                  </li>
-                  <li class="nav-item">
-                    <a href="?suratedaran" class="nav-link <?php echo ($current_page == 'suratedaran') ? 'active' : ''; ?>">
-                      <i class="fas bi bi-envelope-paper nav-icon"></i>
-                      <p>Surat Edaran</p>
-                    </a>
-                  </li>
-                </ul>
-              </li>
+                <!-- Treeview Arsip Surat -->
+                <li class="nav-item has-treeview <?php echo $is_arsip_active ? 'menu-open' : ''; ?>">
+                  <a href="#" class="nav-link <?php echo $is_arsip_active ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-envelope"></i>
+                    <p>
+                      Arsip Surat
+                      <i class="las la-angle-left right"></i>
+                    </p>
+                  </a>
+                  <ul class="nav nav-treeview">
+                    <li class="nav-item">
+                      <a href="?suratmasuk" class="nav-link <?php echo ($current_page == 'suratmasuk') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-file-upload"></i>
+                        <p>Surat Masuk</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="?suratkeluar"
+                        class="nav-link <?php echo ($current_page == 'suratkeluar') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-file-download"></i>
+                        <p>Surat Keluar</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="?suratkeputusan"
+                        class="nav-link <?php echo ($current_page == 'suratkeputusan') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-certificate"></i>
+                        <p>Surat Keputusan</p>
+                      </a>
+                    </li>
+                    <li class="nav-item">
+                      <a href="?suratedaran"
+                        class="nav-link <?php echo ($current_page == 'suratedaran') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-bullhorn"></i>
+                        <p>Surat Edaran</p>
+                      </a>
+                    </li>
+                  </ul>
+                </li>
+              <?php } ?>
+
+              <!------------------------------------------ MENU USER (LEVEL 2) ----------------------------------------->
+            <?php if ($lv == "2" || $lv == "3") { ?>
+
+            <li class="nav-item">
+              <a href="?dashboard" class="nav-link <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-tachometer-alt"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="?profil"
+                class="nav-link <?php echo ($current_page == 'profil' || $current_page == 'profile') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-id-badge"></i>
+                <p>Profil</p>
+              </a>
+            </li>
+            <li class="nav-item has-treeview <?php echo $is_arsip_active ? 'menu-open' : ''; ?>">
+              <a href="#" class="nav-link <?php echo $is_arsip_active ? 'active' : ''; ?>">
+                <i class="nav-icon las la-envelope"></i>
+                <p>
+                  Arsip Surat
+                  <i class="las la-angle-left right"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                <li class="nav-item">
+                  <a href="?suratmasuk" class="nav-link <?php echo ($current_page == 'suratmasuk') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-file-upload"></i>
+                    <p>Surat Masuk</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="?suratkeluar"
+                    class="nav-link <?php echo ($current_page == 'suratkeluar') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-file-download"></i>
+                    <p>Surat Keluar</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="?suratkeputusan"
+                    class="nav-link <?php echo ($current_page == 'suratkeputusan') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-certificate"></i>
+                    <p>Surat Keputusan</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="?suratedaran"
+                    class="nav-link <?php echo ($current_page == 'suratedaran') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-bullhorn"></i>
+                    <p>Surat Edaran</p>
+                  </a>
+                </li>
+              </ul>
+            </li>
             <?php } ?>
 
-            <!------------------------------------------ MENU USER (LEVEL 2) ----------------------------------------->
-          <?php if ($lv == "2" || $lv == "3") { ?>
-
-          <li class="nav-item">
-            <a href="?dashboard" class="nav-link <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
-              <i class="fas fa-tachometer-alt nav-icon"></i>
-              <p>Dashboard</p>
-            </a>
-          </li>
-          <li class="nav-item">
-            <a href="?profil"
-              class="nav-link <?php echo ($current_page == 'profil' || $current_page == 'profile') ? 'active' : ''; ?>">
-              <i class="fas bi bi-person-badge nav-icon"></i>
-              <p>Profil</p>
-            </a>
-          </li>
-          <li class="nav-item has-treeview <?php echo $is_arsip_active ? 'menu-open' : ''; ?>">
-            <a href="#" class="nav-link <?php echo $is_arsip_active ? 'active' : ''; ?>">
-              <i class="nav-icon fas bi bi-envelope"></i>
-              <p>
-                Arsip Surat
-                <i class="fas fa-angle-left right"></i>
-              </p>
-            </a>
-            <ul class="nav nav-treeview">
-              <li class="nav-item">
-                <a href="?suratmasuk" class="nav-link <?php echo ($current_page == 'suratmasuk') ? 'active' : ''; ?>">
-                  <i class="fas bi bi-envelope-arrow-up nav-icon"></i>
-                  <p>Surat Masuk</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="?suratkeluar" class="nav-link <?php echo ($current_page == 'suratkeluar') ? 'active' : ''; ?>">
-                  <i class="fas bi bi-envelope-arrow-down nav-icon"></i>
-                  <p>Surat Keluar</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="?suratkeputusan"
-                  class="nav-link <?php echo ($current_page == 'suratkeputusan') ? 'active' : ''; ?>">
-                  <i class="far bi bi-envelope-paper nav-icon"></i>
-                  <p>Surat Keputusan</p>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a href="?suratedaran" class="nav-link <?php echo ($current_page == 'suratedaran') ? 'active' : ''; ?>">
-                  <i class="fas bi bi-envelope-paper nav-icon"></i>
-                  <p>Surat Edaran</p>
-                </a>
-              </li>
-            </ul>
-          </li>
-          <?php } ?>
-
-          <!------------------------------------------ MENU GURU (LEVEL 4) ----------------------------------------->
-          <?php if ($lv == "4") { ?>
+            <!------------------------------------------ MENU GURU (LEVEL 4) ----------------------------------------->
+            <?php if ($lv == "4") { ?>
             <li class="nav-item">
-              <a href="?kepegawaian_dashboard_guru" class="nav-link <?php echo ($current_page == 'kepegawaian_dashboard_guru') ? 'active' : ''; ?>">
-                <i class="fas fa-tachometer-alt nav-icon"></i>
+              <a href="?kepegawaian_dashboard_guru"
+                class="nav-link <?php echo ($current_page == 'kepegawaian_dashboard_guru') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-tachometer-alt"></i>
                 <p>Dashboard Guru</p>
               </a>
             </li>
             <li class="nav-item">
-              <a href="?kepegawaian_biodata_guru" class="nav-link <?php echo ($current_page == 'kepegawaian_biodata_guru') ? 'active' : ''; ?>">
-                <i class="fas fa-id-card nav-icon"></i>
+              <a href="?kepegawaian_biodata_guru"
+                class="nav-link <?php echo ($current_page == 'kepegawaian_biodata_guru') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-id-card"></i>
                 <p>Biodata Mandiri</p>
               </a>
             </li>
             <li class="nav-item">
               <a href="?profil" class="nav-link <?php echo ($current_page == 'profil') ? 'active' : ''; ?>">
-                <i class="fas bi bi-person-badge nav-icon"></i>
+                <i class="nav-icon las la-id-badge"></i>
                 <p>Profil Akun</p>
               </a>
             </li>
-          <?php } ?>
+            <?php } ?>
 
-          <?php endif; // END IF (!force_change_pass) ?>
+            <?php endif; // END IF (!force_change_pass) ?>
 
-          <li class="nav-item">
-            <a href="exit.php" class="nav-link" id=btn1>
-              <i class="nav-icon fas bi bi-box-arrow-right"></i>
-              <p>Exit</p>
-            </a>
-          </li>
+            <li class="nav-item">
+              <a href="exit.php" class="nav-link" id=btn1>
+                <i class="nav-icon las la-sign-out-alt"></i>
+                <p>Exit</p>
+              </a>
+            </li>
           </ul>
           <br>
-          <center><i class="bi bi-database text-warning"> Database :
+          <center><i class="las la-database text-warning"> Database :
               <?php echo $db ?? $db_master; ?>
             </i></center>
           <br />
@@ -509,7 +421,7 @@ if ($force_change_pass) {
                 <div class='content-wrapper'>
                     <section class='content'>
                         <div class='alert alert-danger shadow-sm'>
-                            <h5 class='alert-heading'><i class='icon fas fa-ban'></i> 404 Page Not Found</h5>
+                            <h5 class='alert-heading'><i class='icon las la-ban'></i> 404 Page Not Found</h5>
                             Halaman '{$current_page}' belum tersedia di server.
                         </div>
                     </section>
@@ -523,17 +435,14 @@ if ($force_change_pass) {
   <!-- /.content-wrapper -->
 
   <footer class="main-footer">
-    <center><strong> S.A.P <?php echo $ver; ?> - Copyright &copy; <?php echo date('Y'); ?> </strong></center>
+    <center><strong> S.A.P <?php echo $ver; ?> - Copyright &copy; 2025 </strong></center>
   </footer>
   </div>
 
-  <!-- JS Files 
-<script src="https://code.jquery.com/jquery-3.7.1.js"></script>-->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <!--<script src="https://cdn.datatables.net/2.0.8/js/dataTables.js"></script>
-<script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
-<script src="https://cdn.datatables.net/responsive/3.0.2/js/dataTables.responsive.js"></script>
-<script src="https://cdn.datatables.net/responsive/3.0.2/js/responsive.bootstrap5.js"></script>-->
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/fixedcolumns/3.2.6/js/dataTables.fixedColumns.min.js"></script>
   <script src="plugins/admin-lte/adminlte.min.js"></script>
 
 

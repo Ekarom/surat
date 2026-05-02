@@ -89,235 +89,7 @@ function resolvePdfPath($filename, $baseDir) {
     return $filename;
 }
 
-function buatTabelHtml($dataRows, $offset, $level) {
-    if (empty($dataRows)) {
-        return '<div class="alert alert-warning text-center">Tidak ada data ditemukan.</div>';
-    }
-
-    $html = '<table class="table table-striped table-hover align-middle">';
-    $html .= '<thead class="bg-menu-gradient text-center"><tr>
-                <th>No</th>
-                <th>No Surat</th>
-                <th>Jenis Dokumen</th>
-                <th>Dari</th>
-                <th>Unit</th>
-                <th>Perihal</th>
-                <th>Pembuat</th>
-                <th>Tgl Dokumen</th>
-                <th>Kategori</th>
-                <th>Catatan</th>';
-
-    // Header View (Semua Level)
-    if ($level == '1'||$level == '2' || $level == '3') { 
-    $html .= '<th>View</th>';
-    }
-
-    // Header Edit & Hapus (Level 1 Only)
-    if ($level == '1'||$level == '2') { 
-        $html .= '<th>Edit</th>';
-        $html .= '<th>Del</th>';
-    }
-
-    $html .= '</tr></thead><tbody>';
-    
-    $no = $offset + 1;
-    foreach ($dataRows as $row) {
-        $id = (int)$row['id'];
-        $no_dok = htmlspecialchars($row['no_dokumen'] ?? '', ENT_QUOTES, 'UTF-8');
-        $jns_dok = htmlspecialchars($row['jns_dokumen'] ?? '', ENT_QUOTES, 'UTF-8');
-        $dari = htmlspecialchars($row['dari'] ?? '', ENT_QUOTES, 'UTF-8'); 
-        $unit_tujuan = htmlspecialchars($row['unit_tujuan'] ?? '', ENT_QUOTES, 'UTF-8'); 
-        $perihal = htmlspecialchars($row['perihal'] ?? '', ENT_QUOTES, 'UTF-8');
-        $pembuat = htmlspecialchars($row['pembuat'] ?? '', ENT_QUOTES, 'UTF-8');
-        $kat = htmlspecialchars($row['kategori'] ?? '', ENT_QUOTES, 'UTF-8');
-        $cat = htmlspecialchars($row['catatan'] ?? '', ENT_QUOTES, 'UTF-8');
-        $file = htmlspecialchars($row['pdf'] ?? '', ENT_QUOTES, 'UTF-8');
-
-        $tgl_formatted = !empty($row['tgl_dokumen']) ? (new DateTime($row['tgl_dokumen']))->format('d M Y') : '-';
-        $viewDisabled = empty($file) ? 'disabled' : '';
-        
-        $html .= "<tr>
-                <td class=\"text-center\">{$no}</td>
-                <td>{$no_dok}</td>
-                <td>{$jns_dok}</td>
-                <td>{$dari}</td>
-                <td>{$unit_tujuan}</td>
-                <td>{$perihal}</td>
-                <td>{$pembuat}</td>
-                <td>{$tgl_formatted}</td>
-                <td>{$kat}</td>
-                <td>{$cat}</td>";
-
-        // Tombol View
-        $html .= "<td class=\"text-center\">";
-        if ($level == '1' || $level == '2' || $level == '3') {
-            $html .= "<button class=\"btn btn-info btn-sm tombol-view\" 
-                            data-id=\"{$id}\" data-file=\"{$file}\" 
-                            title=\"Lihat Detail\" {$viewDisabled}>
-                        <i class=\"fas fa-eye\"></i>
-                      </button>";
-        }
-        $html .= "</td>";
-
-        // Tombol Edit
-        if ($level == '1' || $level == '2') {
-            $html .= "<td class=\"text-center\">
-                        <button class=\"btn btn-warning btn-sm tombol-edit\" 
-                                data-id=\"{$id}\" title=\"Edit\">
-                            <i class=\"fas fa-pencil-alt\"></i>
-                        </button>
-                      </td>";
-        }
-
-        // Tombol Hapus
-        if ($level == '1' || $level == '2') {
-            $html .= "<td class=\"text-center\">
-                        <button class=\"btn btn-danger btn-sm tombol-hapus\" 
-                                data-id=\"{$id}\" data-nama=\"{$no_dok}\" 
-                                title=\"Hapus\">
-                            <i class=\"fas fa-trash-alt\"></i>
-                        </button>
-                      </td>";
-        }
-
-        $html .= "</tr>";
-        $no++;
-    }
-    
-    $html .= '</tbody></table>';
-    return $html;
-}
-
-function buatPaginasi($currentPage, $totalPages) {
-    if ($totalPages <= 1) return '';
-    $html = '<nav aria-label="Navigasi Halaman"><ul class="pagination justify-content-center justify-content-md-end mb-0">';
-    $prevPage = $currentPage - 1;
-    $prevDisabled = ($currentPage <= 1) ? 'disabled' : '';
-    $html .= '<li class="page-item ' . $prevDisabled . '"><a class="page-link" href="#" data-page="' . $prevPage . '">Sebelumnya</a></li>';
-    
-    $window = 2; $showEllipsis = false;
-    for ($i = 1; $i <= $totalPages; $i++) {
-        if ($i == 1 || $i == $totalPages || ($i >= $currentPage - $window && $i <= $currentPage + $window)) {
-            $active = ($i == $currentPage) ? 'active' : '';
-            $html .= '<li class="page-item ' . $active . '"><a class="page-link" href="#" data-page="' . $i . '">' . $i . '</a></li>';
-            $showEllipsis = true;
-        } elseif ($showEllipsis) {
-            $html .= '<li class="page-item disabled"><span class="page-link">...</span></li>';
-            $showEllipsis = false;
-        }
-    }
-    $nextPage = $currentPage + 1;
-    $nextDisabled = ($currentPage >= $totalPages) ? 'disabled' : '';
-    $html .= '<li class="page-item ' . $nextDisabled . '"><a class="page-link" href="#" data-page="' . $nextPage . '">Berikutnya</a></li>';
-    $html .= '</ul></nav>';
-    return $html;
-}
-
-function buatInfoData($page, $limit, $totalRecords) {
-    if ($totalRecords == 0) return 'Tidak ada data';
-    $start = ($page - 1) * $limit + 1;
-    $end = $start + $limit - 1;
-    if ($end > $totalRecords) $end = $totalRecords;
-    return "Menampilkan {$start} - {$end} dari {$totalRecords} data";
-}
-
-// ==================================================================
-// BAGIAN 2: FUNGSI UTAMA (DB Logic)
-// ==================================================================
-
-function muatData($conn, $level) {
-    $page = (int)($_GET['page'] ?? 1);
-    $limit = (int)($_GET['limit'] ?? 10);
-    $search = (string)($_GET['search'] ?? '');
-    
-    $tahun = (int)($_GET['tahun'] ?? 0);
-
-    if ($page < 1) $page = 1;
-    if ($limit < 1) $limit = 10;
-    
-    $offset = ($page - 1) * $limit;
-    $searchParam = "%" . $search . "%";
-    
-    $searchColumns = ['no_dokumen', 'perihal']; // Sesuaikan kolom tabel dokumenkeputusan
-    $whereConditions = [];
-    $params = [];
-    $types = '';
-
-    // 1. Filter Search (OR condition grouped)
-    if (!empty($search)) {
-        $searchParts = [];
-        foreach ($searchColumns as $col) {
-            $searchParts[] = "$col LIKE ?";
-            $params[] = $searchParam;
-            $types .= 's';
-        }
-        $whereConditions[] = "(" . implode(" OR ", $searchParts) . ")";
-    }
-
-    // 2. Filter Tahun (DATABASE SWITCHING)
-    if ($tahun > 0) {
-        $dbNameValues = "sas_" . $tahun;
-    } else {
-        // Jika 'Semua', gunakan database utama (sas)
-        $dbNameValues = "sas";
-    }
-
-    try {
-        $conn->select_db($dbNameValues);
-    } catch (Exception $e) {
-        // Fallback: tetap di DB eksisting jika sas tidak ditemukan
-    }
-
-    $whereClause = "";
-    if (!empty($whereConditions)) {
-        $whereClause = " WHERE " . implode(" AND ", $whereConditions);
-    }
-
-    $totalSql = "SELECT COUNT(*) FROM dokumenkeluar" . $whereClause;
-    $stmtTotal = $conn->prepare($totalSql);
-    if (!empty($search)) {
-        $stmtTotal->bind_param($types, ...$params);
-    }
-    $stmtTotal->execute();
-    $totalRecords = 0;
-    $stmtTotal->bind_result($totalRecords);
-    $stmtTotal->fetch();
-    $stmtTotal->close();
-
-    $totalPages = ceil($totalRecords / $limit);
-
-    $dataSql = "SELECT * FROM dokumenkeluar" . $whereClause . " ORDER BY id ASC LIMIT ? OFFSET ?";
-    $dataTypes = $types . 'ii';
-    $dataParams = [...$params, $limit, $offset];
-
-    $stmtData = $conn->prepare($dataSql);
-    $stmtData->bind_param($dataTypes, ...$dataParams);
-    $stmtData->execute();
-    $result = $stmtData->get_result();
-    
-    $dataRows = [];
-    while ($row = $result->fetch_assoc()) {
-        $dataRows[] = $row;
-    }
-    $stmtData->close();
-
-    $tableHtml = buatTabelHtml($dataRows, $offset, $level);
-    $paginationHtml = buatPaginasi($page, $totalPages);
-    
-    // Level Detection Feedback
-    $levelBadge = '<span class="badge bg-secondary">Guest</span>';
-    if ($level == "1") $levelBadge = '<span class="badge bg-danger">Admin</span>';
-    elseif ($level == "2") $levelBadge = '<span class="badge bg-primary">Staff</span>';
-    elseif ($level == "3") $levelBadge = '<span class="badge bg-info text-dark">User</span>';
-
-    $recordsInfo = buatInfoData($page, $limit, $totalRecords) . " <span class='ms-2'>" . $levelBadge . "</span>";
-
-    kirimResponsSukses([
-        'table' => $tableHtml,
-        'pagination' => $paginationHtml,
-        'recordsInfo' => $recordsInfo
-    ]);
-}
+// muatData dihapus karena beralih ke static loading di suratkeluar.php
 
 function simpanData($conn, $action) {
     // Ambil data dari POST
@@ -357,7 +129,7 @@ function simpanData($conn, $action) {
 
         for ($i = 0; $i < $count; $i++) {
             if ($files['error'][$i] === UPLOAD_ERR_OK) {
-                 if ($files['size'][$i] > MAX_FILE_SIZE) throw new Exception('File melebihi batas 1MB.');
+                 if ($files['size'][$i] > MAX_FILE_SIZE) throw new Exception('File melebihi batas 2MB.');
                  
                  $fileExt = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
                  if (!in_array($fileExt, ALLOWED_EXTENSIONS)) throw new Exception('Ekstensi file tidak diizinkan. Hanya PDF.');
@@ -454,15 +226,15 @@ function simpanData($conn, $action) {
             // 2. QUERY UPDATE
             $sql = "UPDATE dokumenkeluar SET 
                         no_dokumen=?, jns_dokumen=?, dari=?, unit_tujuan=?,        
-                        perihal=?, pembuat=?, tgl_dokumen=?, kategori=?, catatan=?, pdf=? 
+                        perihal=?, pembuat=?, tgl_dokumen=?, kategori=?, catatan=?, pdf=?, lampiran=? 
                     WHERE id=?";
 
             $stmt = $conn->prepare($sql);
             if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
 
-            $stmt->bind_param('ssssssssssi', 
+            $stmt->bind_param('sssssssssssi', 
                 $no_dokumen, $jns_dokumen, $dari, $unit_tujuan, $perihal, $pembuat,
-                $tgl_dokumen, $kategori, $catatan, $final_pdf, $id
+                $tgl_dokumen, $kategori, $catatan, $final_pdf, $lampiran, $id
             );
 
             if (!$stmt->execute()) throw new Exception("Gagal update database: " . $stmt->error);
@@ -534,7 +306,8 @@ function ambilData($conn) {
         }
         $data['file_sizes_map'] = $file_sizes;
 
-        kirimResponsSukses($data);
+        echo json_encode($data);
+        exit;
     }
     else throw new Exception('Data tidak ditemukan.');
 }
@@ -604,7 +377,6 @@ try {
 
     $action = $_REQUEST['action'] ?? ''; 
     switch ($action) {
-        case 'muatData': muatData($conn, $level); break;
         case 'simpan': case 'edit': simpanData($conn, $action); break;
         case 'ambil': ambilData($conn); break;
         case 'hapus': 

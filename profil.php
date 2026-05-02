@@ -163,12 +163,12 @@ if (!empty($foto_db) && file_exists($path_file)) {
 
                         <div class="upload-section mt-4">
                             <label for="photo1" class="btn btn-primary btn-custom w-100 mb-2">
-                                <i class="fas fa-camera me-2"></i>Ubah Foto
+                                <i class="fas fa-camera mr-2"></i>Ubah Foto
                             </label>
                             
                              <!-- Tombol Modal Ganti Password -->
-                             <button type="button" class="btn btn-danger w-100 mb-2" data-bs-toggle="modal" data-bs-target="#gantiPass">
-                                <i class="fas fa-lock me-2"></i>Ganti Password
+                             <button type="button" class="btn btn-danger w-100 mb-2" data-toggle="modal" data-target="#gantiPass">
+                                <i class="fas fa-lock mr-2"></i>Ganti Password
                             </button>
                             
                             <!-- Input File -->
@@ -188,7 +188,7 @@ if (!empty($foto_db) && file_exists($path_file)) {
             <div class="col-lg-8">
                 <div class="card profile-card h-100">
                     <div class="card-header pt-4 px-4">
-                        <h5 class="mb-0 text-dark"><i class="fas fa-user-circle me-2 text-primary"></i>Informasi Pribadi</h5>
+                        <h5 class="mb-0 text-dark"><i class="fas fa-user-circle mr-2 text-primary"></i>Informasi Pribadi</h5>
                     </div>
                     <div class="card-body p-4">
                         <div class="row align-items-center">
@@ -227,13 +227,13 @@ if (!empty($foto_db) && file_exists($path_file)) {
 
 
 
-    <div class="modal fade" id="gantiPass" tabindex="-1" aria-labelledby="modalGantiPasswordLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal fade" id="gantiPass" tabindex="-1" aria-labelledby="modalGantiPasswordLabel" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <b class="modal-title" id="modalGantiPasswordLabel"><i class="fas fa-lock me-2"></i>Ganti Password</b>
+                    <b class="modal-title" id="modalGantiPasswordLabel"><i class="fas fa-lock mr-2"></i>Ganti Password</b>
                     <?php if (!isset($_GET['changepass'])): ?>
-                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">×</span>
                     </button>
                     <?php endif; ?>
@@ -241,7 +241,7 @@ if (!empty($foto_db) && file_exists($path_file)) {
                 <div class="modal-body">
                     <?php if (isset($_GET['changepass'])): ?>
                     <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i> <strong>Peringatan Keamanan!</strong><br>
+                        <i class="fas fa-exclamation-triangle mr-2"></i> <strong>Peringatan Keamanan!</strong><br>
                         Anda masih menggunakan password default. Silakan ganti password Anda untuk melanjutkan.
                     </div>
                     <?php endif; ?>
@@ -273,7 +273,7 @@ if (!empty($foto_db) && file_exists($path_file)) {
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
                             <button type="submit" class="btn btn-danger">Simpan </button>
                         </div>
                     </form>
@@ -304,11 +304,10 @@ if (!empty($foto_db) && file_exists($path_file)) {
             // Auto Open Modal if forced
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('changepass')) {
-                var myModal = new bootstrap.Modal(document.getElementById('gantiPass'), {
+                $('#gantiPass').modal({
                     backdrop: 'static',
                     keyboard: false
                 });
-                myModal.show();
             }
 
             $('#new_password').on('keyup change', function() {
