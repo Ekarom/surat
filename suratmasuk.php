@@ -136,7 +136,7 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
         <div class="container-fluid">
             <div class="row">
                 <div class="col-12">
-                    <div class="card card-outline primary sm">
+                    <div class="card card-outline">
                         <!-- Header Kontrol -->
                         <div class="card-header">
                             <div class="d-flex justify-content-between align-items-center flex-wrap">
