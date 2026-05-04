@@ -110,12 +110,12 @@ if (!isset($conn)) {
                     <div id="fileInfo" class="d-none mt-3 p-3 rounded-4 bg-light border border-dashed">
                         <div class="d-flex justify-content-between align-items-center">
                             <span class="small fw-bold text-dark">
-                                <i class="fas fa-file-excel me-2 text-success"></i>
+                                <i class="las la-file-excel me-2 text-success"></i>
                                 <span id="fileName">file.xlsx</span>
                             </span>
                             <button type="button" class="btn btn-sm btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
                                 style="width: 24px; height: 24px;" onclick="resetFile()">
-                                <i class="fas fa-times" style="font-size: 10px;"></i>
+                                <i class="las la-times" style="font-size: 10px;"></i>
                             </button>
                         </div>
                     </div>
@@ -123,7 +123,7 @@ if (!isset($conn)) {
                     <div class="mt-4 pt-2 border-top text-center">
                         <button type="button" id="btnImport" class="btn btn-primary btn-rounded px-5 fw-bold shadow-sm"
                             disabled onclick="startImport()">
-                            <i class="fas fa-cloud-upload-alt me-2"></i> Mulai Import Sekarang
+                            <i class="las la-cloud-upload-alt me-2"></i> Mulai Import Sekarang
                         </button>
                     </div>
                 </div>
@@ -144,7 +144,7 @@ if (!isset($conn)) {
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0 text-muted extra-small uppercase">Struktur Kolom Excel</h6>
                         <button type="button" onclick="downloadTemplate()" class="btn btn-link text-decoration-none p-0 extra-small fw-bold">
-                            <i class="fas fa-download me-1"></i> Template
+                            <i class="las la-download me-1"></i> Template
                         </button>
                     </div>
                     <div class="table-responsive">
@@ -174,7 +174,7 @@ if (!isset($conn)) {
                     </div>
                     <div class="mt-4 alert alert-info bg-soft-primary border-0 rounded-4">
                         <div class="d-flex gap-3">
-                            <i class="fas fa-info-circle mt-1 text-primary"></i>
+                            <i class="las la-info-circle mt-1 text-primary"></i>
                             <div class="small">
                                 <strong class="d-block mb-1">Informasi Penting</strong>
                                 <span>Baris pertama dianggap sebagai Header dan akan diabaikan. Pastikan format tanggal adalah <strong>YYYY-MM-DD</strong>.</span>

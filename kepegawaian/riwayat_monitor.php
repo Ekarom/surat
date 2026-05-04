@@ -18,8 +18,8 @@ $stmt->execute();
 $pegawai = $stmt->get_result()->fetch_assoc();
 
 if (!$pegawai) {
-    echo '<div class="alert alert-danger rounded-4 shadow-sm"><i class="fas fa-exclamation-triangle me-2"></i>Data pegawai tidak ditemukan.</div>';
-    echo '<a href="?data_pegawai" class="btn btn-primary btn-rounded px-4"><i class="fas fa-arrow-left me-2"></i>Kembali ke Data Pegawai</a>';
+    echo '<div class="alert alert-danger rounded-4 shadow-sm"><i class="las la-exclamation-triangle me-2"></i>Data pegawai tidak ditemukan.</div>';
+    echo '<a href="?data_pegawai" class="btn btn-primary btn-rounded px-4"><i class="las la-arrow-left me-2"></i>Kembali ke Data Pegawai</a>';
     return;
 }
 
@@ -152,7 +152,7 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
             <p class="text-muted small mb-0">Pemantauan kelengkapan dokumen dan riwayat pegawai.</p>
         </div>
         <a href="?data_pegawai" class="btn btn-light btn-rounded border px-4 shadow-sm fw-bold">
-            <i class="fas fa-arrow-left me-2 text-primary"></i> Kembali
+            <i class="las la-arrow-left me-2 text-primary"></i> Kembali
         </a>
     </div>
 </div>
@@ -162,7 +162,7 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
     <div class="col-lg-8">
         <div class="card-modern">
             <div class="card-header header-blue">
-                <i class="fas fa-id-card"></i> Informasi Identitas Pegawai
+                <i class="las la-id-card"></i> Informasi Identitas Pegawai
             </div>
             <div class="card-body p-4">
                 <div class="info-row">
@@ -194,13 +194,13 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
     <div class="col-lg-4">
         <div class="card-modern">
             <div class="card-header header-red">
-                <i class="fas fa-camera"></i> Foto Pegawai
+                <i class="las la-camera"></i> Foto Pegawai
             </div>
             <div class="card-body text-center py-4">
                 <img src="<?php echo $foto_path; ?>" class="photo-monitor" alt="Foto">
                 <div class="mt-3">
                     <span class="badge bg-soft-success text-success border border-success rounded-pill px-3 py-2 small">
-                        <i class="fas fa-check-circle me-1"></i> Data Aktif
+                        <i class="las la-check-circle me-1"></i> Data Aktif
                     </span>
                 </div>
             </div>
@@ -212,7 +212,7 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
     <h5 class="fw-bold d-flex align-items-center">
         <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
             style="width: 32px; height: 32px;">
-            <i class="fas fa-history small"></i>
+            <i class="las la-history small"></i>
         </span>
         Riwayat & Lampiran Dokumen
     </h5>
@@ -223,19 +223,19 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
         <?php
         while ($r = $q_riwayat->fetch_assoc()):
             $has_file = !empty($r['file_lampiran']);
-            $icon = 'fa-file-alt';
+            $icon = 'la-file-alt';
             if ($r['kategori'] == 'Pangkat')
-                $icon = 'fa-award';
+                $icon = 'la-award';
             else if ($r['kategori'] == 'Jabatan')
-                $icon = 'fa-user-tie';
+                $icon = 'la-user-tie';
             else if ($r['kategori'] == 'Pendidikan')
-                $icon = 'fa-graduation-cap';
+                $icon = 'la-graduation-cap';
             ?>
             <div class="card-item-riwayat">
                 <div class="d-flex justify-content-between mb-3">
                     <div class="bg-light text-primary rounded-3 d-flex align-items-center justify-content-center"
                         style="width: 40px; height: 40px;">
-                        <i class="fas <?php echo $icon; ?> fs-5"></i>
+                        <i class="las <?php echo $icon; ?> fs-5"></i>
                     </div>
                     <div>
                         <span class="badge-status <?php echo $has_file ? 'bg-success text-white' : 'bg-warning text-dark'; ?>">
@@ -285,7 +285,7 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
                     <?php if ($has_file): ?>
                         <a href="../file/datakepegawaian/<?php echo $r['file_lampiran']; ?>" target="_blank"
                             class="btn btn-sm btn-outline-primary fw-bold">
-                            <i class="fas fa-external-link-alt me-1"></i> Lihat Dokumen
+                            <i class="las la-external-link-alt me-1"></i> Lihat Dokumen
                         </a>
                     <?php else: ?>
                         <button class="btn btn-sm btn-light border text-muted disabled fw-bold">Tidak Ada File</button>
@@ -296,7 +296,7 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
     </div>
 <?php else: ?>
     <div class="card-modern text-center py-5 bg-white">
-        <i class="fas fa-folder-open fa-3x mb-3 text-muted opacity-25"></i>
+        <i class="las la-folder-open fa-3x mb-3 text-muted opacity-25"></i>
         <h5 class="text-muted fw-bold">Belum ada data riwayat.</h5>
         <p class="text-muted small">Pegawai belum menginputkan riwayat kepegawaian.</p>
     </div>
@@ -304,7 +304,7 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
 
 <div class="mt-5 pb-5">
     <div class="alert alert-light border shadow-sm rounded-3">
-        <i class="fas fa-info-circle text-primary me-2"></i>
+        <i class="las la-info-circle text-primary me-2"></i>
         <strong>Catatan:</strong> Data ini disinkronkan secara real-time dengan portal mandiri guru.
     </div>
 </div>

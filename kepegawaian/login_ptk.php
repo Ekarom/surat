@@ -12,7 +12,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Check if already logged in
 if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true && ($_SESSION['level'] ?? '') == '4') {
-    header("Location: index_guru.php");
+    header("Location: index_ptk.php");
     exit;
 }
 
@@ -352,7 +352,7 @@ unset($_SESSION['error_message']);
         <div class="orb orb-2"></div>
 
         <div class="wrap-login100">
-            <form class="login100-form validate-form" method="post" action="login_proses_guru.php"
+            <form class="login100-form validate-form" method="post" action="proseslogin.php"
                 onsubmit="return validateForm()">
                 <div class="login100-form-logo">
                     <img src="../images/logodik.png" width="55" alt="Logo">
@@ -378,7 +378,7 @@ unset($_SESSION['error_message']);
                     <span class="refresh-captcha"
                         onclick="document.getElementById('captcha-img').src='../captcha_img.php?'+Math.random();"
                         title="Refresh Captcha">
-                        <i class="fas fa-sync-alt"></i>
+                        <i class="las la-sync-alt"></i>
                     </span>
                     <input class="captcha-input" type="text" id="captcha" name="captcha" placeholder="Input Captcha"
                         autocomplete="off" required>

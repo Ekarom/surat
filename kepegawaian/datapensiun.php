@@ -96,7 +96,7 @@ if ($res) {
         <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
             <h6 class="fw-bold mb-0">Laporan Estimasi Pensiun</h6>
             <button class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="window.print()">
-                <i class="fas fa-print me-2"></i> Cetak Laporan
+                <i class="las la-print me-2"></i> Cetak Laporan
             </button>
         </div>
 
@@ -211,8 +211,8 @@ if ($res) {
                 searchPlaceholder: "Cari Pegawai...",
                 info: "Menampilkan _TOTAL_ data",
                 paginate: {
-                    previous: "<i class='fas fa-chevron-left'></i>",
-                    next: "<i class='fas fa-chevron-right'></i>"
+                    previous: "<i class='las la-chevron-left'></i>",
+                    next: "<i class='las la-chevron-right'></i>"
                 }
             }
         });

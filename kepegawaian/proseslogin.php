@@ -14,7 +14,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Check database connection
 if (!isset($conn) || $conn === false) {
-    header("Location: login_guru.php?error=db_connection");
+    header("Location: login_ptk.php?error=db_connection");
     exit;
 }
 
@@ -25,7 +25,7 @@ if (file_exists('../vendor/autoload.php')) {
 
 // Only allow POST
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    header("Location: login_guru.php");
+    header("Location: login_ptk.php");
     exit;
 }
 
@@ -62,7 +62,7 @@ if ($limit_data) {
 
     if ($attempts >= 3 && (time() - $last_attempt) < $lockout_time) {
         $remaining = $lockout_time - (time() - $last_attempt);
-        header("Location: login_guru.php?salah=3&wait=$remaining");
+        header("Location: login_ptk.php?salah=3&wait=$remaining");
         exit();
     } elseif ((time() - $last_attempt) >= $lockout_time && $attempts >= 3) {
         $conn->query("DELETE FROM login_attempts WHERE ip_address = '$ip_address'");
@@ -77,7 +77,7 @@ $session_captcha = $_SESSION['captcha_answer'] ?? null;
 unset($_SESSION['captcha_answer']);
 
 if ($session_captcha === null || empty($user_captcha) || intval($user_captcha) !== intval($session_captcha)) {
-    header("Location: login_guru.php?salah=5");
+    header("Location: login_ptk.php?salah=5");
     exit;
 }
 
@@ -90,7 +90,7 @@ $password = $_POST['password'] ?? '';
 // Query Database - TABEL PEGAWAI
 $stmt = $conn->prepare('SELECT id, nrk, nip, nm_pegawai, email, foto, status FROM pegawai WHERE (nrk = ? OR nip = ?) LIMIT 1');
 if ($stmt === false) {
-    header("Location: login_guru.php?salah=2");
+    header("Location: login_ptk.php?salah=2");
     exit;
 }
 $stmt->bind_param("ss", $userid, $userid);
@@ -114,7 +114,7 @@ if ($pegawai) {
 if ($is_authenticated) {
     // [CEK STATUS]
     if ($pegawai['status'] == '0' || $pegawai['status'] == 'Nonaktif') {
-        header("Location: login_guru.php?salah=6");
+        header("Location: login_ptk.php?salah=6");
         exit;
     }
 
@@ -127,6 +127,7 @@ if ($is_authenticated) {
     $_SESSION['id'] = $pegawai['id']; // Pegawai ID
     $_SESSION['nama'] = $pegawai['nm_pegawai'];
     $_SESSION['userid'] = $pegawai['nrk'] ?: $pegawai['nip'];
+    $_SESSION['skradm'] = $_SESSION['userid']; // Compatibility with secure.php
     $_SESSION['email'] = $pegawai['email'];
     $_SESSION['level'] = '4'; // Force Level 4 for Guru Portal
     $_SESSION['status'] = $pegawai['status'] == '1' ? 'Aktif' : $pegawai['status'];
@@ -149,7 +150,7 @@ if ($is_authenticated) {
     }
 
     // Redirect to specialized teacher portal
-    header("Location: ./?");
+    header("Location: index_ptk.php");
     exit();
 
 } else {
@@ -168,9 +169,9 @@ if ($is_authenticated) {
         $remaining = 0;
 
     if ($attempts_count >= 3) {
-        header("Location: login_guru.php?salah=3&wait=300");
+        header("Location: login_ptk.php?salah=3&wait=300");
     } else {
-        header("Location: login_guru.php?salah=1&sisa=$remaining");
+        header("Location: login_ptk.php?salah=1&sisa=$remaining");
     }
     exit();
 }

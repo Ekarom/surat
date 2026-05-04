@@ -18,7 +18,7 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
 <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
     rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<!-- Toastiin is used globally via index_guru.php -->
+<!-- Toastiin is used globally via index_ptk.php -->
 
 <style>
     /* Reuse Core Styles */
@@ -210,9 +210,9 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
     <!-- === MAIN CONTENT === -->
     <div class="modern-card">
         <div class="modern-card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul me-2 text-indigo"></i>Daftar Riwayat Saya</h5>
+            <h5 class="mb-0 fw-bold"><i class="las la-list-ul me-2 text-indigo"></i>Daftar Riwayat Saya</h5>
             <button type="button" class="btn btn-indigo btn-sm btn-rounded px-4 shadow-sm" id="tombolTambahRiwayat">
-                <i class="fas fa-plus me-2"></i> Tambah Riwayat
+                <i class="las la-plus me-2"></i> Tambah Riwayat
             </button>
         </div>
         <div class="card-body p-0">
@@ -567,7 +567,7 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
                 let html = '';
                 if (res.status === 'success' && res.data && res.data.length > 0) {
                     res.data.forEach(item => {
-                        const fileBtn = item.file_lampiran ? `<a href="../file/datakepegawaian/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded shadow-sm" title="Lihat Dokumen"><i class="fas fa-file-pdf text-danger me-1"></i> Dokumen</a>` : '<span class="text-muted small italic">Tidak ada file</span>';
+                        const fileBtn = item.file_lampiran ? `<a href="../file/datakepegawaian/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded shadow-sm" title="Lihat Dokumen"><i class="las la-file-pdf text-danger me-1"></i> Dokumen</a>` : '<span class="text-muted small italic">Tidak ada file</span>';
 
                         let badgeClass = 'bg-info';
                         switch (item.kategori) {
@@ -617,8 +617,8 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
                         </td>
                         <td class="text-center">
                             <div class="d-flex justify-content-center gap-1">
-                                <button class="btn btn-sm btn-light border shadow-sm edit-riwayat" data-id="${item.id}" title="Edit"><i class="fas fa-edit text-warning"></i></button>
-                                <button class="btn btn-sm btn-light border shadow-sm hapus-riwayat" data-id="${item.id}" title="Hapus"><i class="fas fa-trash text-danger"></i></button>
+                                <button class="btn btn-sm btn-light border shadow-sm edit-riwayat" data-id="${item.id}" title="Edit"><i class="las la-edit text-warning"></i></button>
+                                <button class="btn btn-sm btn-light border shadow-sm hapus-riwayat" data-id="${item.id}" title="Hapus"><i class="las la-trash text-danger"></i></button>
                             </div>
                         </td>
                     </tr>`;
@@ -687,7 +687,7 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
         $(document).on('click', '.edit-riwayat', function () {
             const id = $(this).data('id');
             const btn = $(this);
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+            btn.prop('disabled', true).html('<i class="las la-spinner fa-spin"></i>');
 
             $.get(ajaxUrl, { action: 'ambilRiwayat', id: id }, (res) => {
                 if (res.status === 'success') {
@@ -764,7 +764,7 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
             }, 'json').fail(() => {
                 toastr.error('Gagal mengambil data dari server.');
             }).always(() => {
-                btn.prop('disabled', false).html('<i class="fas fa-edit text-warning"></i>');
+                btn.prop('disabled', false).html('<i class="las la-edit text-warning"></i>');
             });
         });
 
@@ -820,7 +820,7 @@ $nama_pegawai = $_SESSION['nama'] ?? 'Saya';
 
             const btn = $('button[form="formRiwayat"]');
             const oldHtml = btn.html();
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Memproses...');
+            btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Memproses...');
 
             $.ajax({
                 url: ajaxUrl,

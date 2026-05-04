@@ -38,7 +38,8 @@ $q_check->bind_param("i", $id_pegawai);
 $q_check->execute();
 $res_check = $q_check->get_result();
 $done_cats = [];
-while($r = $res_check->fetch_assoc()) $done_cats[$r['kategori']] = true;
+while ($r = $res_check->fetch_assoc())
+    $done_cats[$r['kategori']] = true;
 $count_done = count(array_intersect(array_keys($done_cats), $requirements));
 $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 100 : 0;
 ?>
@@ -49,15 +50,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
                     <h2 class="fw-bold mb-1">Dashboard PTK</h2>
-                    <p class="text-muted small mb-0">Portal Mandiri Manajemen Kepegawaian SMP Negeri 171</p>
                 </div>
-                <nav aria-label="breadcrumb">
-                    <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="index_guru.php"
-                                class="text-decoration-none text-primary">Home</a></li>
-                        <li class="breadcrumb-item active">Dashboard</li>
-                    </ol>
-                </nav>
             </div>
         </div>
     </section>
@@ -91,14 +84,14 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                             </div>
                             <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column gap-2">
                                 <a href="?monitoring" class="btn btn-indigo rounded-pill px-4 shadow-sm">
-                                    <i class="fas fa-tasks me-2"></i> Monitor Berkas (<?php echo round($percent); ?>%)
+                                    <i class="las la-tasks me-2"></i> Monitor Berkas (<?php echo round($percent); ?>%)
                                 </a>
                                 <div class="d-flex gap-2">
-                                    <a href="?profil" class="btn btn-light border rounded-pill px-3 shadow-sm flex-grow-1 small">
-                                        <i class="fas fa-user-circle me-1 text-indigo"></i> Profil
+                                    <a href="?profil" class="btn btn-info rounded-pill px-4 shadow-sm">
+                                        <i class="las la-user-circle me-1"></i> Profil
                                     </a>
-                                    <a href="?riwayat" class="btn btn-light border rounded-pill px-3 shadow-sm flex-grow-1 small">
-                                        <i class="fas fa-history me-1 text-indigo"></i> Riwayat
+                                    <a href="?riwayat" class="btn btn-info rounded-pill px-4 shadow-sm">
+                                        <i class="las la-history me-1"></i> Riwayat
                                     </a>
                                 </div>
                             </div>
@@ -113,7 +106,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                     <div class="card border-0 shadow-sm h-100 stat-card-light">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="icon-box bg-blue-soft text-blue me-3"><i class="fas fa-id-badge"></i></div>
+                                <div class="icon-box bg-blue-soft text-blue me-3"><i class="las la-id-badge"></i></div>
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Status</span>
                             </div>
                             <h4 class="fw-bold text-dark">
@@ -127,7 +120,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                     <div class="card border-0 shadow-sm h-100 stat-card-light">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="icon-box bg-purple-soft text-purple me-3"><i class="fas fa-briefcase"></i>
+                                <div class="icon-box bg-purple-soft text-purple me-3"><i class="las la-briefcase"></i>
                                 </div>
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Jabatan</span>
                             </div>
@@ -143,7 +136,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                     <div class="card border-0 shadow-sm h-100 stat-card-light">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                <div class="icon-box bg-cyan-soft text-cyan me-3"><i class="fas fa-layer-group"></i>
+                                <div class="icon-box bg-cyan-soft text-cyan me-3"><i class="las la-layer-group"></i>
                                 </div>
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Pangkat</span>
                             </div>
@@ -160,10 +153,10 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                         <div class="card border-0 shadow-sm h-100 stat-card-light">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
-                                    <div class="icon-box bg-orange-soft text-orange me-3"><i class="fas fa-tasks"></i>
+                                    <div class="icon-box bg-orange-soft text-orange me-3"><i class="las la-tasks"></i>
                                     </div>
-                                    <span
-                                        class="text-muted small text-uppercase fw-bold letter-spacing-1">Berkas Digital</span>
+                                    <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Berkas
+                                        Digital</span>
                                 </div>
                                 <h4 class="fw-bold text-dark"><?php echo round($percent); ?>% <span
                                         class="fs-6 fw-normal text-muted">Lengkap</span></h4>
@@ -179,7 +172,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                 <div class="col-lg-8">
                     <div class="card border-0 shadow-sm rounded-4">
                         <div class="card-header bg-white border-bottom py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-info-circle me-2 text-indigo"></i> Informasi
+                            <h5 class="mb-0 fw-bold"><i class="las la-info-circle me-2 text-indigo"></i> Informasi
                                 Kepegawaian</h5>
                         </div>
                         <div class="card-body">
@@ -226,10 +219,10 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                     <div class="info-group">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Kontak</label>
                                         <div class="text-dark fw-semibold"><i
-                                                class="fas fa-phone-alt small me-2 text-muted"></i>
+                                                class="las la-phone-alt small me-2 text-muted"></i>
                                             <?php echo htmlspecialchars($pegawai['no_hp'] ?: '-'); ?></div>
                                         <div class="text-dark fw-semibold"><i
-                                                class="fas fa-envelope small me-2 text-muted"></i>
+                                                class="las la-envelope small me-2 text-muted"></i>
                                             <?php echo htmlspecialchars($pegawai['email'] ?: '-'); ?></div>
                                     </div>
                                 </div>
@@ -241,13 +234,13 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                 <div class="col-lg-4">
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-header bg-white border-bottom py-3">
-                            <h5 class="mb-0 fw-bold"><i class="fas fa-bullhorn me-2 text-warning"></i> Pemberitahuan
+                            <h5 class="mb-0 fw-bold"><i class="las la-bullhorn me-2 text-warning"></i> Pemberitahuan
                             </h5>
                         </div>
                         <div class="card-body">
                             <div class="alert alert-indigo-soft border-0 mb-3">
                                 <div class="d-flex">
-                                    <div class="me-3"><i class="fas fa-check-circle text-indigo"></i></div>
+                                    <div class="me-3"><i class="las la-check-circle text-indigo"></i></div>
                                     <div>
                                         <h6 class="fw-bold mb-1 small">Data Terverifikasi</h6>
                                         <p class="small mb-0 text-muted">Profil Anda telah diverifikasi oleh Admin pada

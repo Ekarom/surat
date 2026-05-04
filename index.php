@@ -77,7 +77,7 @@ if (isset($_GET['dashboard'])) {
 } else {
   // --- DEFAULT DASHBOARD BY LEVEL ---
   if ($lv == '4') {
-    header("Location: kepegawaian/index_guru.php");
+    header("Location: kepegawaian/index_ptk.php");
     exit;
   } else {
     $current_page = 'dashboard';

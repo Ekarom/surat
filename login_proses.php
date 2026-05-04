@@ -76,7 +76,7 @@ $session_captcha = $_SESSION['captcha_answer'] ?? null;
 unset($_SESSION['captcha_answer']);
 
 if ($session_captcha === null || empty($user_captcha) || intval($user_captcha) !== intval($session_captcha)) {
-    $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false) ? 'login_guru.php' : 'login.php';
+    $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'kepegawaian/login_ptk.php') !== false) ? 'kepegawaian/login_ptk.php' : 'login.php';
     header("Location: $redirect_to?salah=5");
     exit;
 }
@@ -116,15 +116,15 @@ if ($user) {
 if ($is_authenticated) {
 
     // [CEK AKSES PORTAL GURU]
-    $is_from_login_guru = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false);
+    $is_from_login_guru = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'kepegawaian/login_ptk.php') !== false);
     if ($is_from_login_guru && $user['level'] != '4') {
-        header("Location: login_guru.php?salah=4");
+        header("Location: kepegawaian/login_ptk.php?salah=4");
         exit;
     }
 
     // [CEK STATUS]
     if ($user['status'] == '0' || $user['status'] == 'Nonaktif') {
-        $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false) ? 'login_guru.php' : 'login.php';
+        $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'kepegawaian/login_ptk.php') !== false) ? 'kepegawaian/login_ptk.php' : 'login.php';
         header("Location: $redirect_to?salah=2");
         exit;
     }
@@ -232,7 +232,7 @@ if ($is_authenticated) {
     $remaining = 3 - $attempts_count;
     if ($remaining < 0) $remaining = 0;
     
-    $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'login_guru.php') !== false) ? 'login_guru.php' : 'login.php';
+    $redirect_to = (isset($_SERVER['HTTP_REFERER']) && strpos($_SERVER['HTTP_REFERER'], 'kepegawaian/login_ptk.php') !== false) ? 'kepegawaian/login_ptk.php' : 'login.php';
 
     if ($attempts_count >= 3) {
         header("Location: $redirect_to?salah=3&wait=300");

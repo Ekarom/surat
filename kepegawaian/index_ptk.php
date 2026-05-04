@@ -9,6 +9,11 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// Ensure skradm is synced for global compatibility
+if (isset($_SESSION['userid']) && !isset($_SESSION['skradm'])) {
+    $_SESSION['skradm'] = $_SESSION['userid'];
+}
+
 // Security Check (Guru Only)
 $lv = $_SESSION['level'] ?? '';
 if ($lv != '4') {
@@ -21,12 +26,10 @@ $nik = $_SESSION['nik'] ?? '';
 
 // Determine current page
 $pages = [
-    'dashboard' => 'dashboard_guru.php',
-    'profil' => 'pegawai.php',
-    'data_saya' => 'data_saya.php',
-    'riwayat' => 'riwayat_saya.php',
-    'administrasi' => 'riwayat_administrasi.php',
-    'monitoring' => 'monitoring_berkas.php'
+    'dashboard' => 'dashboard_ptk.php',
+    'profil' => 'profil_saya.php',
+    'isi_data' => 'pengisian_data.php',
+    'data_saya' => 'data_saya.php'
 ];
 
 $current_page = 'dashboard';
@@ -50,11 +53,12 @@ if (!file_exists($page_to_include)) {
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Portal Mandiri Guru</title>
+    <title>Portal PTK -SMP NEGERI 171</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet"
+        href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -74,12 +78,20 @@ if (!file_exists($page_to_include)) {
             overflow-x: hidden;
         }
 
-        /* NAVBAR STYLE */
+        /* 1. NAVBAR STYLE */
         .navbar {
-            height: 56px;
-            background-color: #0f172a !important;
+            min-height: 56px;
             z-index: 1050;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        @media (max-width: 991px) {
+            .navbar-collapse {
+                background-color: #000000ff;
+                margin: 0 -1rem;
+                padding: 1rem;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
         }
 
         .navbar-brand-text {
@@ -89,24 +101,24 @@ if (!file_exists($page_to_include)) {
             letter-spacing: 0.5px;
         }
 
-        /* 1. SIDEBAR STYLE */
+        /* 2. SIDEBAR STYLE */
         #sidebar-wrapper {
-            margin-left: -250px;
-            /* Default disembunyikan di Mobile */
-            transition: margin 0.25s ease-out;
-            background-color: #1e293b;
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            width: 250px;
             position: fixed;
             top: 56px;
-            /* Tinggi Navbar */
             bottom: 0;
-            width: 250px;
+            left: 0;
+            margin-left: -250px;
+            /* Default hidden on Mobile */
+            background-color: #343a40;
+            transition: margin 0.25s ease-out;
             z-index: 1000;
             overflow-y: auto;
+            border-right: 1px solid #dee2e6;
             -webkit-overflow-scrolling: touch;
         }
 
-        /* Custom Scrollbar */
+        /* Custom Scrollbar for Sidebar */
         #sidebar-wrapper::-webkit-scrollbar {
             width: 5px;
         }
@@ -125,72 +137,67 @@ if (!file_exists($page_to_include)) {
         }
 
         /* Menu Link Style */
-        #sidebar-wrapper .list-group {
-            background-color: transparent !important;
-        }
-
-        #sidebar-wrapper .list-group-item {
+        .list-group-item {
+            background: transparent !important;
+            color: #ccc;
             border: none;
-            background-color: transparent !important;
-            color: #94a3b8;
             padding: 8px 20px;
-            /* Diperkecil dari 12px */
+            /* Tighter padding */
             font-size: 0.9rem;
             transition: all 0.2s;
+            display: flex;
+            align-items: center;
         }
 
-        #sidebar-wrapper .list-group-item:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+        .list-group-item:hover {
             color: #fff;
+            background: rgba(255, 255, 255, 0.1) !important;
         }
 
-        #sidebar-wrapper .list-group-item.active {
-            background-color: #4f46e5;
+        .list-group-item.active {
             color: #fff;
+            background: #0d6efd !important;
             font-weight: bold;
         }
 
-        #sidebar-wrapper .list-group-item i {
-            width: 25px;
-            margin-right: 10px;
-            font-size: 1rem;
+        .list-group-item i {
+            width: 28px;
+            font-size: 1.1rem;
         }
 
         .sidebar-heading {
-            padding: 15px 20px 5px 20px;
-            /* Diperkecil */
-            font-size: 0.7rem;
-            /* Sedikit diperkecil */
-            text-transform: uppercase;
-            color: #64748b;
+            padding: 5px 20px;
+            font-size: 0.75rem;
             font-weight: bold;
+            color: #6c757d;
+            text-transform: uppercase;
             letter-spacing: 1px;
             margin-top: 5px;
-            /* Diperkecil */
         }
 
-        /* 2. MAIN CONTENT STYLE */
+        /* 3. MAIN CONTENT STYLE */
         #page-content-wrapper {
             width: 100%;
             padding: 20px;
             margin-top: 56px;
-            /* Tinggi Navbar */
+            margin-left: 0;
             transition: all 0.25s ease-out;
         }
 
-        /* 3. LOGIKA TOGGLE (Desktop vs Mobile) */
+        /* 4. TOGGLE LOGIC (Desktop vs Mobile) */
 
-        /* Di Desktop (Layar Lebar): Sidebar default MUNCUL */
+        /* Desktop Mode (Layar Lebar) */
         @media (min-width: 768px) {
             #sidebar-wrapper {
                 margin-left: 0;
+                /* Visible by default */
             }
 
             #page-content-wrapper {
                 margin-left: 250px;
             }
 
-            /* Class khusus saat tombol ditekan di Desktop (Hide) */
+            /* Hide Sidebar on Desktop Toggle */
             body.toggled #sidebar-wrapper {
                 margin-left: -250px;
             }
@@ -200,20 +207,18 @@ if (!file_exists($page_to_include)) {
             }
         }
 
-        /* Di Mobile (Layar Kecil): Sidebar default SEMBUNYI */
+        /* Mobile Mode (Layar Kecil) */
         @media (max-width: 768px) {
 
-            /* Class khusus saat tombol ditekan di Mobile (Show) */
+            /* Show Sidebar on Mobile Toggle */
             body.toggled #sidebar-wrapper {
                 margin-left: 0;
             }
 
-            /* Overlay hitam saat sidebar muncul di HP */
+            /* Overlay effect on Content */
             body.toggled #page-content-wrapper {
                 opacity: 0.5;
-                /* Efek redup */
                 pointer-events: none;
-                /* Cegah klik konten belakang */
             }
         }
 
@@ -230,56 +235,58 @@ if (!file_exists($page_to_include)) {
 </head>
 
 <body>
-    <nav class="navbar navbar-expand navbar-dark fixed-top shadow-sm">
+    <nav class="navbar navbar-expand-lg navbar-dark border-bottom fixed-top shadow-sm">
         <div class="container-fluid px-3">
-            <div class="d-flex align-items-center">
-                <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-                <span class="navbar-brand-text">PORTAL PTK <span class="fw-light opacity-50 ms-2">| SMPN
-                        171</span></span>
+            <button class="btn btn-outline-light btn-sm me-3" id="sidebarToggle">
+                <i class="las la-bars"></i>
+            </button>
+
+            <a class="navbar-brand fw-bold" href="#">Portal PTK | SMPN 171</a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarPTKContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarPTKContent">
+                <ul class="navbar-nav ms-auto align-items-center mt-2 mt-lg-0">
+                    <li class="nav-item d-none d-lg-block me-3">
+                        <div class="clock-wrapper"><i class="lar la-clock me-1"></i> <span id="realtime-clock"></span>
+                        </div>
+                    </li>
+                    <li class="nav-item">
+                        <span class="nav-link text-white">Halo,
+                            <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn btn-danger btn-sm text-white px-3 ms-lg-2 my-2 my-lg-0"
+                            href="./logout.php">
+                            Logout <i class="las la-sign-out-alt ms-1"></i>
+                        </a>
+                    </li>
+                </ul>
             </div>
-            <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item d-none d-lg-block me-3">
-                    <div class="clock-wrapper"><i class="far fa-clock me-1"></i> <span id="realtime-clock"></span></div>
-                </li>
-                <li class="nav-item">
-                    <span class="text-white text-white">Halo,
-                        <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
-                <li class="nav-item">
-                    <a href="./logout.php" class="nav-link btn btn-outline-danger btn-sm text-white px-3 ms-3">Logout
-                        <i class="fa-solid fa-right-from-bracket ms-2"></i></a>
-                </li>
-                </li>
-            </ul>
         </div>
     </nav>
 
     <div class="d-flex" id="wrapper">
         <div id="sidebar-wrapper">
             <div class="sidebar-heading">Menu</div>
-            <div class="list-group list-group-flush">
+            <div class="list-group list-group-flush py-2">
                 <a href="?dashboard"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'dashboard') ? 'active' : ''; ?>">
-                    <i class="fas fa-chart-line"></i> Dashboard
+                    <i class="las la-chart-line"></i> Dashboard
                 </a>
                 <a href="?profil"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'profil') ? 'active' : ''; ?>">
-                    <i class="fas fa-id-badge"></i> Profil Saya
+                    <i class="las la-id-badge"></i> Profil Saya
+                </a>
+                <a href="?isi_data"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'isi_data') ? 'active' : ''; ?>">
+                    <i class="las la-file-signature"></i> Pengisian Data
                 </a>
                 <a href="?data_saya"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_saya') ? 'active' : ''; ?>">
-                    <i class="fas fa-address-card"></i> Data Saya
-                </a>
-                <a href="?riwayat"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'riwayat') ? 'active' : ''; ?>">
-                    <i class="fas fa-history"></i> Riwayat Kepegawaian
-                </a>
-                <a href="?administrasi"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'administrasi') ? 'active' : ''; ?>">
-                    <i class="fas fa-file-signature"></i> Riwayat Administrasi
-                </a>
-                <a href="?monitoring"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'monitoring') ? 'active' : ''; ?>">
-                    <i class="fas fa-tasks"></i> Monitoring Berkas
+                    <i class="las la-address-card"></i> Data Saya
                 </a>
             </div>
             <div class="list-group list-group-flush mt-auto pb-4">

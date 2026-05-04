@@ -203,10 +203,10 @@ $highlights = $stmt_last->get_result();
             <div class="profile-meta">
                 <h1 class="profile-name"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></h1>
                 <div class="profile-role">
-                    <i class="fas fa-chalkboard-teacher text-primary"></i>
+                    <i class="las la-chalkboard-teacher text-primary"></i>
                     <?php echo htmlspecialchars($pegawai['jabatan'] ?: 'Tenaga Pendidik'); ?>
                     <span class="badge-verified">
-                        <i class="fas fa-check-circle"></i> Verified
+                        <i class="las la-check-circle"></i> Verified
                     </span>
                 </div>
             </div>
@@ -218,7 +218,7 @@ $highlights = $stmt_last->get_result();
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stat-icon bg-primary text-white">
-                    <i class="fas fa-user-tie"></i>
+                    <i class="las la-user-tie"></i>
                 </div>
                 <div class="text-muted small fw-bold text-uppercase">Status</div>
                 <div class="h5 fw-bold mb-0"><?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?></div>
@@ -227,7 +227,7 @@ $highlights = $stmt_last->get_result();
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stat-icon bg-success text-white">
-                    <i class="fas fa-layer-group"></i>
+                    <i class="las la-layer-group"></i>
                 </div>
                 <div class="text-muted small fw-bold text-uppercase">Golongan</div>
                 <div class="h5 fw-bold mb-0"><?php echo htmlspecialchars($pegawai['golongan'] ?: '-'); ?></div>
@@ -236,7 +236,7 @@ $highlights = $stmt_last->get_result();
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stat-icon bg-warning text-white">
-                    <i class="fas fa-calendar-alt"></i>
+                    <i class="las la-calendar-alt"></i>
                 </div>
                 <div class="text-muted small fw-bold text-uppercase">Masa Kerja</div>
                 <div class="h5 fw-bold mb-0">
@@ -247,7 +247,7 @@ $highlights = $stmt_last->get_result();
         <div class="col-md-3">
             <div class="stats-card">
                 <div class="stat-icon bg-info text-white">
-                    <i class="fas fa-university"></i>
+                    <i class="las la-university"></i>
                 </div>
                 <div class="text-muted small fw-bold text-uppercase">Pendidikan</div>
                 <div class="h5 fw-bold mb-0"><?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?></div>
@@ -258,7 +258,7 @@ $highlights = $stmt_last->get_result();
         <div class="col-lg-8">
             <div class="card border-0 shadow-sm rounded-4 p-4">
                 <h5 class="section-title">
-                    <i class="fas fa-award text-primary"></i> Highlight Karir & Riwayat
+                    <i class="las la-award text-primary"></i> Highlight Karir & Riwayat
                 </h5>
                 <?php if ($highlights->num_rows > 0): ?>
                     <?php while ($h = $highlights->fetch_assoc()): ?>
@@ -270,14 +270,14 @@ $highlights = $stmt_last->get_result();
                     <?php endwhile; ?>
                 <?php else: ?>
                     <div class="text-center py-4 text-muted">
-                        <i class="fas fa-info-circle fa-2x mb-2 opacity-50"></i>
+                        <i class="las la-info-circle fa-2x mb-2 opacity-50"></i>
                         <p>Belum ada highlight riwayat untuk ditampilkan.</p>
                     </div>
                 <?php endif; ?>
 
                 <div class="mt-3 text-end">
                     <a href="?riwayat" class="btn btn-link text-primary fw-bold text-decoration-none">
-                        Lihat Seluruh Riwayat <i class="fas fa-arrow-right ms-1"></i>
+                        Lihat Seluruh Riwayat <i class="las la-arrow-right ms-1"></i>
                     </a>
                 </div>
             </div>
@@ -291,8 +291,8 @@ $highlights = $stmt_last->get_result();
                             Data Saya.</p>
                     </div>
                     <div class="col-md-4 text-md-end mt-3 mt-md-0">
-                        <a href="?data_saya" class="btn btn-light fw-bold px-4 py-2 rounded-pill">
-                            Buka Data Saya <i class="fas fa-external-link-alt ms-2"></i>
+                        <a href="?isi_data" class="btn btn-light fw-bold px-4 py-2 rounded-pill">
+                            Lengkapi Data Saya <i class="las la-edit ms-2"></i>
                         </a>
                     </div>
                 </div>
@@ -303,19 +303,19 @@ $highlights = $stmt_last->get_result();
         <div class="col-lg-4">
             <div class="card border-0 shadow-sm rounded-4 p-4">
                 <h5 class="section-title">
-                    <i class="fas fa-id-card text-primary"></i> Informasi Kontak
+                    <i class="las la-id-card text-primary"></i> Informasi Kontak
                 </h5>
                 <div class="d-grid gap-3">
                     <a href="tel:<?php echo $pegawai['no_hp']; ?>" class="contact-pill">
-                        <i class="fas fa-phone-alt"></i>
+                        <i class="las la-phone-alt"></i>
                         <?php echo htmlspecialchars($pegawai['no_hp'] ?: 'Tidak ada nomor'); ?>
                     </a>
                     <a href="mailto:<?php echo $pegawai['email']; ?>" class="contact-pill">
-                        <i class="fas fa-envelope"></i>
+                        <i class="las la-envelope"></i>
                         <?php echo htmlspecialchars($pegawai['email'] ?: 'Tidak ada email'); ?>
                     </a>
                     <div class="contact-pill">
-                        <i class="fas fa-map-marker-alt"></i>
+                        <i class="las la-map-marker-alt"></i>
                         <?php echo htmlspecialchars($pegawai['alamat'] ?: 'Alamat belum diisi'); ?>
                     </div>
                 </div>
@@ -325,13 +325,13 @@ $highlights = $stmt_last->get_result();
                 <h5 class="section-title small text-uppercase text-muted">Quick Actions</h5>
                 <div class="row g-2">
                     <div class="col-6">
-                        <a href="?data_saya" class="btn btn-outline-primary w-100 fw-bold py-3">
-                            <i class="fas fa-edit mb-2 d-block"></i> Edit Data
+                        <a href="?isi_data" class="btn btn-outline-primary w-100 fw-bold py-3">
+                            <i class="las la-edit mb-2 d-block"></i> Edit Data
                         </a>
                     </div>
                     <div class="col-6">
                         <a href="?administrasi" class="btn btn-outline-dark w-100 fw-bold py-3">
-                            <i class="fas fa-file-pdf mb-2 d-block"></i> Berkas
+                            <i class="las la-file-pdf mb-2 d-block"></i> Berkas
                         </a>
                     </div>
                 </div>

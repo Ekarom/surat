@@ -21,7 +21,7 @@ if (isset($_GET['id']) && !empty($_GET['id'])) {
         <div class='container-fluid py-4'>
             <div class='alert alert-danger shadow-sm rounded-4 p-4'>
                 <div class='d-flex align-items-center mb-2'>
-                    <i class='fas fa-exclamation-triangle fa-2x me-3'></i>
+                    <i class='las la-exclamation-triangle fa-2x me-3'></i>
                     <h4 class='mb-0 fw-bold'>Akses Ditolak</h4>
                 </div>
                 <p class='mb-0'>Anda hanya dapat melihat data Anda sendiri!</p>
@@ -298,7 +298,7 @@ while ($row = $history_all->fetch_assoc()) {
         <div class="col-lg-8">
             <div class="card-modern">
                 <div class="card-header header-blue">
-                    <i class="fas fa-address-card"></i> Data Pribadi Pegawai
+                    <i class="las la-address-card"></i> Data Pribadi Pegawai
                 </div>
                 <div class="card-body p-4">
                     <div class="form-group-info">
@@ -364,10 +364,10 @@ while ($row = $history_all->fetch_assoc()) {
 
                     <div class="btn-action-group d-flex gap-2">
                         <button class="btn btn-primary px-4 fw-bold" id="btnEditProfil">
-                            <i class="fas fa-edit me-2"></i> Perbarui Data
+                            <i class="las la-edit me-2"></i> Perbarui Data
                         </button>
                         <button class="btn btn-outline-dark px-4 fw-bold" onclick="window.print()">
-                            <i class="fas fa-print me-2"></i> Cetak Bio-Data
+                            <i class="las la-print me-2"></i> Cetak Bio-Data
                         </button>
                     </div>
                 </div>
@@ -375,41 +375,41 @@ while ($row = $history_all->fetch_assoc()) {
 
             <div class="card-modern">
                 <div class="card-header header-slate">
-                    <i class="fas fa-briefcase"></i> Data Rinci Kepegawaian
+                    <i class="las la-briefcase"></i> Data Rinci Kepegawaian
                 </div>
                 <div class="card-body p-4">
                     <div class="form-group-info">
-                        <div class="info-label"><i class="fas fa-id-badge me-2 text-primary"></i> Jabatan Saat Ini</div>
-                        <div class="info-value fw-bold text-primary">
+                        <div class="info-label"><i class="las la-id-badge me-2"></i> Jabatan Saat Ini</div>
+                        <div class="info-value fw-bold">
                             <?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?>
                         </div>
                     </div>
                     <div class="form-group-info">
-                        <div class="info-label"><i class="fas fa-layer-group me-2 text-success"></i> Pangkat / Golongan
+                        <div class="info-label"><i class="las la-layer-group me-2"></i> Pangkat / Golongan
                         </div>
                         <div class="info-value">
                             <?php echo htmlspecialchars($pegawai['pangkat'] ?: '-') . " (" . htmlspecialchars($pegawai['golongan'] ?: '-') . ")"; ?>
                         </div>
                     </div>
                     <div class="form-group-info">
-                        <div class="info-label"><i class="far fa-calendar-check me-2 text-warning"></i> TMT Golongan
+                        <div class="info-label"><i class="lar la-calendar-check me-2"></i> TMT Golongan
                         </div>
                         <div class="info-value">
                             <?php echo (!empty($pegawai['tmt_golongan']) && $pegawai['tmt_golongan'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tmt_golongan'])) : '-'; ?>
                         </div>
                     </div>
                     <div class="form-group-info">
-                        <div class="info-label"><i class="fas fa-school me-2 text-info"></i> Unit Kerja</div>
+                        <div class="info-label"><i class="las la-school me-2"></i> Unit Kerja</div>
                         <div class="info-value">
                             <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: 'SMP Negeri 171 Jakarta'); ?>
                         </div>
                     </div>
                     <div class="form-group-info">
-                        <div class="info-label"><i class="fas fa-user-tag me-2 text-danger"></i> Status Pegawai</div>
+                        <div class="info-label"><i class="las la-user-tag me-2"></i> Status Pegawai</div>
                         <div class="info-value">
                             <span class="badge <?php
                             $sp = strtolower($pegawai['status_pegawai'] ?? '');
-                            echo (strpos($sp, 'pns') !== false) ? 'bg-primary' : (strpos($sp, 'pppk') !== false ? 'bg-info' : 'bg-secondary');
+                            echo (strpos($sp, 'pns') !== false) ? '' : (strpos($sp, 'pppk') !== false ? '' : '');
                             ?>">
                                 <?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?>
                             </span>
@@ -417,7 +417,7 @@ while ($row = $history_all->fetch_assoc()) {
                     </div>
 
                     <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold mb-3 text-muted small text-uppercase"><i class="fas fa-id-card me-2"></i>
+                        <h6 class="fw-bold mb-3 text-muted small text-uppercase"><i class="las la-id-card me-2"></i>
                             Dokumen Kepegawaian</h6>
                         <div class="row g-3">
                             <div class="col-md-6">
@@ -463,7 +463,7 @@ while ($row = $history_all->fetch_assoc()) {
                             <div class="col-md-6">
                                 <div class="form-group-info border-0 py-1">
                                     <div class="info-label" style="width: 140px;">Gaji Pokok</div>
-                                    <div class="info-value py-1 px-2 small fw-bold text-primary">Rp.
+                                    <div class="info-value py-1 px-2 small fw-bold">Rp.
                                         <?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>
                                     </div>
                                 </div>
@@ -473,7 +473,7 @@ while ($row = $history_all->fetch_assoc()) {
 
                     <!-- Integrated Appointment & Retirement Info -->
                     <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold mb-3 text-muted small text-uppercase"><i class="fas fa-history me-2"></i>
+                        <h6 class="fw-bold mb-3 text-muted small text-uppercase"><i class="las la-history me-2"></i>
                             Pengangkatan & Pensiun</h6>
                         <div class="form-group-info">
                             <div class="info-label">SK Pengangkatan Pertama</div>
@@ -498,13 +498,69 @@ while ($row = $history_all->fetch_assoc()) {
                     </div>
                 </div>
             </div>
+            <div class="card-modern">
+                <div class="card-header header-red">
+                    <i class="las la-tasks"></i> Monitoring Berkas & Riwayat
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-light">
+                                <tr>
+                                    <th class="ps-4">Kategori</th>
+                                    <th>Keterangan</th>
+                                    <th>TMT / Tgl</th>
+                                    <th class="text-center">Berkas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php if (empty($hist_rows)): ?>
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-muted small">Belum ada data riwayat
+                                            terunggah.</td>
+                                    </tr>
+                                <?php else: ?>
+                                    <?php foreach ($hist_rows as $h): ?>
+                                        <tr>
+                                            <td class="ps-4"><span
+                                                    class="badge bg-light text-dark border"><?php echo htmlspecialchars($h['kategori']); ?></span>
+                                            </td>
+                                            <td>
+                                                <div class="fw-bold small"><?php echo htmlspecialchars($h['deskripsi']); ?>
+                                                </div>
+                                                <?php if ($h['institusi']): ?>
+                                                    <div class="text-muted" style="font-size: 0.75rem;">
+                                                        <?php echo htmlspecialchars($h['institusi']); ?>
+                                                    </div><?php endif; ?>
+                                            </td>
+                                            <td class="small">
+                                                <?php echo (!empty($h['tmt']) && $h['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($h['tmt'])) : '-'; ?>
+                                            </td>
+                                            <td class="text-center">
+                                                <?php if (!empty($h['file_lampiran'])): ?>
+                                                    <a href="../file/datakepegawaian/<?php echo $h['file_lampiran']; ?>"
+                                                        target="_blank" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                        <i class="las la-file-pdf"></i>
+                                                    </a>
+                                                <?php else: ?>
+                                                    <span class="text-danger small"><i class="las la-times-circle"></i></span>
+                                                <?php endif; ?>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Right Column: Foto & Kontak -->
         <div class="col-lg-4">
             <div class="card-modern">
                 <div class="card-header header-red">
-                    <i class="fas fa-camera"></i> Identitas Visual
+                    <i class="las la-camera"></i> Identitas Visual
                 </div>
                 <div class="photo-display-container">
                     <img src="<?php echo $src_foto; ?>" class="photo-frame" alt="Foto Profil">
@@ -514,21 +570,21 @@ while ($row = $history_all->fetch_assoc()) {
                         <hr>
                         <div class="text-start">
                             <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-phone-alt text-primary me-3"></i>
+                                <i class="las la-phone-alt text-primary me-3"></i>
                                 <div>
                                     <div class="small text-muted">Nomor Telepon</div>
                                     <div class="fw-bold"><?php echo htmlspecialchars($pegawai['no_hp']); ?></div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-envelope text-primary me-3"></i>
+                                <i class="las la-envelope text-primary me-3"></i>
                                 <div>
                                     <div class="small text-muted">Alamat Email</div>
                                     <div class="fw-bold"><?php echo htmlspecialchars($pegawai['email']); ?></div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center mb-3">
-                                <i class="fas fa-map-marker-alt text-primary me-3"></i>
+                                <i class="las la-map-marker-alt text-primary me-3"></i>
                                 <div>
                                     <div class="small text-muted">Domisili</div>
                                     <div class="fw-bold"><?php echo htmlspecialchars($pegawai['alamat'] ?: '-'); ?>
@@ -567,7 +623,7 @@ while ($row = $history_all->fetch_assoc()) {
                                 <label for="foto_edit"
                                     class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
                                     style="width: 38px; height: 38px; cursor: pointer; border: 3px solid #fff; margin-bottom: -10px; margin-right: -10px;">
-                                    <i class="fas fa-camera"></i>
+                                    <i class="las la-camera"></i>
                                 </label>
                                 <input type="file" id="foto_edit" name="foto" class="d-none" accept="image/*">
                             </div>
@@ -737,7 +793,7 @@ while ($row = $history_all->fetch_assoc()) {
 
             const btn = $(this).closest('.modal-content').find('button[type="submit"]');
             const oldHtml = btn.html();
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Menyimpan...');
+            btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Menyimpan...');
 
             $.ajax({
                 url: 'proses_pegawai.php',

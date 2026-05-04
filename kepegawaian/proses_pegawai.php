@@ -86,6 +86,8 @@ try {
         'nama_ibu' => "VARCHAR(100)",
         'nama_pasangan' => "VARCHAR(100)",
         'npwp' => "VARCHAR(30)",
+        'nik' => "VARCHAR(30)",
+        'no_kk' => "VARCHAR(30)",
         'no_karpeg' => "VARCHAR(30)",
         'no_taspen' => "VARCHAR(30)",
         'no_bpjs' => "VARCHAR(30)",
@@ -172,6 +174,8 @@ try {
             <th style="background-color: #f2f2f2;">IBU KANDUNG</th>
             <th style="background-color: #f2f2f2;">SUAMI/ISTRI</th>
             <th style="background-color: #f2f2f2;">NPWP</th>
+            <th style="background-color: #f2f2f2;">NIK</th>
+            <th style="background-color: #f2f2f2;">NO KK</th>
             <th style="background-color: #f2f2f2;">NO KARPEG</th>
             <th style="background-color: #f2f2f2;">NO TASPEN</th>
             <th style="background-color: #f2f2f2;">NO BPJS</th>
@@ -212,6 +216,8 @@ try {
                 echo '<td>' . ($row['nama_ibu'] ?: '-') . '</td>';
                 echo '<td>' . ($row['nama_pasangan'] ?: '-') . '</td>';
                 echo '<td style="mso-number-format:\'@\';">' . ($row['npwp'] ?: '-') . '</td>';
+                echo '<td style="mso-number-format:\'@\';">' . ($row['nik'] ?: '-') . '</td>';
+                echo '<td style="mso-number-format:\'@\';">' . ($row['no_kk'] ?: '-') . '</td>';
                 echo '<td style="mso-number-format:\'@\';">' . ($row['no_karpeg'] ?: '-') . '</td>';
                 echo '<td style="mso-number-format:\'@\';">' . ($row['no_taspen'] ?: '-') . '</td>';
                 echo '<td style="mso-number-format:\'@\';">' . ($row['no_bpjs'] ?: '-') . '</td>';
@@ -403,6 +409,8 @@ try {
         $nama_ibu = $_POST['nama_ibu'] ?? ($current_data['nama_ibu'] ?? '');
         $nama_pasangan = $_POST['nama_pasangan'] ?? ($current_data['nama_pasangan'] ?? '');
         $npwp = $_POST['npwp'] ?? ($current_data['npwp'] ?? '');
+        $nik_val = $_POST['nik'] ?? ($current_data['nik'] ?? '');
+        $no_kk = $_POST['no_kk'] ?? ($current_data['no_kk'] ?? '');
         $no_karpeg = $_POST['no_karpeg'] ?? ($current_data['no_karpeg'] ?? '');
         $no_taspen = $_POST['no_taspen'] ?? ($current_data['no_taspen'] ?? '');
         $no_bpjs = $_POST['no_bpjs'] ?? ($current_data['no_bpjs'] ?? '');
@@ -426,16 +434,16 @@ try {
         }
 
         if (empty($id)) {
-            // Insert - Fixed placeholder mismatch (31 fields)
-            $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            // Insert - Fixed placeholder mismatch (33 fields)
+            $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, nik, no_kk, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssssssssssssiid", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok);
+            $stmt->bind_param("ssssssssssssssssssssssssssssssiid", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok);
         } else {
             // Update - Added missing fields
-            $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=? WHERE id=?";
+            $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, nik=?, no_kk=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=? WHERE id=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssssssssssssiidi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $id);
+            $stmt->bind_param("ssssssssssssssssssssssssssssssiidi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $id);
         }
 
         if ($stmt->execute()) {

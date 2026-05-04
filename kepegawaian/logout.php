@@ -3,6 +3,21 @@ include "../dbconn.php";
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Update last_activity ke waktu lampau agar tidak terdeteksi 'Online'
+if (isset($_SESSION['id']) && isset($_SESSION['level'])) {
+    $uid = (int)$_SESSION['id'];
+    $level = $_SESSION['level'];
+    // Gunakan waktu 10 menit yang lalu (melebihi ambang batas 5 menit di dashboard)
+    $offline_time = date('Y-m-d H:i:s', strtotime('-10 minutes'));
+    
+    if ($level == '4') {
+        mysqli_query($conn, "UPDATE pegawai SET last_activity = '$offline_time' WHERE id = $uid");
+    } else {
+        mysqli_query($conn, "UPDATE tb_user SET last_activity = '$offline_time' WHERE id = $uid");
+    }
+}
+
 session_unset();
 session_destroy();
 

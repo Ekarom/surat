@@ -31,26 +31,17 @@ FROM pegawai";
 $stats_res = $conn->query($stats_query);
 $stats = $stats_res ? $stats_res->fetch_assoc() : ['total' => 0, 'aktif' => 0, 'pns' => 0, 'pppk' => 0, 'pppk_pw' => 0, 'honorer' => 0];
 
-// User Online Logic
-if (isset($_SESSION['id'])) {
-    $uid = $_SESSION['id'];
-    $conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $uid");
-}
-$online_res = $conn->query("SELECT id, nm_pegawai, last_activity, status_pegawai FROM pegawai WHERE last_activity > DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY last_activity DESC");
-$online_users = [];
-if ($online_res) {
-    while ($row = $online_res->fetch_assoc()) {
-        $online_users[] = $row;
-    }
-}
-$online_count = count($online_users);
+
+
+
+
 
 $info_boxes = [
-    ['title' => 'Total Pegawai', 'value' => $stats['total'], 'unit' => 'Orang', 'icon' => 'fa-users', 'color' => 'bg-primary'],
-    ['title' => 'Pegawai Aktif', 'value' => $stats['aktif'], 'unit' => '', 'icon' => 'fa-user-check', 'color' => 'bg-success'],
-    ['title' => 'Jumlah PNS', 'value' => $stats['pns'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
-    ['title' => 'Jumlah PPPK', 'value' => $stats['pppk'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
-    ['title' => 'Jumlah Honorer', 'value' => $stats['honorer'], 'unit' => '', 'icon' => 'fa-user-clock', 'color' => 'bg-warning'],
+    ['title' => 'Total Pegawai', 'value' => $stats['total'], 'unit' => 'Orang', 'icon' => 'la-users', 'class' => 'bg-primary'],
+    ['title' => 'Pegawai Aktif', 'value' => $stats['aktif'], 'unit' => '', 'icon' => 'la-user-check', 'class' => 'bg-success'],
+    ['title' => 'Jumlah PNS', 'value' => $stats['pns'], 'unit' => '', 'icon' => 'la-id-card', 'class' => 'bg-info'],
+    ['title' => 'Jumlah PPPK', 'value' => $stats['pppk'], 'unit' => '', 'icon' => 'la-id-card', 'class' => 'bg-info'],
+    ['title' => 'Jumlah Honorer', 'value' => $stats['honorer'], 'unit' => '', 'icon' => 'la-user-clock', 'class' => 'bg-warning'],
 ];
 
 // Gender Distribution
@@ -77,6 +68,44 @@ if ($status_res) {
     while ($row = $status_res->fetch_assoc()) {
         $status_labels[] = $row['status_pegawai'] ?: 'Lainnya';
         $status_values[] = (int) $row['count'];
+    }
+}
+
+// File Upload Stats
+$total_emp = $stats['total'] ?: 1;
+$file_stats = [
+    'foto' => ['count' => $conn->query("SELECT COUNT(*) FROM pegawai WHERE foto IS NOT NULL AND foto != ''")->fetch_row()[0], 'label' => 'Foto Profil', 'icon' => 'la-image', 'color' => 'bg-primary'],
+    'sk_pangkat' => ['count' => $conn->query("SELECT COUNT(DISTINCT pegawai_id) FROM riwayat_kepegawaian WHERE kategori = 'Pangkat/Golongan' AND file_lampiran IS NOT NULL AND file_lampiran != ''")->fetch_row()[0], 'label' => 'SK Pangkat', 'icon' => 'la-file-alt', 'color' => 'bg-success'],
+    'sk_jabatan' => ['count' => $conn->query("SELECT COUNT(DISTINCT pegawai_id) FROM riwayat_kepegawaian WHERE kategori = 'Jabatan' AND file_lampiran IS NOT NULL AND file_lampiran != ''")->fetch_row()[0], 'label' => 'SK Jabatan', 'icon' => 'la-file-invoice', 'color' => 'bg-info'],
+    'ijazah' => ['count' => $conn->query("SELECT COUNT(DISTINCT pegawai_id) FROM riwayat_kepegawaian WHERE kategori = 'Pendidikan' AND file_lampiran IS NOT NULL AND file_lampiran != ''")->fetch_row()[0], 'label' => 'Ijazah', 'icon' => 'la-graduation-cap', 'color' => 'bg-warning'],
+];
+
+// Individual PTK Progress Pagination
+$limit_ptk = 5;
+$page_ptk = isset($_GET['p_ptk']) ? max(1, (int) $_GET['p_ptk']) : 1;
+$offset_ptk = ($page_ptk - 1) * $limit_ptk;
+
+$total_ptk_res = $conn->query("SELECT COUNT(*) FROM pegawai WHERE status = '1'");
+$total_ptk_count = $total_ptk_res ? $total_ptk_res->fetch_row()[0] : 0;
+$total_pages_ptk = ceil($total_ptk_count / $limit_ptk);
+
+$ptk_progress = [];
+$res_progress = $conn->query(
+    "SELECT 
+        p.id, 
+        p.nm_pegawai, 
+        p.foto,
+        (SELECT COUNT(DISTINCT kategori) FROM riwayat_kepegawaian WHERE pegawai_id = p.id AND file_lampiran IS NOT NULL AND file_lampiran != '' AND kategori IN ('Pangkat/Golongan', 'Jabatan', 'Pendidikan')) as doc_count
+     FROM pegawai p
+     WHERE p.status = '1'
+     ORDER BY p.nm_pegawai ASC
+     LIMIT $limit_ptk OFFSET $offset_ptk"
+);
+if ($res_progress) {
+    while ($row = $res_progress->fetch_assoc()) {
+        $score = ($row['foto'] ? 1 : 0) + $row['doc_count'];
+        $row['percentage'] = ($score / 4) * 100;
+        $ptk_progress[] = $row;
     }
 }
 
@@ -129,188 +158,219 @@ if ($res_pensiun) {
 
 <div class="py-3">
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-1">Dashboard</h2>
-        </div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0">
-                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none">Home</a></li>
-                <li class="breadcrumb-item active">Dashboard</li>
-            </ol>
-        </nav>
+    <div
+        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">Dashboard Statistik</h1>
     </div>
+</div>
 
-    <!-- Statistics Grid -->
-    <div class="row g-3">
-        <?php foreach ($info_boxes as $box): ?>
-            <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-                <div class="card border-0 shadow-sm h-100 stat-card">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="icon-shape <?php echo $box['color']; ?> text-white rounded-3 me-2">
-                                <i class="fas <?php echo $box['icon']; ?> fa-xs"></i>
-                            </div>
-                            <span
-                                class="text-muted fw-bold small text-uppercase letter-spacing-1"><?php echo $box['title']; ?></span>
-                        </div>
-                        <div class="h4 fw-bold mb-0">
-                            <?php echo number_format($box['value']); ?>
-                            <?php if ($box['unit']): ?><span
-                                    class="fs-6 text-muted fw-normal ms-1"><?php echo $box['unit']; ?></span><?php endif; ?>
-                        </div>
+<!-- Statistics Grid -->
+<div class="row g-3 mb-4">
+    <?php foreach ($info_boxes as $box): ?>
+        <div class="col-6 col-md-4 col-lg mb-2">
+            <div
+                class="card border-0 h-100 text-white rounded-4 position-relative overflow-hidden stat-card <?php echo $box['class']; ?> shadow-sm">
+                <div class="card-body p-3 p-md-4 position-relative z-index-1">
+                    <div class="medium font-bold text-white-50 text-uppercase mb-2"
+                        style="letter-spacing: 1px; font-size: 0.8rem;">
+                        <?php echo $box['title']; ?>
                     </div>
-                </div>
-            </div>
-        <?php endforeach; ?>
-    </div>
-
-    <!-- Charts & Distributions -->
-    <div class="row mt-4 g-4">
-
-        <!-- Gender Distribution Chart -->
-        <div class="col-lg-3">
-            <div class="card border-0 shadow-sm h-100 text-center">
-                <div class="card-header bg-white border-0 py-3">
-                    <h6 class="fw-bold mb-0"><i class="fas fa-venus-mars me-2 text-danger"></i> Komposisi Gender</h6>
-                </div>
-                <div class="card-body">
-                    <div style="height: 180px; position: relative;">
-                        <canvas id="genderChart"></canvas>
-                    </div>
-                    <div class="d-flex justify-content-around mt-3 small fw-bold">
-                        <div><i class="fas fa-circle text-primary me-1"></i> L: <?php echo $genders['L']; ?></div>
-                        <div><i class="fas fa-circle text-danger me-1"></i> P: <?php echo $genders['P']; ?></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Employment Status Chart -->
-        <div class="col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <h6 class="fw-bold mb-0"><i class="fas fa-chart-bar me-2 text-info"></i> Status Pegawai</h6>
-                </div>
-                <div class="card-body">
-                    <div style="height: 220px;">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- User Online Panel -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <h6 class="fw-bold mb-0 me-2">User Online</h6>
-                        <span class="badge rounded-circle bg-success-soft text-success px-2 py-1" style="font-size: 0.7rem;"><?php echo $online_count; ?></span>
-                    </div>
-                    <div class="online-dot-pulse"></div>
-                </div>
-                <div class="card-body p-0">
-                    <div class="online-user-list">
-                        <?php if (!empty($online_users)): ?>
-                            <?php foreach ($online_users as $u): 
-                                $is_admin = (stripos($u['status_pegawai'], 'ADMIN') !== false || stripos($u['jabatan'], 'ADMIN') !== false);
-                                $role_label = $is_admin ? 'ADMIN' : 'GURU';
-                                $last_time = date('H:i', strtotime($u['last_activity']));
-                            ?>
-                                <div class="online-user-item p-3 d-flex justify-content-between align-items-center border-bottom">
-                                    <div>
-                                        <div class="fw-bold text-dark mb-1"><?php echo htmlspecialchars($u['nm_pegawai']); ?></div>
-                                        <span class="badge bg-success text-white extra-small px-2 py-1"><?php echo $role_label; ?></span>
-                                    </div>
-                                    <div class="text-end">
-                                        <div class="small text-success fw-bold d-flex align-items-center justify-content-end">
-                                            <span class="online-dot me-1"></span> Online
-                                        </div>
-                                        <div class="extra-small text-muted"><?php echo $last_time; ?></div>
-                                    </div>
-                                </div>
-                            <?php endforeach; ?>
-                        <?php else: ?>
-                            <div class="text-center py-5 opacity-50">
-                                <i class="fas fa-user-slash fa-3x mb-2"></i>
-                                <p class="small">Tidak ada pengguna aktif</p>
-                            </div>
+                    <div class="h2 font-weight-bold mb-0" style="font-size: 1.8rem;">
+                        <?php echo number_format($box['value']); ?>
+                        <?php if ($box['unit']): ?>
+                            <span class="small font-weight-normal ml-1 text-white-50 d-none d-sm-inline"
+                                style="font-size: 0.8rem;"><?php echo $box['unit']; ?></span>
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50" disabled>Prev</button>
-                    <span class="extra-small text-muted">Hal 1 / 1</span>
-                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50" disabled>Next</button>
+                <div class="position-absolute" style="right: -15px; bottom: -15px; opacity: 0.12;">
+                    <i class="las <?php echo $box['icon']; ?>" style="font-size: 5rem; transform: rotate(-10deg);"></i>
                 </div>
             </div>
         </div>
-    </div>
+    <?php endforeach; ?>
+</div>
 
-
-
-    <!-- Retirement Table -->
-    <div class="mt-4 pb-5">
+<!-- Section: Activity & Progress -->
+<div class="row g-4 mb-4">
+    <!-- Individual PTK Progress -->
+    <div class="col-lg-8">
         <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0"><i class="fas fa-user-clock me-2 text-danger"></i> Estimasi Pensiun Terdekat
-                </h6>
-                <a href="?datapensiun" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">Detail Pensiun <i
-                        class="fas fa-arrow-right ms-1"></i></a>
+            <div class="card-header bg-white border-0 py-2">
+                <h6 class="fw-bold mb-0">Progress Kelengkapan Berkas (Per PTK)</h6>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="text-center px-4" width="70">#</th>
-                                <th>Nama Pegawai</th>
-                                <th>Jabatan</th>
-                                <th>TMT Pensiun</th>
-                                <th class="text-center px-4">Sisa Waktu</th>
+                                <th class="ps-4">Nama PTK</th>
+                                <th width="300">Progress Kelengkapan</th>
+                                <th class="text-center pe-4">Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (!empty($pensiun_list)):
-                                $no = 1;
-                                foreach ($pensiun_list as $row):
-                                    $sisa = "";
-                                    if ($row['sisa_th'] > 0)
-                                        $sisa .= $row['sisa_th'] . " Th ";
-                                    if ($row['sisa_bln'] > 0)
-                                        $sisa .= $row['sisa_bln'] . " Bln";
-                                    if ($sisa == "")
-                                        $sisa = "Bulan Ini";
-
-                                    $is_near = ($row['sisa_th'] == 0);
+                            <?php if (!empty($ptk_progress)): ?>
+                                <?php foreach ($ptk_progress as $p):
+                                    $bar_class = 'bg-danger';
+                                    if ($p['percentage'] > 75)
+                                        $bar_class = 'bg-success';
+                                    elseif ($p['percentage'] >= 50)
+                                        $bar_class = 'bg-primary';
+                                    elseif ($p['percentage'] >= 25)
+                                        $bar_class = 'bg-warning';
                                     ?>
                                     <tr>
-                                        <td class="text-center px-4 text-muted"><?php echo $no++; ?></td>
+                                        <td class="ps-4">
+                                            <div class="fw-bold text-dark"><?php echo htmlspecialchars($p['nm_pegawai']); ?>
+                                            </div>
+                                        </td>
                                         <td>
-                                            <div class="fw-bold"><?php echo htmlspecialchars($row['nm_pegawai']); ?></div>
-                                            <div class="extra-small text-muted"><?php echo $row['nip'] ?: '-'; ?></div>
+                                            <div class="d-flex align-items-center">
+                                                <div class="progress flex-grow-1"
+                                                    style="height: 8px; background-color: #f1f5f9;">
+                                                    <div class="progress-bar <?php echo $bar_class; ?> rounded-pill"
+                                                        role="progressbar" style="width: <?php echo $p['percentage']; ?>%">
+                                                    </div>
+                                                </div>
+                                                <span class="ms-3 small fw-bold text-dark"
+                                                    style="min-width: 40px;"><?php echo round($p['percentage']); ?>%</span>
+                                            </div>
                                         </td>
-                                        <td><span
-                                                class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span>
-                                        </td>
-                                        <td class="fw-bold text-primary"><?php echo $row['tmt_pensiun_display']; ?></td>
-                                        <td class="text-center px-4">
-                                            <span
-                                                class="badge <?php echo $is_near ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'; ?> rounded-pill px-3 fw-bold">
-                                                <?php echo $sisa; ?>
-                                            </span>
+                                        <td class="text-center pe-4">
+                                            <?php if ($p['percentage'] == 100): ?>
+                                                <span
+                                                    class="badge bg-success-soft text-success rounded-pill px-3 extra-small">Lengkap</span>
+                                            <?php else: ?>
+                                                <span class="badge bg-warning-soft text-warning rounded-pill px-3 extra-small">Belum
+                                                    Lengkap</span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
-                                <?php endforeach;
-                            else: ?>
+                                <?php endforeach; ?>
+                            <?php else: ?>
                                 <tr>
-                                    <td colspan="5" class="text-center py-5 text-muted">Data pensiun tidak tersedia.</td>
+                                    <td colspan="3" class="text-center py-5 text-muted small">Tidak ada data progress</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
+            </div>
+            <div class="card-footer bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <?php
+                $base_url = "?";
+                foreach ($_GET as $key => $val) {
+                    if ($key != 'p_ptk')
+                        $base_url .= urlencode($key) . "=" . urlencode($val) . "&";
+                }
+                ?>
+                <a href="<?php echo $base_url; ?>p_ptk=<?php echo max(1, $page_ptk - 1); ?>"
+                    class="btn btn-sm btn-outline-primary rounded-pill px-3 <?php echo ($page_ptk <= 1) ? 'disabled' : ''; ?>">
+                    <i class="las la-angle-left me-1"></i> Prev
+                </a>
+                <span class="extra-small text-muted fw-bold">Hal <?php echo $page_ptk; ?> /
+                    <?php echo $total_pages_ptk; ?></span>
+                <a href="<?php echo $base_url; ?>p_ptk=<?php echo min($total_pages_ptk, $page_ptk + 1); ?>"
+                    class="btn btn-sm btn-outline-primary rounded-pill px-3 <?php echo ($page_ptk >= $total_pages_ptk) ? 'disabled' : ''; ?>">
+                    Next <i class="las la-angle-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Online Panel (Real-time) -->
+    <div class="col-md-4">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <div class="fw-bold">
+                    User Online
+                    <span id="online-total" class="badge rounded-circle bg-success-soft text-success px-2 py-1"
+                        style="font-size: 0.7rem;">0</span>
+                </div>
+                <div id="online-ping" class="online-dot-pulse" style="opacity: 0; transition: opacity 0.3s;"></div>
+            </div>
+            <div class="card-body p-0">
+                <div id="online-users-list" class="online-user-list">
+                    <div class="text-center py-5">
+                        <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                        <p class="small text-muted mt-2">Menghubungkan...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <button id="online-prev" class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50"
+                    disabled>Prev</button>
+                <span id="online-page-info" class="extra-small text-muted fw-bold">Hal 1 / 1</span>
+                <button id="online-next" class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50"
+                    disabled>Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Retirement Table -->
+<div class="mt-4 pb-5">
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+            <h6 class="fw-bold mb-0"><i class="fas fa-user-clock me-2 text-danger"></i> Estimasi Pensiun Terdekat
+            </h6>
+            <a href="?datapensiun" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">Detail Pensiun <i
+                    class="fas fa-arrow-right ms-1"></i></a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="text-center px-4" width="70">#</th>
+                            <th>Nama Pegawai</th>
+                            <th>Jabatan</th>
+                            <th>TMT Pensiun</th>
+                            <th class="text-center px-4">Sisa Waktu</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php if (!empty($pensiun_list)):
+                            $no = 1;
+                            foreach ($pensiun_list as $row):
+                                $sisa = "";
+                                if ($row['sisa_th'] > 0)
+                                    $sisa .= $row['sisa_th'] . " Th ";
+                                if ($row['sisa_bln'] > 0)
+                                    $sisa .= $row['sisa_bln'] . " Bln";
+                                if ($sisa == "")
+                                    $sisa = "Bulan Ini";
+
+                                $is_near = ($row['sisa_th'] == 0);
+                                ?>
+                                <tr>
+                                    <td class="text-center px-4 text-muted"><?php echo $no++; ?></td>
+                                    <td>
+                                        <div class="fw-bold"><?php echo htmlspecialchars($row['nm_pegawai']); ?></div>
+                                        <div class="extra-small text-muted"><?php echo $row['nip'] ?: '-'; ?></div>
+                                    </td>
+                                    <td><span
+                                            class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span>
+                                    </td>
+                                    <td class="fw-bold text-primary"><?php echo $row['tmt_pensiun_display']; ?></td>
+                                    <td class="text-center px-4">
+                                        <span
+                                            class="badge <?php echo $is_near ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'; ?> rounded-pill px-3 fw-bold">
+                                            <?php echo $sisa; ?>
+                                        </span>
+                                    </td>
+                                </tr>
+                            <?php endforeach;
+                        else: ?>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">Data pensiun tidak tersedia.</td>
+                            </tr>
+                        <?php endif; ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -328,43 +388,83 @@ if ($res_pensiun) {
             }
         };
 
-        // Gender Chart
-        const genderCtx = document.getElementById('genderChart').getContext('2d');
-        new Chart(genderCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Laki-laki', 'Perempuan'],
-                datasets: [{
-                    data: [<?php echo $genders['L']; ?>, <?php echo $genders['P']; ?>],
-                    backgroundColor: ['#3b82f6', '#f43f5e'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: { ...commonOptions, cutout: '70%' }
-        });
+        // Status Chart removed (replaced by PTK list)
 
-        // Status Chart
-        const statusCtx = document.getElementById('statusChart').getContext('2d');
-        new Chart(statusCtx, {
-            type: 'bar',
-            data: {
-                labels: <?php echo json_encode($status_labels); ?>,
-                datasets: [{
-                    label: 'Org',
-                    data: <?php echo json_encode($status_values); ?>,
-                    backgroundColor: '#0ea5e9',
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                ...commonOptions,
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                    x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        // --- Real-time Online Users ---
+        let currentOnlinePage = 1;
+        const onlineList = document.getElementById('online-users-list');
+        const onlineTotal = document.getElementById('online-total');
+        const onlinePageInfo = document.getElementById('online-page-info');
+        const onlinePrev = document.getElementById('online-prev');
+        const onlineNext = document.getElementById('online-next');
+        const onlinePing = document.getElementById('online-ping');
+
+        async function fetchOnlineUsers(page = 1) {
+            try {
+                // Show ping indicator
+                onlinePing.style.opacity = '1';
+
+                const response = await fetch(`get_online_users.php?page=${page}`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                onlineTotal.textContent = data.total;
+                onlinePageInfo.textContent = `Hal ${data.current} / ${data.pages}`;
+
+                // Update buttons
+                onlinePrev.disabled = (data.current <= 1);
+                onlineNext.disabled = (data.current >= data.pages);
+                onlinePrev.classList.toggle('opacity-50', onlinePrev.disabled);
+                onlineNext.classList.toggle('opacity-50', onlineNext.disabled);
+
+                // Build User List
+                if (data.users.length > 0) {
+                    let html = '';
+                    data.users.forEach(u => {
+                        html += `
+                            <div class="online-user-item p-2 px-3 d-flex justify-content-between align-items-center border-bottom">
+                                <div>
+                                    <div class="fw-bold text-dark mb-1" style="font-size: 0.85rem;">${u.nama}</div>
+                                    <span class="badge ${u.badge_color} text-white extra-small px-2 py-1" style="font-size: 0.65rem;">
+                                        ${u.role_label}
+                                    </span>
+                                </div>
+                                <div class="text-end">
+                                    <div class="text-success fw-bold d-flex align-items-center justify-content-end" style="font-size: 0.75rem;">
+                                        <span class="online-dot me-1" style="width: 6px; height: 6px;"></span> Online
+                                    </div>
+                                    <div class="extra-small text-muted" style="font-size: 0.7rem;">${u.last_time}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    onlineList.innerHTML = html;
+                } else {
+                    onlineList.innerHTML = `
+                        <div class="text-center py-5 opacity-50">
+                            <i class="fas fa-user-slash fa-3x mb-2"></i>
+                            <p class="small">Tidak ada pengguna aktif</p>
+                        </div>
+                    `;
                 }
+
+                currentOnlinePage = data.current;
+            } catch (error) {
+                console.error('Failed to fetch online users:', error);
+            } finally {
+                // Hide ping indicator after a short delay
+                setTimeout(() => { onlinePing.style.opacity = '0'; }, 500);
             }
-        });
+        }
+
+        // Event Listeners
+        onlinePrev.addEventListener('click', () => fetchOnlineUsers(currentOnlinePage - 1));
+        onlineNext.addEventListener('click', () => fetchOnlineUsers(currentOnlinePage + 1));
+
+        // Initial Load & Polling
+        fetchOnlineUsers();
+        setInterval(() => fetchOnlineUsers(currentOnlinePage), 15000); // Every 15 seconds
     });
 </script>
 
@@ -394,9 +494,17 @@ if ($res_pensiun) {
     }
 
     @keyframes pulse-red {
-        0% { opacity: 1; }
-        50% { opacity: 0.4; }
-        100% { opacity: 1; }
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+
+        100% {
+            opacity: 1;
+        }
     }
 
     .online-dot-pulse {
@@ -409,9 +517,17 @@ if ($res_pensiun) {
     }
 
     @keyframes pulse-green {
-        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        0% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+        }
+
+        70% {
+            box-shadow: 0 0 0 8px rgba(16, 185, 129, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+        }
     }
 
     .online-dot {
@@ -422,8 +538,8 @@ if ($res_pensiun) {
         border-radius: 50%;
     }
 
-    .online-user-item:last-child {
-        border-bottom: none !important;
+    .online-user-item {
+        padding: 0.75rem 1rem !important;
     }
 
     .online-user-list {
@@ -435,8 +551,8 @@ if ($res_pensiun) {
         background-color: #eff6ff;
         color: #3b82f6;
         font-weight: 600;
-        font-size: 0.75rem;
-        padding: 5px 10px;
+        font-size: 0.7rem;
+        padding: 4px 8px;
         border-radius: 6px;
     }
 
@@ -457,16 +573,17 @@ if ($res_pensiun) {
     }
 
     .table thead th {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         color: #64748b;
         border-bottom: 1px solid #f1f5f9;
+        padding: 0.75rem 0.75rem;
     }
 
     .table tbody td {
-        font-size: 0.9rem;
-        padding: 1rem 0.75rem;
+        font-size: 0.85rem;
+        padding: 0.6rem 0.75rem;
         border-bottom: 1px solid #f8fafc;
     }
 

@@ -10,7 +10,7 @@ if (!isset($conn) || !$conn) {
 
 $lv = $_SESSION['level'] ?? '';
 if ($lv == '4') {
-    header("Location: pegawai.php");
+    header("Location: index_ptk.php?profil");
     exit;
 }
 
@@ -144,14 +144,14 @@ if ($lv == '4') {
             <div class="d-flex align-items-center gap-2">
                 <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
                     id="tombolTambahPegawai">
-                    <i class="fas fa-user-plus me-2"></i> Tambah Pegawai
+                    <i class="las la-user-plus me-2"></i> Tambah Pegawai
                 </button>
                 <a href="proses_pegawai.php?action=download" class="btn btn-success btn-sm btn-rounded px-4 shadow-sm">
-                    <i class="fas fa-file-excel me-2"></i> Download Data
+                    <i class="las la-file-excel me-2"></i> Download Data
                 </a>
             </div>
             <div class="position-relative">
-                <i class="fas fa-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
+                <i class="las la-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
                 <input type="text" id="customSearch"
                     class="form-control form-control-sm btn-rounded ps-5 border-0 bg-light"
                     placeholder="Cari data pegawai..." style="width: 250px; height: 36px;">
@@ -214,13 +214,13 @@ if ($lv == '4') {
                                     <div class="d-flex justify-content-center gap-1">
                                         <button class="btn btn-sm btn-light border shadow-sm tombol-view"
                                             data-id="<?php echo $row['id']; ?>" title="Lihat Detail"><i
-                                                class="fas fa-eye text-primary"></i></button>
+                                                class="las la-eye text-primary"></i></button>
                                         <button class="btn btn-sm btn-light border shadow-sm tombol-edit"
                                             data-id="<?php echo $row['id']; ?>" title="Edit Cepat"><i
-                                                class="fas fa-edit text-warning"></i></button>
+                                                class="las la-edit text-warning"></i></button>
                                         <button class="btn btn-sm btn-light border shadow-sm tombol-hapus"
                                             data-id="<?php echo $row['id']; ?>" title="Hapus"><i
-                                                class="fas fa-trash text-danger"></i></button>
+                                                class="las la-trash text-danger"></i></button>
                                     </div>
                                 </td>
                             </tr>
@@ -259,7 +259,7 @@ if ($lv == '4') {
                     </div>
                     <div class="mt-4 pt-3 border-top text-center">
                         <a href="#" id="linkFullProfile" class="btn btn-outline-primary btn-sm rounded-pill px-4">
-                            <i class="fas fa-external-link-alt me-2"></i>Lihat Profil Lengkap & Riwayat
+                            <i class="las la-external-link-alt me-2"></i>Lihat Profil Lengkap & Riwayat
                         </a>
                     </div>
                 </div>
@@ -331,17 +331,103 @@ if ($lv == '4') {
     </div>
 </div>
 
+<style>
+    /* Fixed Columns Robust Styling */
+    .DTFC_LeftWrapper, .DTFC_RightWrapper {
+        z-index: 10;
+    }
+    
+    /* Ensure fixed cells have a solid background */
+    .DTFC_LeftBodyWrapper td, 
+    .DTFC_LeftHeadWrapper th,
+    .DTFC_RightBodyWrapper td,
+    .DTFC_RightHeadWrapper th {
+        background-color: #fff !important;
+        border-right: 1px solid var(--sap-gray-100);
+    }
+
+    .DTFC_RightBodyWrapper td, .DTFC_RightHeadWrapper th {
+        border-right: none;
+        border-left: 1px solid var(--sap-gray-100);
+    }
+
+    /* Shadow effects for separation */
+    .DTFC_LeftWrapper {
+        box-shadow: 10px 0 15px -10px rgba(0,0,0,0.15);
+    }
+    .DTFC_RightWrapper {
+        box-shadow: -10px 0 15px -10px rgba(0,0,0,0.15);
+    }
+
+    #tabelPegawai th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 700;
+        color: var(--sap-secondary);
+        padding: 1.25rem 1rem;
+    }
+    
+    #tabelPegawai td {
+        padding: 1rem;
+        white-space: nowrap;
+    }
+    
+    /* Fix for header alignment */
+    .dataTables_scrollHeadInner, .dataTables_scrollHeadInner table {
+        width: 100% !important;
+    }
+
+    /* Hide standard DT components we replaced */
+    .dataTables_filter, .dataTables_length {
+        display: none;
+    }
+
+    .dataTables_info {
+        padding: 1.5rem !important;
+        font-size: 0.8rem;
+        color: var(--sap-secondary);
+    }
+
+    .dataTables_paginate {
+        padding: 1rem !important;
+    }
+</style>
+
 <script>
     $(document).ready(function () {
         const ajaxUrl = 'proses_pegawai.php';
         const modalPegawai = new bootstrap.Modal(document.getElementById('modalPegawai'));
         const modalDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
 
-        // DataTable
+        // DataTable with FixedColumns
         if ($.fn.DataTable) {
-            $('#tabelPegawai').DataTable({
+            const table = $('#tabelPegawai').DataTable({
                 pageLength: 25,
-                language: { search: "", searchPlaceholder: "Cari..." }
+                scrollX: true,
+                scrollCollapse: true,
+                dom: 'rt<"d-flex justify-content-between align-items-center"ip>',
+                fixedColumns: {
+                    leftColumns: 3,
+                    rightColumns: 1
+                },
+                language: { 
+                    paginate: {
+                        previous: "<i class='las la-angle-left'></i>",
+                        next: "<i class='las la-angle-right'></i>"
+                    }
+                },
+                columnDefs: [
+                    { orderable: false, targets: [0, 1, 5, 6] },
+                    { width: "50px", targets: 0 },
+                    { width: "60px", targets: 1 },
+                    { width: "120px", targets: 6 }
+                ]
+            });
+
+            // Adjust columns on window resize
+            $(window).on('resize', function() {
+                setTimeout(() => table.columns.adjust(), 100);
             });
         }
 

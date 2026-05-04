@@ -187,11 +187,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
     $target_db_escaped = $target_db ? escapeshellarg($target_db) : null;
     $backup_db_escaped = $backup_db ? escapeshellarg($backup_db) : null;
 
-    // Path lengkap ke mysqldump dan mysql
-    $mysqldump = escapeshellarg($mysql_path . 'mysqldump');
-    $mysql = escapeshellarg($mysql_path . 'mysql');
-    $gzip = escapeshellarg('gzip'); // Asumsi gzip ada di PATH
-    $gunzip = escapeshellarg('gunzip'); // Asumsi gunzip ada di PATH
+    // Ambil port jika ada (default 3306)
+    $db_port = "3306";
+    $db_host_only = $db_host;
+    if (strpos($db_host, ':') !== false) {
+        list($host_part, $port_part) = explode(':', $db_host);
+        $db_host_only = $host_part;
+        $db_port = $port_part;
+    }
+    // Ganti localhost ke 127.0.0.1 untuk stabilitas di Windows shell
+    if ($db_host_only === 'localhost' || $db_host_only === '::1') {
+        $db_host_only = '127.0.0.1';
+    }
+
+    // Path lengkap ke mysqldump dan mysql (Deteksi .exe untuk Windows)
+    $mysqldump_bin = $mysql_path . 'mysqldump.exe';
+    if (!file_exists($mysqldump_bin)) $mysqldump_bin = $mysql_path . 'mysqldump';
+    
+    $mysql_bin = $mysql_path . 'mysql.exe';
+    if (!file_exists($mysql_bin)) $mysql_bin = $mysql_path . 'mysql';
+
+    $mysqldump = escapeshellarg($mysqldump_bin);
+    $mysql = escapeshellarg($mysql_bin);
+    
+    // Cari folder plugin (penting untuk error caching_sha2_password di MariaDB/MySQL baru)
+    $plugin_flag = "";
+    $plugin_dir = realpath($mysql_path . '../lib/plugin');
+    if ($plugin_dir) {
+        $plugin_flag = " --plugin-dir=" . escapeshellarg(str_replace('\\', '/', $plugin_dir));
+    }
+
+    $gzip = escapeshellarg('gzip'); 
+    $gunzip = escapeshellarg('gunzip'); 
 
     // Tambahkan flag password hanya jika password tidak kosong
     $pass_flag = ($db_pass !== null && $db_pass !== '') ? " -p{$db_pass_escaped}" : "";
@@ -580,19 +607,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                 $timestamp = date('Y-m-d_H-i-s');
                 $backup_file = BACKUP_DIR . "/{$backup_db}_{$timestamp}.sql.gz";
 
-                // Perbaikan pemanggilan mysqldump untuk Windows
-                $mysqldump_bin = $mysql_path . 'mysqldump.exe';
-                if (!file_exists($mysqldump_bin))
-                    $mysqldump_bin = 'mysqldump';
+                $timestamp = date('Y-m-d_H-i-s');
+                $backup_file = BACKUP_DIR . "/{$backup_db}_{$timestamp}.sql.gz";
 
-                // Cari folder plugin (penting untuk error caching_sha2_password)
-                $plugin_flag = "";
-                $plugin_dir = realpath($mysql_path . '../lib/plugin');
-                if ($plugin_dir) {
-                    $plugin_flag = " --plugin-dir=" . escapeshellarg(str_replace('\\', '/', $plugin_dir));
-                }
-
-                $cmd_dump_only = "\"$mysqldump_bin\"$plugin_flag -h " . escapeshellarg($db_host_only) . " -P $db_port -u {$db_user_escaped}{$pass_flag} --skip-lock-tables --routines --triggers {$backup_db_escaped}";
+                $cmd_dump_only = "{$mysqldump}{$plugin_flag} -h " . escapeshellarg($db_host_only) . " -P $db_port -u {$db_user_escaped}{$pass_flag} --skip-lock-tables --routines --triggers {$backup_db_escaped}";
 
                 // Debug: Catat perintah yang dijalankan (tanpa password untuk keamanan)
                 $debug_cmd = str_replace($db_pass, '******', $cmd_dump_only);
@@ -668,12 +686,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 
                 // Tentukan perintah berdasarkan tipe file
                 if (strpos($file_name, '.sql.gz') !== false || $file_type === 'application/gzip' || $file_type === 'application/x-gzip') {
-                    // File .gz - PERUBAHAN: Gunakan proc_open dan gzread
+                    // File .gz - Menggunakan proc_open dan gzread untuk efisiensi memori
 
-                    $cmd_mysql_only = "{$mysql} -h {$db_host_escaped} -u {$db_user_escaped}{$pass_flag} {$target_db_escaped}";
+                    $cmd_mysql_only = "{$mysql}{$plugin_flag} -h " . escapeshellarg($db_host_only) . " -P $db_port -u {$db_user_escaped}{$pass_flag} {$target_db_escaped}";
 
                     $descriptorspec = [
-                        0 => ["pipe", "r"],  // STDIN
+                        0 => ["pipe", "r"],  // STDIN (PHP writes here)
                         1 => ["pipe", "w"],  // STDOUT
                         2 => ["pipe", "w"]   // STDERR
                     ];
@@ -687,29 +705,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
 
                     if (!is_resource($process)) {
                         gzclose($gz_file);
-                        throw new Exception("Gagal memulai proses mysql.");
+                        throw new Exception("Gagal memulai proses mysql binary.");
                     }
 
                     // Alirkan data dari file .gz langsung ke STDIN (pipe 0) mysql
+                    stream_set_blocking($pipes[0], true);
+                    $write_error = false;
                     while (!gzeof($gz_file)) {
-                        fwrite($pipes[0], gzread($gz_file, 8192)); // Baca 8KB dari gz, tulis ke STDIN
+                        $chunk = gzread($gz_file, 8192);
+                        if ($chunk === false) break;
+                        if ($chunk === "") continue;
+
+                        // Gunakan @ untuk meredam warning jika pipe tertutup tiba-tiba, kita tangkap manual
+                        if (@fwrite($pipes[0], $chunk) === false) {
+                            $write_error = true;
+                            break;
+                        }
                     }
 
                     gzclose($gz_file);
-                    fclose($pipes[0]); // Tutup STDIN untuk memberi sinyal EOF ke mysql
+                    fclose($pipes[0]); // Tutup STDIN agar MySQL tahu data sudah habis
 
-                    $error_output = stream_get_contents($pipes[2]); // Tangkap error
+                    $error_output = stream_get_contents($pipes[2]); // Tangkap pesan error dari MySQL
                     fclose($pipes[1]);
                     fclose($pipes[2]);
                     $return_var = proc_close($process);
 
-                    if ($return_var !== 0) {
-                        throw new Exception("Gagal restore database: " . $error_output);
+                    if ($return_var !== 0 || $write_error) {
+                        $msg = !empty($error_output) ? $error_output : ($write_error ? "Koneksi ke proses MySQL terputus tiba-tiba (Broken Pipe)." : "Unknown Error");
+                        throw new Exception("Gagal restore database: " . $msg);
                     }
 
                 } elseif (strpos($file_name, '.sql') !== false || $file_type === 'application/sql' || $file_type === 'text/plain') {
-                    // File .sql - Gunakan exec seperti sebelumnya
-                    $cmd_restore = "{$mysql} -h {$db_host_escaped} -u {$db_user_escaped}{$pass_flag} {$target_db_escaped} < " . escapeshellarg($file_tmp_path);
+                    // File .sql - Gunakan exec dengan host yang sudah dinormalisasi
+                    $cmd_restore = "{$mysql}{$plugin_flag} -h " . escapeshellarg($db_host_only) . " -P $db_port -u {$db_user_escaped}{$pass_flag} {$target_db_escaped} < " . escapeshellarg($file_tmp_path);
 
                     // Lakukan restore
                     exec($cmd_restore . " 2>&1", $output, $return_var);

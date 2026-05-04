@@ -77,6 +77,41 @@ if ($conn && !$conn->connect_error) {
     }
   }
 }
+
+// Auto-migration: Pastikan kolom last_activity ada di tabel pegawai
+if ($conn && !$conn->connect_error) {
+  $col_check = @$conn->query("SHOW COLUMNS FROM pegawai LIKE 'last_activity'");
+  if ($col_check && $col_check->num_rows === 0) {
+    @$conn->query("ALTER TABLE pegawai ADD COLUMN last_activity DATETIME NULL DEFAULT NULL");
+  }
+}
+
+// Auto-migration: Pastikan kolom last_activity ada di tabel tb_user
+if ($conn && !$conn->connect_error) {
+  $col_check2 = @$conn->query("SHOW COLUMNS FROM tb_user LIKE 'last_activity'");
+  if ($col_check2 && $col_check2->num_rows === 0) {
+    @$conn->query("ALTER TABLE tb_user ADD COLUMN last_activity DATETIME NULL DEFAULT NULL");
+  }
+}
+
+// Update last_activity secara otomatis jika session aktif
+if (session_status() === PHP_SESSION_NONE) {
+  @session_start();
+}
+
+if ($conn && !$conn->connect_error && isset($_SESSION['id']) && isset($_SESSION['level'])) {
+  $session_uid = (int) $_SESSION['id'];
+  $session_lvl = $_SESSION['level'];
+  if ($session_uid > 0) {
+    if ($session_lvl == '4') {
+      $conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $session_uid");
+    } else {
+      $conn->query("UPDATE tb_user SET last_activity = NOW() WHERE id = $session_uid");
+    }
+  }
+}
+
+
 // Alias for compatibility
 $sqlconn = $conn;
 
@@ -347,6 +382,24 @@ $semester_val = ($currentMonth >= 7) ? "1" : "2";
 $_SESSION['tapel'] = $tapel_val;
 $_SESSION['semester'] = $semester_val;
 $_SESSION['tahundb'] = $tahun; // Sync with global $tahun
+
+// Global Online Tracking: Update last_activity setiap request (HARUS setelah session_start)
+if ($conn && !$conn->connect_error && isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
+  $sess_level = $_SESSION['level'] ?? '';
+  $sess_id    = (int)($_SESSION['id'] ?? 0);
+
+  if ($sess_level == '4') {
+    // GURU: session id = pegawai.id langsung
+    if ($sess_id > 0) {
+      @$conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $sess_id");
+    }
+  } else {
+    // ADMIN / STAFF: session id = tb_user.id, update langsung di tb_user
+    if ($sess_id > 0) {
+      @$conn->query("UPDATE tb_user SET last_activity = NOW() WHERE id = $sess_id");
+    }
+  }
+}
 
 // --- DATABASE VERSION TRACKING ---
 // Check if version table exists and get current version

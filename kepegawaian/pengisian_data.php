@@ -28,8 +28,12 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
 
 <!-- === EXTERNAL ASSETS === -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+    rel="stylesheet" />
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
 
 <style>
     :root {
@@ -89,7 +93,8 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         display: block;
     }
 
-    .modern-input, .form-select.modern-input {
+    .modern-input,
+    .form-select.modern-input {
         border-radius: 0.75rem;
         border: 1px solid var(--sap-gray-200);
         padding: 0.6rem 1rem;
@@ -118,7 +123,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         border-radius: 50%;
         object-fit: cover;
         border: 4px solid #fff;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
 
     .photo-upload-btn {
@@ -135,7 +140,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         justify-content: center;
         cursor: pointer;
         border: 3px solid #fff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .section-title {
@@ -183,11 +188,69 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
     }
 
     /* Category Badges */
-    .bg-pangkat { background-color: #3b82f6 !important; color: #fff; }
-    .bg-jabatan { background-color: #10b981 !important; color: #fff; }
-    .bg-pendidikan { background-color: #f59e0b !important; color: #fff; }
-    .bg-kgb { background-color: #ef4444 !important; color: #fff; }
-    .bg-indigo { background-color: #6366f1 !important; color: #fff; }
+    .bg-pangkat {
+        background-color: #3b82f6 !important;
+        color: #fff;
+    }
+
+    .bg-jabatan {
+        background-color: #10b981 !important;
+        color: #fff;
+    }
+
+    .bg-pendidikan {
+        background-color: #f59e0b !important;
+        color: #fff;
+    }
+
+    .bg-kgb {
+        background-color: #ef4444 !important;
+        color: #fff;
+    }
+
+    .bg-indigo {
+        background-color: #6366f1 !important;
+        color: #fff;
+    }
+
+    /* Custom Select2 Modern Style */
+    .select2-container--bootstrap-5 {
+        margin-bottom: 0;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 0.75rem !important;
+        border: 1px solid var(--sap-gray-200) !important;
+        min-height: calc(1.5em + 1.2rem + 2px) !important;
+        background-color: var(--sap-gray-50) !important;
+        transition: all 0.2s !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .select2-container--bootstrap-5.select2-container--focus .select2-selection {
+        background-color: #fff !important;
+        border-color: var(--sap-primary) !important;
+        box-shadow: 0 0 0 4px var(--sap-primary-light) !important;
+    }
+
+    .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+        color: var(--sap-dark) !important;
+        padding-left: 1rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* Flatpickr Modern Customization */
+    .flatpickr-calendar {
+        border-radius: 1rem !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+        border: none !important;
+    }
+
+    .flatpickr-day.selected {
+        background: var(--sap-primary) !important;
+        border-color: var(--sap-primary) !important;
+    }
 </style>
 
 <div class="row">
@@ -195,7 +258,8 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
     <div class="col-12 d-md-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="page-title mb-1">Pengisian Data Mandiri</h2>
-            <p class="text-muted small mb-0">Lengkapi profil, data kepegawaian, dan riwayat Anda untuk sinkronisasi sistem.</p>
+            <p class="text-muted small mb-0">Lengkapi profil, data kepegawaian, dan riwayat Anda untuk sinkronisasi
+                sistem.</p>
         </div>
     </div>
 
@@ -203,13 +267,16 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
     <div class="col-12 text-center">
         <ul class="nav nav-pills nav-pills-modern" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-profil-tab" data-bs-toggle="pill" data-bs-target="#pills-profil" type="button" role="tab" aria-controls="pills-profil" aria-selected="true">
-                    <i class="fas fa-user-edit me-2"></i> Profil & Kepegawaian
+                <button class="nav-link active" id="pills-profil-tab" data-bs-toggle="pill"
+                    data-bs-target="#pills-profil" type="button" role="tab" aria-controls="pills-profil"
+                    aria-selected="true">
+                    <i class="las la-user-edit me-2"></i> Profil & Kepegawaian
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-riwayat-tab" data-bs-toggle="pill" data-bs-target="#pills-riwayat" type="button" role="tab" aria-controls="pills-riwayat" aria-selected="false">
-                    <i class="fas fa-history me-2"></i> Riwayat Kepegawaian
+                <button class="nav-link" id="pills-riwayat-tab" data-bs-toggle="pill" data-bs-target="#pills-riwayat"
+                    type="button" role="tab" aria-controls="pills-riwayat" aria-selected="false">
+                    <i class="las la-history me-2"></i> Riwayat Kepegawaian
                 </button>
             </li>
         </ul>
@@ -220,7 +287,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         <!-- TAB 1: PROFIL & KEPEGAWAIAN -->
         <div class="tab-pane fade show active" id="pills-profil" role="tabpanel" aria-labelledby="pills-profil-tab">
             <div class="modern-card p-4">
-                <form id="formProfil" enctype="multipart/form-data">
+                <form id="formProfil" enctype="multipart/form-data" class="needs-validation" novalidate>
                     <input type="hidden" name="id" value="<?php echo $id_pegawai; ?>">
                     <input type="hidden" name="foto_lama" value="<?php echo $pegawai['foto']; ?>">
                     <input type="hidden" name="nip" value="<?php echo $pegawai['nip']; ?>">
@@ -232,7 +299,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                             <div class="photo-preview-wrapper mb-3">
                                 <img id="preview-foto" src="<?php echo $foto_path; ?>" class="photo-preview">
                                 <label for="foto_input" class="photo-upload-btn">
-                                    <i class="fas fa-camera"></i>
+                                    <i class="las la-camera"></i>
                                 </label>
                                 <input type="file" id="foto_input" name="foto" class="d-none" accept="image/*">
                             </div>
@@ -243,22 +310,25 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                         <!-- Form Section -->
                         <div class="col-md-9">
                             <!-- IDENTITAS PRIBADI -->
-                            <div class="section-title"><i class="fas fa-id-card me-2"></i> Identitas Pribadi</div>
+                            <div class="section-title"><i class="las la-id-card me-2"></i> Identitas Pribadi</div>
                             <div class="row g-3 mb-5">
                                 <div class="col-md-6">
                                     <label class="modern-label">Nama Lengkap (*)</label>
-                                    <input type="text" name="nm_pegawai" class="form-control modern-input" required value="<?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>">
+                                    <input type="text" name="nm_pegawai" class="form-control modern-input" required
+                                        value="<?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>">
+                                    <div class="invalid-feedback">Nama lengkap wajib diisi.</div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="modern-label">Jenis Kelamin</label>
-                                    <select name="jenis_kelamin" class="form-select modern-input">
+                                    <label class="modern-label">Jenis Kelamin (*)</label>
+                                    <select name="jenis_kelamin" class="form-select modern-input" required>
                                         <option value="L" <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'selected' : ''; ?>>Laki-laki</option>
                                         <option value="P" <?php echo ($pegawai['jenis_kelamin'] == 'P') ? 'selected' : ''; ?>>Perempuan</option>
                                     </select>
+                                    <div class="invalid-feedback">Pilih jenis kelamin.</div>
                                 </div>
                                 <div class="col-md-3">
-                                    <label class="modern-label">Agama</label>
-                                    <select name="agama" class="form-select modern-input">
+                                    <label class="modern-label">Agama (*)</label>
+                                    <select name="agama" class="form-select modern-input" required>
                                         <option value="">- Pilih -</option>
                                         <?php
                                         $agamas = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu'];
@@ -268,35 +338,61 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                         endforeach;
                                         ?>
                                     </select>
+                                    <div class="invalid-feedback">Pilih agama.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="modern-label">Tempat Lahir</label>
-                                    <input type="text" name="tempat_lahir" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['tempat_lahir']); ?>">
+                                    <label class="modern-label">Tempat Lahir (*)</label>
+                                    <input type="text" name="tempat_lahir" class="form-control modern-input" required
+                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir']); ?>">
+                                    <div class="invalid-feedback">Tempat lahir wajib diisi.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="modern-label">Tanggal Lahir</label>
-                                    <input type="date" name="tgl_lahir" class="form-control modern-input" value="<?php echo $pegawai['tgl_lahir']; ?>">
+                                    <label class="modern-label">Tanggal Lahir (*)</label>
+                                    <input type="text" name="tgl_lahir" class="form-control modern-input datepicker"
+                                        required value="<?php echo $pegawai['tgl_lahir']; ?>">
+                                    <div class="invalid-feedback">Tanggal lahir wajib diisi.</div>
                                 </div>
                                 <div class="col-md-4">
-                                    <label class="modern-label">NUPTK</label>
-                                    <input type="text" name="nuptk" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['nuptk']); ?>">
+                                    <label class="modern-label">NUPTK (16 Digit)</label>
+                                    <input type="text" name="nuptk" class="form-control modern-input" pattern="\d{16}"
+                                        placeholder="Contoh: 1234567890123456"
+                                        value="<?php echo htmlspecialchars($pegawai['nuptk']); ?>">
+                                    <div class="invalid-feedback">NUPTK harus berupa 16 digit angka.</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="modern-label">NIK (No. KTP - 16 Digit) (*)</label>
+                                    <input type="text" name="nik" class="form-control modern-input" required
+                                        pattern="\d{16}" placeholder="Contoh: 3171XXXXXXXXXXXX"
+                                        value="<?php echo htmlspecialchars($pegawai['nik']); ?>">
+                                    <div class="invalid-feedback">NIK wajib diisi (16 digit angka).</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="modern-label">Nomor Kartu Keluarga (16 Digit) (*)</label>
+                                    <input type="text" name="no_kk" class="form-control modern-input" required
+                                        pattern="\d{16}" placeholder="Contoh: 3171XXXXXXXXXXXX"
+                                        value="<?php echo htmlspecialchars($pegawai['no_kk']); ?>">
+                                    <div class="invalid-feedback">No. KK wajib diisi (16 digit angka).</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">Nama Ibu Kandung</label>
-                                    <input type="text" name="nama_ibu" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['nama_ibu']); ?>">
+                                    <input type="text" name="nama_ibu" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu']); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">Nama Suami/Istri</label>
-                                    <input type="text" name="nama_pasangan" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['nama_pasangan']); ?>">
+                                    <input type="text" name="nama_pasangan" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan']); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">NPWP</label>
-                                    <input type="text" name="npwp" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['npwp']); ?>">
+                                    <input type="text" name="npwp" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['npwp']); ?>">
                                 </div>
                             </div>
 
                             <!-- DATA KEPEGAWAIAN -->
-                            <div class="section-title"><i class="fas fa-briefcase me-2"></i> Data Kepegawaian & Dokumen</div>
+                            <div class="section-title"><i class="las la-briefcase me-2"></i> Data Kepegawaian & Dokumen
+                            </div>
                             <div class="row g-3 mb-5">
                                 <div class="col-md-4">
                                     <label class="modern-label">Status Pegawai</label>
@@ -309,14 +405,15 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">Pendidikan Terakhir</label>
-                                    <input type="text" name="pendidikan" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['pendidikan']); ?>">
+                                    <input type="text" name="pendidikan" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['pendidikan']); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">Golongan</label>
                                     <select name="golongan" class="form-select modern-input">
                                         <option value="">- Pilih -</option>
                                         <?php
-                                        $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e'];
+                                        $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e', 'V', 'IX'];
                                         foreach ($golongans as $g):
                                             $sel = ($pegawai['golongan'] == $g) ? 'selected' : '';
                                             echo "<option value='$g' $sel>$g</option>";
@@ -326,61 +423,76 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">Tgl. Lulus Pendidikan</label>
-                                    <input type="date" name="tgl_lulus" class="form-control modern-input" value="<?php echo $pegawai['tgl_lulus']; ?>">
+                                    <input type="text" name="tgl_lulus" class="form-control modern-input datepicker"
+                                        value="<?php echo $pegawai['tgl_lulus']; ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">TMT Golongan</label>
-                                    <input type="date" name="tmt_golongan" class="form-control modern-input" value="<?php echo $pegawai['tmt_golongan']; ?>">
+                                    <input type="text" name="tmt_golongan" class="form-control modern-input datepicker"
+                                        value="<?php echo $pegawai['tmt_golongan']; ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Karpeg</label>
-                                    <input type="text" name="no_karpeg" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['no_karpeg']); ?>">
+                                    <input type="text" name="no_karpeg" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg']); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Taspen</label>
-                                    <input type="text" name="no_taspen" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['no_taspen']); ?>">
+                                    <input type="text" name="no_taspen" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_taspen']); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. BPJS</label>
-                                    <input type="text" name="no_bpjs" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['no_bpjs']); ?>">
+                                    <input type="text" name="no_bpjs" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs']); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Karis/Karsu</label>
-                                    <input type="text" name="no_karis_karsu" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['no_karis_karsu']); ?>">
+                                    <input type="text" name="no_karis_karsu" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_karis_karsu']); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="modern-label">Masa Kerja (Thn / Bln)</label>
                                     <div class="input-group">
-                                        <input type="number" name="masa_kerja_thn" class="form-control modern-input" value="<?php echo $pegawai['masa_kerja_thn']; ?>" placeholder="Thn">
-                                        <input type="number" name="masa_kerja_bln" class="form-control modern-input" value="<?php echo $pegawai['masa_kerja_bln']; ?>" placeholder="Bln">
+                                        <input type="number" name="masa_kerja_thn" class="form-control modern-input"
+                                            value="<?php echo $pegawai['masa_kerja_thn']; ?>" placeholder="Thn">
+                                        <input type="number" name="masa_kerja_bln" class="form-control modern-input"
+                                            value="<?php echo $pegawai['masa_kerja_bln']; ?>" placeholder="Bln">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="modern-label">Gaji Pokok (Angka Saja)</label>
-                                    <input type="text" name="gaji_pokok" class="form-control modern-input" value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
+                                    <input type="text" name="gaji_pokok" class="form-control modern-input"
+                                        value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
                                 </div>
                             </div>
 
                             <!-- KONTAK & ALAMAT -->
-                            <div class="section-title"><i class="fas fa-map-marked-alt me-2"></i> Kontak & Alamat</div>
+                            <div class="section-title"><i class="las la-map-marked-alt me-2"></i> Kontak & Alamat</div>
                             <div class="row g-3">
                                 <div class="col-md-6">
-                                    <label class="modern-label">No. HP / WhatsApp</label>
-                                    <input type="text" name="no_hp" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['no_hp']); ?>">
+                                    <label class="modern-label">No. HP / WhatsApp (*)</label>
+                                    <input type="text" name="no_hp" class="form-control modern-input" required
+                                        pattern="\d{10,15}" value="<?php echo htmlspecialchars($pegawai['no_hp']); ?>">
+                                    <div class="invalid-feedback">No. HP wajib diisi (10-15 angka).</div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="modern-label">Email</label>
-                                    <input type="email" name="email" class="form-control modern-input" value="<?php echo htmlspecialchars($pegawai['email']); ?>">
+                                    <label class="modern-label">Email (*)</label>
+                                    <input type="email" name="email" class="form-control modern-input" required
+                                        value="<?php echo htmlspecialchars($pegawai['email']); ?>">
+                                    <div class="invalid-feedback">Email tidak valid.</div>
                                 </div>
                                 <div class="col-12">
-                                    <label class="modern-label">Alamat Lengkap Domisili</label>
-                                    <textarea name="alamat" class="form-control modern-input" rows="3"><?php echo htmlspecialchars($pegawai['alamat']); ?></textarea>
+                                    <label class="modern-label">Alamat Lengkap Domisili (*)</label>
+                                    <textarea name="alamat" class="form-control modern-input" required
+                                        rows="3"><?php echo htmlspecialchars($pegawai['alamat']); ?></textarea>
+                                    <div class="invalid-feedback">Alamat lengkap wajib diisi.</div>
                                 </div>
                             </div>
 
                             <div class="mt-5 text-end">
                                 <button type="submit" class="btn btn-indigo btn-rounded px-5 py-2 shadow-sm">
-                                    <i class="fas fa-save me-2"></i> Simpan Semua Perubahan Profil
+                                    <i class="las la-save me-2"></i> Simpan Perubahan
                                 </button>
                             </div>
                         </div>
@@ -393,23 +505,24 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         <div class="tab-pane fade" id="pills-riwayat" role="tabpanel" aria-labelledby="pills-riwayat-tab">
             <!-- Horizontal Sub-Tabs for Riwayat -->
             <div class="text-center mb-4">
-                <div class="nav nav-pills nav-pills-modern riwayat-sub-nav d-inline-flex flex-wrap justify-content-center" id="riwayat-tabs" role="tablist" style="max-width: 100%;">
+                <div class="nav nav-pills nav-pills-modern riwayat-sub-nav d-inline-flex flex-wrap justify-content-center"
+                    id="riwayat-tabs" role="tablist" style="max-width: 100%;">
                     <?php
                     $riwayat_cats = [
-                        'Pangkat' => 'fas fa-layer-group',
-                        'Kepangkatan' => 'fas fa-id-card-clip',
-                        'Jabatan' => 'fas fa-briefcase',
-                        'Pendidikan' => 'fas fa-graduation-cap',
-                        'Sertifikasi' => 'fas fa-certificate',
-                        'KGB' => 'fas fa-money-bill-trend-up',
-                        'Diklat' => 'fas fa-chalkboard-teacher',
-                        'Seminar' => 'fas fa-users-rectangle',
-                        'Tugas Tambahan' => 'fas fa-plus-circle',
-                        'Penghargaan' => 'fas fa-award',
-                        'Organisasi' => 'fas fa-sitemap',
-                        'Anak' => 'fas fa-child',
-                        'Beasiswa' => 'fas fa-user-graduate',
-                        'Lainnya' => 'fas fa-ellipsis-h'
+                        'Pangkat' => 'las la-layer-group',
+                        'Kepangkatan' => 'las la-id-card-clip',
+                        'Jabatan' => 'las la-briefcase',
+                        'Pendidikan' => 'las la-graduation-cap',
+                        'Sertifikasi' => 'las la-certificate',
+                        'KGB' => 'las la-money-bill-trend-up',
+                        'Diklat' => 'las la-chalkboard-teacher',
+                        'Seminar' => 'las la-users-rectangle',
+                        'Tugas Tambahan' => 'las la-plus-circle',
+                        'Penghargaan' => 'las la-award',
+                        'Organisasi' => 'las la-sitemap',
+                        'Anak' => 'las la-child',
+                        'Beasiswa' => 'las la-user-graduate',
+                        'Lainnya' => 'las la-ellipsis-h'
                     ];
                     $first = true;
                     foreach ($riwayat_cats as $cat => $icon):
@@ -428,13 +541,19 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                 $first = true;
                 foreach ($riwayat_cats as $cat => $icon):
                     $active = $first ? 'show active' : '';
-                ?>
-                    <div class="tab-pane fade <?php echo $active; ?>" id="tab-<?php echo str_replace(' ', '-', $cat); ?>" role="tabpanel">
+                    ?>
+                    <div class="tab-pane fade <?php echo $active; ?>" id="tab-<?php echo str_replace(' ', '-', $cat); ?>"
+                        role="tabpanel">
                         <div class="modern-card">
-                            <div class="modern-card-header d-flex justify-content-between align-items-center p-4 bg-white border-bottom">
-                                <h5 class="mb-0 fw-bold text-indigo"><i class="<?php echo $icon; ?> me-2"></i>Riwayat <?php echo $cat; ?></h5>
-                                <button type="button" class="btn btn-indigo btn-sm btn-rounded px-4 shadow-sm btn-tambah-riwayat" data-category="<?php echo $cat; ?>">
-                                    <i class="fas fa-plus me-2"></i> Tambah Riwayat
+                            <div
+                                class="modern-card-header d-flex justify-content-between align-items-center p-4 bg-white border-bottom">
+                                <h5 class="mb-0 fw-bold text-indigo"><i class="<?php echo $icon; ?> me-2"></i>Riwayat
+                                    <?php echo $cat; ?>
+                                </h5>
+                                <button type="button"
+                                    class="btn btn-indigo btn-sm btn-rounded px-4 shadow-sm btn-tambah-riwayat"
+                                    data-category="<?php echo $cat; ?>">
+                                    <i class="las la-plus me-2"></i> Tambah Riwayat
                                 </button>
                             </div>
                             <div class="card-body p-0">
@@ -456,7 +575,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                             </div>
                         </div>
                     </div>
-                <?php
+                    <?php
                     $first = false;
                 endforeach;
                 ?>
@@ -474,7 +593,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-4">
-                <form id="formRiwayat" enctype="multipart/form-data">
+                <form id="formRiwayat" enctype="multipart/form-data" class="needs-validation" novalidate>
                     <input type="hidden" name="id_riwayat" id="id_riwayat">
                     <input type="hidden" name="pegawai_id_riwayat" value="<?php echo $id_pegawai; ?>">
                     <input type="hidden" name="file_lama_riwayat" id="file_lama_riwayat">
@@ -482,7 +601,8 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                     <div class="row g-3">
                         <div class="col-12">
                             <label class="modern-label">Kategori Riwayat</label>
-                            <input type="text" name="kategori" id="riwayat_kategori" class="form-control modern-input bg-light" readonly>
+                            <input type="text" name="kategori" id="riwayat_kategori"
+                                class="form-control modern-input bg-light" readonly>
                         </div>
 
                         <!-- Shared Fields Toggle based on Category -->
@@ -498,9 +618,9 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                             <input type="text" name="institusi" id="riwayat_institusi">
                             <input type="text" name="jurusan" id="riwayat_jurusan">
                             <input type="text" name="tempat" id="riwayat_tempat">
-                            <input type="date" name="tmt" id="riwayat_tmt">
+                            <input type="text" name="tmt" id="riwayat_tmt" class="datepicker">
                             <input type="text" name="no_sk" id="riwayat_no_sk">
-                            <input type="date" name="tgl_sk" id="riwayat_tgl_sk">
+                            <input type="text" name="tgl_sk" id="riwayat_tgl_sk" class="datepicker">
                             <input type="text" name="durasi" id="riwayat_durasi">
                             <input type="number" name="masa_kerja_thn" id="riwayat_masa_kerja_thn">
                             <input type="number" name="masa_kerja_bln" id="riwayat_masa_kerja_bln">
@@ -574,207 +694,272 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         border-color: var(--sap-gray-200);
     }
 
-    .text-indigo { color: var(--sap-primary); }
+    .text-indigo {
+        color: var(--sap-primary);
+    }
+
+    /* Validation Styles */
+    .form-control.is-invalid,
+    .form-select.is-invalid {
+        border-color: #ef4444 !important;
+        background-image: none !important;
+    }
+
+    .invalid-feedback {
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #ef4444;
+        margin-top: 0.25rem;
+        margin-left: 0.5rem;
+    }
 </style>
 
 <script>
-$(document).ready(function() {
-    const ajaxUrl = 'proses_pegawai.php';
-    const pegawai_id = <?php echo $id_pegawai; ?>;
-    let modalFormRiwayat = new bootstrap.Modal(document.getElementById('modalFormRiwayat'));
+    $(document).ready(function () {
+        // Initialize Select2 for main form
+        $('.modern-input:not(input):not(textarea)').select2({
+            theme: 'bootstrap-5',
+            width: '100%',
+            placeholder: '- Pilih -',
+            allowClear: false
+        });
 
-    // --- TAB 1: PROFIL LOGIC ---
-    $('#foto_input').change(function() {
-        const file = this.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) { $('#preview-foto').attr('src', e.target.result); }
-            reader.readAsDataURL(file);
-        }
-    });
+        // Initialize Flatpickr for main form
+        $(".datepicker").flatpickr({
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            locale: "id"
+        });
 
-    $('#formProfil').on('submit', function(e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-        formData.append('action', 'simpan');
+        const ajaxUrl = 'proses_pegawai.php';
+        const pegawai_id = <?php echo $id_pegawai; ?>;
+        let modalFormRiwayat = new bootstrap.Modal(document.getElementById('modalFormRiwayat'));
 
-        const btn = $(this).find('button[type="submit"]');
-        const oldHtml = btn.html();
-        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Menyimpan...');
-
-        $.ajax({
-            url: ajaxUrl,
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            dataType: 'json',
-            success: function(res) {
-                if (res.status === 'success') {
-                    showToast(res.message, 'success');
-                    setTimeout(() => { location.reload(); }, 1500);
-                } else {
-                    showToast(res.message, 'error');
-                    btn.prop('disabled', false).html(oldHtml);
-                }
-            },
-            error: function() {
-                showToast('Gagal menghubungi server.', 'error');
-                btn.prop('disabled', false).html(oldHtml);
+        // --- TAB 1: PROFIL LOGIC ---
+        $('#foto_input').change(function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) { $('#preview-foto').attr('src', e.target.result); }
+                reader.readAsDataURL(file);
             }
         });
-    });
 
-    // --- TAB 2: RIWAYAT LOGIC ---
-    const loadRiwayat = (category = null) => {
-        const target = category ? $(`.isiTabelRiwayat[data-category="${category}"]`) : $('.isiTabelRiwayat');
-        target.html('<tr><td colspan="4" class="text-center py-5"><div class="spinner-border text-primary spinner-border-sm me-2"></div><span class="text-muted small">Memuat data...</span></td></tr>');
-        
-        const catFilter = category || $('#riwayat-tabs .nav-link.active').data('category');
+        $('#formProfil').on('submit', function (e) {
+            e.preventDefault();
 
-        $.get(ajaxUrl, { action: 'muatRiwayat', pegawai_id: pegawai_id, kategori: catFilter }, (res) => {
-            let html = '';
-            if (res.status === 'success' && res.data && res.data.length > 0) {
-                res.data.forEach(item => {
-                    const fileBtn = item.file_lampiran ? `<a href="../file/datakepegawaian/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded shadow-sm"><i class="fas fa-file-pdf text-danger me-1"></i> SK</a>` : '<span class="text-muted small italic">Tidak ada file</span>';
-                    
-                    let detailDesc = item.deskripsi;
-                    if (item.kategori === 'Pendidikan' && item.institusi) {
-                        detailDesc = `<strong>${item.institusi}</strong><div class="small text-muted">${item.jurusan || ''}</div>`;
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                $(this).addClass('was-validated');
+                showToast('Mohon lengkapi semua field yang wajib diisi dengan benar.', 'warning');
+                return;
+            }
+
+            const formData = new FormData(this);
+            formData.append('action', 'simpan');
+
+            const btn = $(this).find('button[type="submit"]');
+            const oldHtml = btn.html();
+            btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Menyimpan...');
+
+            $.ajax({
+                url: ajaxUrl,
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status === 'success') {
+                        showToast(res.message, 'success');
+                        setTimeout(() => { location.reload(); }, 1500);
+                    } else {
+                        showToast(res.message, 'error');
+                        btn.prop('disabled', false).html(oldHtml);
                     }
+                },
+                error: function () {
+                    showToast('Gagal menghubungi server.', 'error');
+                    btn.prop('disabled', false).html(oldHtml);
+                }
+            });
+        });
 
-                    html += `
+        // --- TAB 2: RIWAYAT LOGIC ---
+        const loadRiwayat = (category = null) => {
+            const target = category ? $(`.isiTabelRiwayat[data-category="${category}"]`) : $('.isiTabelRiwayat');
+            target.html('<tr><td colspan="4" class="text-center py-5"><div class="spinner-border text-primary spinner-border-sm me-2"></div><span class="text-muted small">Memuat data...</span></td></tr>');
+
+            const catFilter = category || $('#riwayat-tabs .nav-link.active').data('category');
+
+            $.get(ajaxUrl, { action: 'muatRiwayat', pegawai_id: pegawai_id, kategori: catFilter }, (res) => {
+                let html = '';
+                if (res.status === 'success' && res.data && res.data.length > 0) {
+                    res.data.forEach(item => {
+                        const fileBtn = item.file_lampiran ? `<a href="../file/datakepegawaian/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded shadow-sm"><i class="las la-file-pdf text-danger me-1"></i> SK</a>` : '<span class="text-muted small italic">Tidak ada file</span>';
+
+                        let detailDesc = item.deskripsi;
+                        if (item.kategori === 'Pendidikan' && item.institusi) {
+                            detailDesc = `<strong>${item.institusi}</strong><div class="small text-muted">${item.jurusan || ''}</div>`;
+                        }
+
+                        html += `
                         <tr>
                             <td><div>${detailDesc}</div></td>
                             <td class="text-muted small">${item.tmt || '-'}</td>
                             <td><div class="small mb-1">${item.no_sk || '-'}</div>${fileBtn}</td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <button class="btn btn-sm btn-light border edit-riwayat" data-id="${item.id}"><i class="fas fa-edit text-warning"></i></button>
-                                    <button class="btn btn-sm btn-light border hapus-riwayat" data-id="${item.id}"><i class="fas fa-trash text-danger"></i></button>
+                                    <button class="btn btn-sm btn-light border edit-riwayat" data-id="${item.id}"><i class="las la-edit text-warning"></i></button>
+                                    <button class="btn btn-sm btn-light border hapus-riwayat" data-id="${item.id}"><i class="las la-trash text-danger"></i></button>
                                 </div>
                             </td>
                         </tr>`;
-                });
-            } else {
-                html = '<tr><td colspan="4" class="text-center text-muted py-5 small">Belum ada data riwayat untuk kategori ini.</td></tr>';
-            }
-            target.html(html);
-        }, 'json');
-    };
+                    });
+                } else {
+                    html = '<tr><td colspan="4" class="text-center text-muted py-5 small">Belum ada data riwayat untuk kategori ini.</td></tr>';
+                }
+                target.html(html);
+            }, 'json');
+        };
 
-    // Trigger load on tab switch
-    $('#pills-riwayat-tab').on('shown.bs.tab', function() { 
-        loadRiwayat(); 
-    });
+        // Trigger load on tab switch
+        $('#pills-riwayat-tab').on('shown.bs.tab', function () {
+            loadRiwayat();
+        });
 
-    $('#riwayat-tabs button').on('shown.bs.tab', function() {
-        loadRiwayat($(this).data('category'));
-    });
+        $('#riwayat-tabs button').on('shown.bs.tab', function () {
+            loadRiwayat($(this).data('category'));
+        });
 
-    // Category Specific Fields Mapping
-    const updateRiwayatFields = (kat, data = null) => {
-        let html = '';
-        if (kat === 'Pendidikan') {
-            html = `
-                <div class="col-12"><label class="modern-label">Nama Sekolah / Univ</label><input type="text" id="r_institusi" class="form-control modern-input" value="${data?.institusi || ''}"></div>
+        // Category Specific Fields Mapping
+        const updateRiwayatFields = (kat, data = null) => {
+            let html = '';
+            if (kat === 'Pendidikan') {
+                html = `
+                <div class="col-12"><label class="modern-label">Nama Sekolah / Univ (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Fakultas / Jurusan</label><input type="text" id="r_jurusan" class="form-control modern-input" value="${data?.jurusan || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tgl Ijazah</label><input type="date" id="r_tgl_sk" class="form-control modern-input" value="${data?.tgl_sk || ''}"></div>
-                <div class="col-12"><label class="modern-label">No. Ijazah</label><input type="text" id="r_no_sk" class="form-control modern-input" value="${data?.no_sk || ''}"></div>`;
-        } else if (kat === 'Pangkat' || kat === 'Kepangkatan' || kat === 'Jabatan' || kat === 'Tugas Tambahan') {
-            html = `
-                <div class="col-12"><label class="modern-label">Nama Pangkat / Jabatan / Tugas</label><input type="text" id="r_deskripsi" class="form-control modern-input" value="${data?.deskripsi || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">TMT (Terhitung Mulai Tanggal)</label><input type="date" id="r_tmt" class="form-control modern-input" value="${data?.tmt || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tgl SK</label><input type="date" id="r_tgl_sk" class="form-control modern-input" value="${data?.tgl_sk || ''}"></div>
-                <div class="col-12"><label class="modern-label">Nomor SK</label><input type="text" id="r_no_sk" class="form-control modern-input" value="${data?.no_sk || ''}"></div>`;
-        } else if (kat === 'KGB') {
-            html = `
-                <div class="col-12"><label class="modern-label">Gaji Pokok Baru (Rp)</label><input type="text" id="r_gaji_pokok" class="form-control modern-input" value="${data?.gaji_pokok || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">Tgl Ijazah (*)</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" required value="${data?.tgl_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-12"><label class="modern-label">No. Ijazah (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
+            } else if (kat === 'Pangkat' || kat === 'Kepangkatan' || kat === 'Jabatan' || kat === 'Tugas Tambahan') {
+                html = `
+                <div class="col-12"><label class="modern-label">Nama Pangkat / Jabatan / Tugas (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">TMT (Terhitung Mulai Tanggal) (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tgl SK</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" value="${data?.tgl_sk || ''}"></div>
+                <div class="col-12"><label class="modern-label">Nomor SK (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
+            } else if (kat === 'KGB') {
+                html = `
+                <div class="col-12"><label class="modern-label">Gaji Pokok Baru (Rp) (*)</label><input type="text" id="r_gaji_pokok" class="form-control modern-input" required value="${data?.gaji_pokok || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Masa Kerja (Thn)</label><input type="number" id="r_masa_kerja_thn" class="form-control modern-input" value="${data?.masa_kerja_thn || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Masa Kerja (Bln)</label><input type="number" id="r_masa_kerja_bln" class="form-control modern-input" value="${data?.masa_kerja_bln || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">TMT KGB</label><input type="date" id="r_tmt" class="form-control modern-input" value="${data?.tmt || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">No. SK KGB</label><input type="text" id="r_no_sk" class="form-control modern-input" value="${data?.no_sk || ''}"></div>`;
-        } else if (kat === 'Diklat' || kat === 'Seminar') {
-            html = `
-                <div class="col-12"><label class="modern-label">Nama Diklat / Seminar</label><input type="text" id="r_deskripsi" class="form-control modern-input" value="${data?.deskripsi || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">TMT KGB (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">No. SK KGB (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
+            } else if (kat === 'Diklat' || kat === 'Seminar') {
+                html = `
+                <div class="col-12"><label class="modern-label">Nama Diklat / Seminar (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Penyelenggara / Tempat</label><input type="text" id="r_tempat" class="form-control modern-input" value="${data?.tempat || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Durasi (Jam/Hari)</label><input type="text" id="r_durasi" class="form-control modern-input" value="${data?.durasi || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tgl Pelaksanaan</label><input type="date" id="r_tmt" class="form-control modern-input" value="${data?.tmt || ''}"></div>`;
-        } else if (kat === 'Anak') {
-            html = `
-                <div class="col-12"><label class="modern-label">Nama Anak</label><input type="text" id="r_deskripsi" class="form-control modern-input" value="${data?.deskripsi || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">Tgl Pelaksanaan (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
+            } else if (kat === 'Anak') {
+                html = `
+                <div class="col-12"><label class="modern-label">Nama Anak (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Tempat Lahir</label><input type="text" id="r_tempat" class="form-control modern-input" value="${data?.tempat || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tanggal Lahir</label><input type="date" id="r_tmt" class="form-control modern-input" value="${data?.tmt || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">Tanggal Lahir (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Jenis Kelamin / Status</label><select id="r_jurusan" class="form-select modern-input"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>`;
-        } else {
-            html = `
-                <div class="col-12"><label class="modern-label">Keterangan / Deskripsi</label><input type="text" id="r_deskripsi" class="form-control modern-input" value="${data?.deskripsi || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tanggal / TMT</label><input type="date" id="r_tmt" class="form-control modern-input" value="${data?.tmt || ''}"></div>
+            } else {
+                html = `
+                <div class="col-12"><label class="modern-label">Keterangan / Deskripsi (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tanggal / TMT (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Nomor SK/Dokumen</label><input type="text" id="r_no_sk" class="form-control modern-input" value="${data?.no_sk || ''}"></div>`;
-        }
-        $('#extra_fields_container').html(html);
-    };
-
-    $(document).on('click', '.btn-tambah-riwayat', function() {
-        const cat = $(this).data('category');
-        $('#formRiwayat')[0].reset();
-        $('#id_riwayat').val('');
-        $('#riwayat_kategori').val(cat);
-        updateRiwayatFields(cat);
-        modalFormRiwayat.show();
-    });
-
-    $(document).on('click', '.edit-riwayat', function() {
-        const id = $(this).data('id');
-        $.get(ajaxUrl, { action: 'ambilRiwayat', id: id }, (res) => {
-            if (res.status === 'success') {
-                const d = res.data;
-                $('#id_riwayat').val(d.id);
-                $('#riwayat_kategori').val(d.kategori);
-                updateRiwayatFields(d.kategori, d);
-                $('#file_lama_riwayat').val(d.file_lampiran);
-                modalFormRiwayat.show();
             }
-        }, 'json');
-    });
+            $('#extra_fields_container').html(html);
 
-    $('#formRiwayat').on('submit', function(e) {
-        e.preventDefault();
-        // Sync dynamic fields to hidden inputs
-        $('#riwayat_deskripsi').val($('#r_deskripsi').val() || $('#r_institusi').val() || '');
-        $('#riwayat_institusi').val($('#r_institusi').val() || '');
-        $('#riwayat_jurusan').val($('#r_jurusan').val() || '');
-        $('#riwayat_tmt').val($('#r_tmt').val() || '');
-        $('#riwayat_no_sk').val($('#r_no_sk').val() || '');
-        $('#riwayat_tgl_sk').val($('#r_tgl_sk').val() || '');
-        $('#riwayat_durasi').val($('#r_durasi').val() || '');
-        $('#riwayat_masa_kerja_thn').val($('#r_masa_kerja_thn').val() || '');
-        $('#riwayat_masa_kerja_bln').val($('#r_masa_kerja_bln').val() || '');
-        $('#riwayat_gaji_pokok').val($('#r_gaji_pokok').val() || '');
+            // Re-init Select2 for dynamic fields
+            $('#extra_fields_container select.modern-input').select2({
+                theme: 'bootstrap-5',
+                width: '100%',
+                placeholder: '- Pilih -',
+                allowClear: true,
+                dropdownParent: $('#modalFormRiwayat')
+            });
 
-        const formData = new FormData(this);
-        formData.append('action', 'simpanRiwayat');
+            // Re-init Flatpickr for dynamic fields
+            $('#extra_fields_container .datepicker').flatpickr({
+                altInput: true,
+                altFormat: "d-m-Y",
+                dateFormat: "Y-m-d",
+                locale: "id"
+            });
+        };
 
-        $.ajax({
-            url: ajaxUrl, type: 'POST', data: formData, contentType: false, processData: false, dataType: 'json',
-            success: function(res) {
+        $(document).on('click', '.btn-tambah-riwayat', function () {
+            const cat = $(this).data('category');
+            $('#formRiwayat')[0].reset();
+            $('#id_riwayat').val('');
+            $('#riwayat_kategori').val(cat);
+            updateRiwayatFields(cat);
+            modalFormRiwayat.show();
+        });
+
+        $(document).on('click', '.edit-riwayat', function () {
+            const id = $(this).data('id');
+            $.get(ajaxUrl, { action: 'ambilRiwayat', id: id }, (res) => {
                 if (res.status === 'success') {
-                    showToast(res.message, 'success');
-                    modalFormRiwayat.hide();
-                    loadRiwayat($('#riwayat_kategori').val());
-                } else showToast(res.message, 'error');
+                    const d = res.data;
+                    $('#id_riwayat').val(d.id);
+                    $('#riwayat_kategori').val(d.kategori);
+                    updateRiwayatFields(d.kategori, d);
+                    $('#file_lama_riwayat').val(d.file_lampiran);
+                    modalFormRiwayat.show();
+                }
+            }, 'json');
+        });
+
+        $('#formRiwayat').on('submit', function (e) {
+            e.preventDefault();
+
+            if (!this.checkValidity()) {
+                e.stopPropagation();
+                $(this).addClass('was-validated');
+                return;
             }
+
+            // Sync dynamic fields to hidden inputs
+            $('#riwayat_deskripsi').val($('#r_deskripsi').val() || $('#r_institusi').val() || '');
+            $('#riwayat_institusi').val($('#r_institusi').val() || '');
+            $('#riwayat_jurusan').val($('#r_jurusan').val() || '');
+            $('#riwayat_tmt').val($('#r_tmt').val() || '');
+            $('#riwayat_no_sk').val($('#r_no_sk').val() || '');
+            $('#riwayat_tgl_sk').val($('#r_tgl_sk').val() || '');
+            $('#riwayat_durasi').val($('#r_durasi').val() || '');
+            $('#riwayat_masa_kerja_thn').val($('#r_masa_kerja_thn').val() || '');
+            $('#riwayat_masa_kerja_bln').val($('#r_masa_kerja_bln').val() || '');
+            $('#riwayat_gaji_pokok').val($('#r_gaji_pokok').val() || '');
+
+            const formData = new FormData(this);
+            formData.append('action', 'simpanRiwayat');
+
+            $.ajax({
+                url: ajaxUrl, type: 'POST', data: formData, contentType: false, processData: false, dataType: 'json',
+                success: function (res) {
+                    if (res.status === 'success') {
+                        showToast(res.message, 'success');
+                        modalFormRiwayat.hide();
+                        loadRiwayat($('#riwayat_kategori').val());
+                    } else showToast(res.message, 'error');
+                }
+            });
+        });
+
+        $(document).on('click', '.hapus-riwayat', function () {
+            if (!confirm('Hapus data riwayat ini?')) return;
+            const id = $(this).data('id');
+            const cat = $(this).closest('.isiTabelRiwayat').data('category');
+            $.post(ajaxUrl, { action: 'hapusRiwayat', id: id }, (res) => {
+                if (res.status === 'success') { showToast(res.message, 'success'); loadRiwayat(cat); }
+                else showToast(res.message, 'error');
+            }, 'json');
         });
     });
-
-    $(document).on('click', '.hapus-riwayat', function() {
-        if (!confirm('Hapus data riwayat ini?')) return;
-        const id = $(this).data('id');
-        const cat = $(this).closest('.isiTabelRiwayat').data('category');
-        $.post(ajaxUrl, { action: 'hapusRiwayat', id: id }, (res) => {
-            if (res.status === 'success') { showToast(res.message, 'success'); loadRiwayat(cat); }
-            else showToast(res.message, 'error');
-        }, 'json');
-    });
-});
 </script>
