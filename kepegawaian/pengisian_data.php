@@ -62,26 +62,48 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         overflow: hidden;
     }
 
-    .nav-pills-modern {
-        background: var(--sap-gray-100);
-        padding: 0.5rem;
-        border-radius: 1rem;
-        display: inline-flex;
-        margin-bottom: 2rem;
+    .nav-tabs-modern {
+        border-bottom: 2px solid var(--sap-gray-100);
+        margin-bottom: 2.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.5rem;
+        border-top: none;
+        border-left: none;
+        border-right: none;
     }
 
-    .nav-pills-modern .nav-link {
-        border-radius: 0.75rem;
+    .nav-tabs-modern .nav-link {
+        border: none;
         color: var(--sap-secondary);
-        font-weight: 600;
-        padding: 0.6rem 1.5rem;
-        transition: all 0.2s;
+        font-weight: 700;
+        padding: 1rem 2rem;
+        position: relative;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        font-size: 0.95rem;
+        background: transparent;
+        border-radius: 0.75rem 0.75rem 0 0;
     }
 
-    .nav-pills-modern .nav-link.active {
-        background: #fff;
+    .nav-tabs-modern .nav-link:hover {
         color: var(--sap-primary);
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        background-color: var(--sap-gray-50);
+    }
+
+    .nav-tabs-modern .nav-link.active {
+        color: var(--sap-primary);
+        background: transparent;
+    }
+
+    .nav-tabs-modern .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--sap-primary-gradient);
+        border-radius: 4px;
     }
 
     .modern-label {
@@ -251,6 +273,14 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         background: var(--sap-primary) !important;
         border-color: var(--sap-primary) !important;
     }
+
+    .datepicker {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z' /%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: right 1rem center !important;
+        background-size: 1.1rem !important;
+        padding-right: 2.5rem !important;
+    }
 </style>
 
 <div class="row">
@@ -264,17 +294,17 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
     </div>
 
     <!-- === TABS NAVIGATION === -->
-    <div class="col-12 text-center">
-        <ul class="nav nav-pills nav-pills-modern" id="pills-tab" role="tablist">
+    <div class="col-12">
+        <ul class="nav nav-tabs nav-tabs-modern" id="pills-tab" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="pills-profil-tab" data-bs-toggle="pill"
+                <button class="nav-link active" id="pills-profil-tab" data-bs-toggle="tab"
                     data-bs-target="#pills-profil" type="button" role="tab" aria-controls="pills-profil"
                     aria-selected="true">
                     <i class="las la-user-edit me-2"></i> Profil & Kepegawaian
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="pills-riwayat-tab" data-bs-toggle="pill" data-bs-target="#pills-riwayat"
+                <button class="nav-link" id="pills-riwayat-tab" data-bs-toggle="tab" data-bs-target="#pills-riwayat"
                     type="button" role="tab" aria-controls="pills-riwayat" aria-selected="false">
                     <i class="las la-history me-2"></i> Riwayat Kepegawaian
                 </button>
@@ -504,9 +534,9 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         <!-- TAB 2: RIWAYAT KEPEGAWAIAN -->
         <div class="tab-pane fade" id="pills-riwayat" role="tabpanel" aria-labelledby="pills-riwayat-tab">
             <!-- Horizontal Sub-Tabs for Riwayat -->
-            <div class="text-center mb-4">
-                <div class="nav nav-pills nav-pills-modern riwayat-sub-nav d-inline-flex flex-wrap justify-content-center"
-                    id="riwayat-tabs" role="tablist" style="max-width: 100%;">
+            <div class="mb-4">
+                <div class="nav nav-tabs nav-tabs-modern riwayat-sub-nav d-flex flex-wrap" id="riwayat-tabs"
+                    role="tablist" style="max-width: 100%;">
                     <?php
                     $riwayat_cats = [
                         'Pangkat' => 'las la-layer-group',
@@ -527,7 +557,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                     $first = true;
                     foreach ($riwayat_cats as $cat => $icon):
                         $active = $first ? 'active' : '';
-                        echo '<button class="nav-link m-1 ' . $active . '" data-bs-toggle="pill" data-bs-target="#tab-' . str_replace(' ', '-', $cat) . '" type="button" role="tab" data-category="' . $cat . '">
+                        echo '<button class="nav-link ' . $active . '" data-bs-toggle="tab" data-bs-target="#tab-' . str_replace(' ', '-', $cat) . '" type="button" role="tab" data-category="' . $cat . '">
                                 <i class="' . $icon . ' me-2"></i> ' . $cat . '
                               </button>';
                         $first = false;
@@ -665,33 +695,46 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
     }
 
     .riwayat-sub-nav {
-        background: var(--sap-gray-50);
-        padding: 0.75rem;
-        border-radius: 1.25rem;
-        border: 1px solid var(--sap-gray-200);
+        border-bottom: 1px solid var(--sap-gray-200);
+        background: transparent;
+        padding: 0;
+        border-radius: 0;
+        gap: 0.25rem;
     }
 
     .riwayat-sub-nav .nav-link {
-        border-radius: 0.75rem;
+        border: none;
+        border-radius: 0.5rem 0.5rem 0 0;
         font-size: 0.85rem;
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1rem;
         color: var(--sap-secondary);
         font-weight: 600;
-        border: 1px solid transparent;
-        margin: 0.25rem;
-        transition: all 0.3s ease;
+        transition: all 0.2s ease;
+        position: relative;
+        background: transparent;
+        margin: 0;
     }
 
     .riwayat-sub-nav .nav-link:hover {
-        background: var(--sap-gray-100);
-        color: var(--sap-dark);
+        color: var(--sap-primary);
+        background: var(--sap-gray-50);
     }
 
     .riwayat-sub-nav .nav-link.active {
-        background: #fff;
         color: var(--sap-primary);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        border-color: var(--sap-gray-200);
+        background: transparent;
+        font-weight: 700;
+    }
+
+    .riwayat-sub-nav .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: var(--sap-primary);
+        border-radius: 3px 3px 0 0;
     }
 
     .text-indigo {
@@ -729,7 +772,10 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
             altInput: true,
             altFormat: "d-m-Y",
             dateFormat: "Y-m-d",
-            locale: "id"
+            locale: "id",
+            allowInput: true,
+            disableMobile: true,
+            monthSelectorType: "static"
         });
 
         const ajaxUrl = 'proses_pegawai.php';
@@ -889,7 +935,11 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                 altInput: true,
                 altFormat: "d-m-Y",
                 dateFormat: "Y-m-d",
-                locale: "id"
+                locale: "id",
+                allowInput: true,
+                disableMobile: true,
+                monthSelectorType: "static",
+                dropdownParent: $('#modalFormRiwayat')[0]
             });
         };
 

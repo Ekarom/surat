@@ -258,7 +258,7 @@ if (!file_exists($page_to_include)) {
                             <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-danger btn-sm text-white px-3 ms-lg-2 my-2 my-lg-0"
+                        <a class="nav-link btn btn btn-outline-danger btn-sm text-white px-3 ms-lg-2 my-2 my-lg-0"
                             href="./logout.php">
                             Logout <i class="las la-sign-out-alt ms-1"></i>
                         </a>
