@@ -1,6 +1,6 @@
 <?php
 /**
- * Profil Saya - Teacher Portal (Redesigned Style)
+ * Profil Saya - Teacher Portal (Visual Profile)
  * Managed by Antigravity AI
  */
 
@@ -9,381 +9,333 @@ if (!isset($conn) || !$conn) {
 }
 
 $id_pegawai = $_SESSION['id'] ?? 0;
+
 $query = $conn->prepare("SELECT * FROM pegawai WHERE id = ?");
 $query->bind_param("i", $id_pegawai);
 $query->execute();
 $pegawai = $query->get_result()->fetch_assoc();
 
 if (!$pegawai) {
-    echo "<div class='alert alert-danger shadow-sm rounded-4'>Data profil tidak ditemukan.</div>";
+    echo "<div class='container-fluid py-4'><div class='alert alert-danger shadow-sm rounded-4'>Profil tidak ditemukan.</div></div>";
     return;
 }
 
 $poto_db = $pegawai['foto'] ?? '';
-$src_foto = (!empty($poto_db) && file_exists("../file/foto/" . $poto_db)) ? "../file/foto/" . $poto_db : "../images/default.png";
+$src_foto = (!empty($poto_db) && file_exists("../file/datakepegawaian/" . $poto_db)) ? "../file/datakepegawaian/" . $poto_db : "../images/default.png";
+
+// Get latest history for highlights
+$stmt_last = $conn->prepare("SELECT kategori, deskripsi FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt DESC LIMIT 3");
+$stmt_last->bind_param("i", $id_pegawai);
+$stmt_last->execute();
+$highlights = $stmt_last->get_result();
 ?>
 
 <style>
-    .card-modern {
-        border: none;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        background: #fff;
-        margin-bottom: 20px;
+    :root {
+        --profile-primary: #4f46e5;
+        --profile-secondary: #818cf8;
+        --profile-dark: #1e1b4b;
+        --profile-light: #f5f3ff;
     }
 
-    .card-modern .card-header {
-        padding: 12px 20px;
-        font-weight: 700;
+    .profile-hero {
+        background: linear-gradient(135deg, var(--profile-primary) 0%, var(--profile-secondary) 100%);
+        height: 200px;
+        border-radius: 20px 20px 0 0;
+        position: relative;
+        margin-bottom: 80px;
+        box-shadow: 0 10px 25px -5px rgba(79, 70, 229, 0.2);
+    }
+
+    .profile-photo-wrapper {
+        position: absolute;
+        bottom: -60px;
+        left: 40px;
+        padding: 6px;
+        background: #fff;
+        border-radius: 24px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .profile-photo-large {
+        width: 150px;
+        height: 150px;
+        border-radius: 18px;
+        object-fit: cover;
+    }
+
+    .profile-meta {
+        position: absolute;
+        bottom: -50px;
+        left: 210px;
         color: #fff;
+    }
+
+    .profile-name {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 4px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        color: #1e293b;
+    }
+
+    .profile-role {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .badge-verified {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .stats-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .stats-card:hover {
+        border-color: var(--profile-primary);
+        transform: translateY(-4px);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+        font-size: 1.25rem;
+    }
+
+    .highlight-item {
+        padding: 16px;
+        border-left: 3px solid var(--profile-secondary);
+        background: #fff;
+        margin-bottom: 12px;
+        border-radius: 0 12px 12px 0;
+        transition: all 0.2s;
+    }
+
+    .highlight-item:hover {
+        background: var(--profile-light);
+    }
+
+    .contact-pill {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 20px;
+        background: #fff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        color: #475569;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+    }
+
+    .contact-pill:hover {
+        background: var(--profile-primary);
+        color: #fff;
+        border-color: var(--profile-primary);
+    }
+
+    .section-title {
+        font-weight: 800;
+        color: var(--profile-dark);
+        margin-bottom: 20px;
         display: flex;
         align-items: center;
         gap: 10px;
-        border: none;
-    }
-
-    .header-blue {
-        background: #3b82f6;
-    }
-
-    .header-red {
-        background: #ef4444;
-    }
-
-    .header-slate {
-        background: #1e293b;
-    }
-
-    .form-group-info {
-        display: flex;
-        padding: 10px 0;
-        border-bottom: 1px solid #f1f5f9;
-        align-items: center;
-    }
-
-    .form-group-info:last-child {
-        border-bottom: none;
-    }
-
-    .info-label {
-        width: 200px;
-        font-weight: 700;
-        color: #475569;
-        font-size: 0.9rem;
-    }
-
-    .info-value {
-        flex: 1;
-        color: #1e293b;
-        background: #f8fafc;
-        padding: 8px 12px;
-        border-radius: 6px;
-        border: 1px solid #e2e8f0;
-        font-size: 0.9rem;
-    }
-
-    .info-value.required::after {
-        content: ' (*)';
-        color: #ef4444;
-    }
-
-    .photo-display-container {
-        padding: 20px;
-        text-align: center;
-    }
-
-    .photo-frame {
-        width: 100%;
-        max-width: 250px;
-        aspect-ratio: 3/4;
-        object-fit: cover;
-        border-radius: 4px;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-action-group {
-        margin-top: 20px;
     }
 
     @media (max-width: 768px) {
-        .form-group-info {
-            flex-direction: column;
-            align-items: flex-start;
+        .profile-hero {
+            height: 120px;
+            margin-bottom: 120px;
         }
 
-        .info-label {
-            width: 100%;
-            margin-bottom: 5px;
+        .profile-photo-wrapper {
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: -60px;
+        }
+
+        .profile-meta {
+            left: 0;
+            right: 0;
+            bottom: -110px;
+            text-align: center;
+        }
+
+        .profile-name {
+            font-size: 1.4rem;
+            color: #1e293b;
         }
     }
 </style>
 
 <div class="container-fluid py-4">
-    <div class="row">
-        <!-- Left Column: Data Pribadi -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+        <div class="profile-hero">
+            <div class="profile-photo-wrapper">
+                <img src="<?php echo $src_foto; ?>" class="profile-photo-large" alt="Foto">
+            </div>
+            <div class="profile-meta">
+                <h1 class="profile-name"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></h1>
+                <div class="profile-role">
+                    <i class="fas fa-chalkboard-teacher text-primary"></i>
+                    <?php echo htmlspecialchars($pegawai['jabatan'] ?: 'Tenaga Pendidik'); ?>
+                    <span class="badge-verified">
+                        <i class="fas fa-check-circle"></i> Verified
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <!-- Quick Stats -->
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-icon bg-primary text-white">
+                    <i class="fas fa-user-tie"></i>
+                </div>
+                <div class="text-muted small fw-bold text-uppercase">Status</div>
+                <div class="h5 fw-bold mb-0"><?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-icon bg-success text-white">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="text-muted small fw-bold text-uppercase">Golongan</div>
+                <div class="h5 fw-bold mb-0"><?php echo htmlspecialchars($pegawai['golongan'] ?: '-'); ?></div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-icon bg-warning text-white">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+                <div class="text-muted small fw-bold text-uppercase">Masa Kerja</div>
+                <div class="h5 fw-bold mb-0">
+                    <?php echo ($pegawai['masa_kerja_thn'] ?: '0') . ' Thn ' . ($pegawai['masa_kerja_bln'] ?: '0') . ' Bln'; ?>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <div class="stat-icon bg-info text-white">
+                    <i class="fas fa-university"></i>
+                </div>
+                <div class="text-muted small fw-bold text-uppercase">Pendidikan</div>
+                <div class="h5 fw-bold mb-0"><?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?></div>
+            </div>
+        </div>
+
+        <!-- Career Highlights -->
         <div class="col-lg-8">
-            <div class="card-modern">
-                <div class="card-header header-blue">
-                    <i class="fas fa-address-card"></i> Data Pribadi
-                </div>
-                <div class="card-body p-4">
-                    <div class="form-group-info">
-                        <div class="info-label">Nomor Induk Pegawai</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Nomor Registrasi (NRK)</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nrk'] ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Nama Lengkap</div>
-                        <div class="info-value required"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Jenis Kelamin</div>
-                        <div class="info-value required">
-                            <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan'; ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Tempat Lahir</div>
-                        <div class="info-value required">
-                            <?php echo htmlspecialchars($pegawai['tempat_lahir'] ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Tanggal Lahir</div>
-                        <div class="info-value required">
-                            <?php echo (!empty($pegawai['tgl_lahir']) && $pegawai['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tgl_lahir'])) : '-'; ?>
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="section-title">
+                    <i class="fas fa-award text-primary"></i> Highlight Karir & Riwayat
+                </h5>
+                <?php if ($highlights->num_rows > 0): ?>
+                    <?php while ($h = $highlights->fetch_assoc()): ?>
+                        <div class="highlight-item">
+                            <div class="small fw-bold text-primary text-uppercase">
+                                <?php echo htmlspecialchars($h['kategori']); ?></div>
+                            <div class="fw-bold mt-1"><?php echo htmlspecialchars($h['deskripsi']); ?></div>
                         </div>
+                    <?php endwhile; ?>
+                <?php else: ?>
+                    <div class="text-center py-4 text-muted">
+                        <i class="fas fa-info-circle fa-2x mb-2 opacity-50"></i>
+                        <p>Belum ada highlight riwayat untuk ditampilkan.</p>
                     </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Pendidikan Terakhir</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Alamat</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['alamat'] ?: '-'); ?></div>
-                    </div>
+                <?php endif; ?>
 
-                    <div class="btn-action-group d-flex gap-2">
-                        <button class="btn btn-primary px-4 fw-bold" id="btnEditProfil">
-                            <i class="fas fa-edit me-2"></i> Edit Profil
-                        </button>
-                    </div>
+                <div class="mt-3 text-end">
+                    <a href="?riwayat" class="btn btn-link text-primary fw-bold text-decoration-none">
+                        Lihat Seluruh Riwayat <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
 
-            <div class="card-modern">
-                <div class="card-header header-slate">
-                    <i class="fas fa-briefcase"></i> Data Kepegawaian
-                </div>
-                <div class="card-body p-4">
-                    <div class="form-group-info">
-                        <div class="info-label">Jabatan</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?></div>
+            <!-- Professional Summary Card -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mt-4 bg-primary text-white">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="fw-bold">Bio-Data Lengkap</h4>
+                        <p class="opacity-75 mb-0">Lihat dan perbarui seluruh informasi kepegawaian Anda pada halaman
+                            Data Saya.</p>
                     </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Pangkat / Golongan</div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars($pegawai['pangkat'] ?: '-') . " / " . htmlspecialchars($pegawai['golongan'] ?: '-'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Unit Kerja</div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: 'SMP Negeri 171 Jakarta'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Status Pegawai</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?></div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        <a href="?data_saya" class="btn btn-light fw-bold px-4 py-2 rounded-pill">
+                            Buka Data Saya <i class="fas fa-external-link-alt ms-2"></i>
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Foto Pegawai -->
+        <!-- Contact & Actions -->
         <div class="col-lg-4">
-            <div class="card-modern">
-                <div class="card-header header-red">
-                    <i class="fas fa-camera"></i> Foto Pegawai
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="section-title">
+                    <i class="fas fa-id-card text-primary"></i> Informasi Kontak
+                </h5>
+                <div class="d-grid gap-3">
+                    <a href="tel:<?php echo $pegawai['no_hp']; ?>" class="contact-pill">
+                        <i class="fas fa-phone-alt"></i>
+                        <?php echo htmlspecialchars($pegawai['no_hp'] ?: 'Tidak ada nomor'); ?>
+                    </a>
+                    <a href="mailto:<?php echo $pegawai['email']; ?>" class="contact-pill">
+                        <i class="fas fa-envelope"></i>
+                        <?php echo htmlspecialchars($pegawai['email'] ?: 'Tidak ada email'); ?>
+                    </a>
+                    <div class="contact-pill">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <?php echo htmlspecialchars($pegawai['alamat'] ?: 'Alamat belum diisi'); ?>
+                    </div>
                 </div>
-                <div class="photo-display-container">
-                    <img src="<?php echo $src_foto; ?>" class="photo-frame" alt="Foto Profil">
-                    <div class="mt-4">
-                        <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></h5>
-                        <p class="text-muted small">NIP. <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></p>
-                        <hr>
-                        <div class="text-start">
-                            <div class="d-flex align-items-center mb-2">
-                                <div class="bg-success rounded-circle me-2" style="width: 10px; height: 10px;"></div>
-                                <span class="small fw-bold">Akun Terverifikasi</span>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <i class="fas fa-phone-alt text-muted me-2 small"></i>
-                                <span class="small"><?php echo htmlspecialchars($pegawai['no_hp'] ?: '-'); ?></span>
-                            </div>
-                            <div class="d-flex align-items-center mt-1">
-                                <i class="fas fa-envelope text-muted me-2 small"></i>
-                                <span class="small"><?php echo htmlspecialchars($pegawai['email'] ?: '-'); ?></span>
-                            </div>
-                        </div>
+
+                <hr class="my-4">
+
+                <h5 class="section-title small text-uppercase text-muted">Quick Actions</h5>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <a href="?data_saya" class="btn btn-outline-primary w-100 fw-bold py-3">
+                            <i class="fas fa-edit mb-2 d-block"></i> Edit Data
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a href="?administrasi" class="btn btn-outline-dark w-100 fw-bold py-3">
+                            <i class="fas fa-file-pdf mb-2 d-block"></i> Berkas
+                        </a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-<!-- Re-including the Modal and Script for Edit functionality -->
-<!-- === MODAL: EDIT PROFIL === -->
-<div class="modal fade" id="modalEditProfil" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Perbarui Profil Saya</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formEditProfil" enctype="multipart/form-data">
-                    <input type="hidden" name="id" id="edit_id" value="<?php echo $id_pegawai; ?>">
-                    <input type="hidden" name="foto_lama" id="edit_foto_lama" value="<?php echo $poto_db; ?>">
-                    <input type="hidden" name="nip" id="edit_nip" value="<?php echo $pegawai['nip']; ?>">
-
-                    <div class="row g-4">
-                        <!-- Photo Section -->
-                        <div class="col-md-4 text-center">
-                            <div class="position-relative d-inline-block">
-                                <img id="preview-foto-edit" src="<?php echo $src_foto; ?>" class="rounded shadow-sm"
-                                    style="width: 150px; height: 200px; object-fit: cover; border: 1px solid #e2e8f0;">
-                                <label for="foto_edit"
-                                    class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                                    style="width: 38px; height: 38px; cursor: pointer; border: 3px solid #fff; margin-bottom: -10px; margin-right: -10px;">
-                                    <i class="fas fa-camera"></i>
-                                </label>
-                                <input type="file" id="foto_edit" name="foto" class="d-none" accept="image/*">
-                            </div>
-                        </div>
-
-                        <!-- Info Section -->
-                        <div class="col-md-8">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Nama Lengkap (*)</label>
-                                    <input type="text" name="nm_pegawai" id="edit_nm_pegawai" class="form-control"
-                                        required value="<?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Tempat Lahir (*)</label>
-                                    <input type="text" name="tempat_lahir" id="edit_tempat_lahir" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir']); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Tanggal Lahir (*)</label>
-                                    <input type="date" name="tgl_lahir" id="edit_tgl_lahir" class="form-control"
-                                        value="<?php echo $pegawai['tgl_lahir']; ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Jenis Kelamin (*)</label>
-                                    <select name="jenis_kelamin" id="edit_jenis_kelamin" class="form-select">
-                                        <option value="L" <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'selected' : ''; ?>>Laki-laki</option>
-                                        <option value="P" <?php echo ($pegawai['jenis_kelamin'] == 'P') ? 'selected' : ''; ?>>Perempuan</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Pendidikan</label>
-                                    <input type="text" name="pendidikan" id="edit_pendidikan" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['pendidikan']); ?>">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Contact Section -->
-                        <div class="col-12">
-                            <div class="bg-light p-3 rounded">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Email</label>
-                                        <input type="email" name="email" id="edit_email" class="form-control"
-                                            value="<?php echo htmlspecialchars($pegawai['email']); ?>">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">No. HP</label>
-                                        <input type="text" name="no_hp" id="edit_no_hp" class="form-control"
-                                            value="<?php echo htmlspecialchars($pegawai['no_hp']); ?>">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label small fw-bold">Alamat</label>
-                                        <textarea name="alamat" id="edit_alamat" class="form-control"
-                                            rows="2"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" form="formEditProfil" class="btn btn-primary">Simpan</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script>
-    $(document).ready(function () {
-        const modalEdit = new bootstrap.Modal(document.getElementById('modalEditProfil'));
-
-        $('#btnEditProfil').click(function () {
-            modalEdit.show();
-        });
-
-        // Preview Photo
-        $('#foto_edit').change(function () {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#preview-foto-edit').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Submit Form
-        $('#formEditProfil').on('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('action', 'simpan');
-
-            const btn = $(this).closest('.modal-content').find('button[type="submit"]');
-            const oldHtml = btn.html();
-            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Menyimpan...');
-
-            $.ajax({
-                url: 'proses_pegawai.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                dataType: 'json',
-                success: function (res) {
-                    if (res.status === 'success') {
-                        if (typeof showToast === 'function') showToast(res.message, 'success');
-                        else alert(res.message);
-                        setTimeout(() => { location.reload(); }, 1500);
-                    } else {
-                        if (typeof showToast === 'function') showToast(res.message, 'error');
-                        else alert(res.message);
-                        btn.prop('disabled', false).html(oldHtml);
-                    }
-                },
-                error: function () {
-                    if (typeof showToast === 'function') showToast('Terjadi kesalahan sistem.', 'error');
-                    btn.prop('disabled', false).html(oldHtml);
-                }
-            });
-        });
-    });
-</script>

@@ -134,7 +134,7 @@ if ($res) {
                                         <div class="extra-small fw-bold"><?php echo htmlspecialchars($emp['jabatan'] ?: '-'); ?></div>
                                         <div class="extra-small text-muted text-truncate" style="max-width: 150px;"><?php echo htmlspecialchars($emp['unit_kerja'] ?: '-'); ?></div>
                                     </td>
-                                    <td class="text-center small"><?php echo date('d-m-Y', strtotime($emp['tgl_lahir'])); ?></td>
+                                    <td class="text-center small"><?php echo (!empty($emp['tgl_lahir']) && $emp['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($emp['tgl_lahir'])) : '-'; ?></td>
                                     <td class="text-center small fw-bold text-muted"><?php echo $ret['bup']; ?> Th</td>
                                     <td class="text-center small fw-bold text-primary"><?php echo $ret['tmt']; ?></td>
                                     <td class="text-center">

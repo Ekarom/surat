@@ -1,7 +1,19 @@
 <?php
-session_start();
-if (!isset($conn) || !$conn) {
-    include_once "../dbconn.php";
+/**
+ * Guru Login Portal
+ * Managed by Antigravity AI
+ */
+ob_start();
+include_once "../dbconn.php"; // Standardized session path logic is inside here
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if already logged in
+if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true && ($_SESSION['level'] ?? '') == '4') {
+    header("Location: index_guru.php");
+    exit;
 }
 
 // --- Logika Pesan Error dari Session ---
@@ -12,7 +24,7 @@ unset($_SESSION['error_message']);
 <html lang="en">
 
 <head>
-    <title>Portal Guru - SMP Negeri 171</title>
+    <title>Portal PTK - SMP Negeri 171</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/png" href="../images/logodik.png">
@@ -266,7 +278,7 @@ unset($_SESSION['error_message']);
             font-family: 'Outfit', sans-serif !important;
             font-size: 16px !important;
             font-weight: 600 !important;
-            color: #080808ff !important;
+            color: #000000ff !important;
             text-transform: uppercase;
             width: 100% !important;
             height: 52px !important;
@@ -281,6 +293,26 @@ unset($_SESSION['error_message']);
             border: none !important;
             cursor: pointer;
             margin-top: 10px;
+        }
+
+        .login100-form-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -10px rgba(79, 70, 229, 0.6) !important;
+            animation: pulse-light 2s infinite;
+        }
+
+        @keyframes pulse-light {
+            0% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
+            }
         }
 
 
@@ -327,7 +359,7 @@ unset($_SESSION['error_message']);
                 </div>
 
                 <span class="login100-form-title">
-                    PORTAL GURU
+                    PORTAL PTK
                     <small>Sistem Manajemen Kepegawaian</small>
                 </span>
 
@@ -360,21 +392,23 @@ unset($_SESSION['error_message']);
 
                 <?php
                 if (!empty($error_message)) {
-                    echo "<div class='error-container'><strong>Pesan:</strong><br>$error_message</div>";
+                    echo "<div class='error-container'><strong>Pesan:</strong><br>" . htmlspecialchars($error_message) . "</div>";
                 }
 
                 if (isset($_GET['salah'])) {
                     echo "<div class='error-container'>";
-                    if ($_GET['salah'] == 1) {
-                        $sisa = $_GET['sisa'] ?? 0;
+                    $salah = $_GET['salah'];
+                    if ($salah == 1) {
+                        $sisa = htmlspecialchars($_GET['sisa'] ?? 0);
                         echo "<strong>Login Gagal</strong><br>ID Guru atau Password salah.<br>Sisa percobaan: $sisa kali.";
-                    } elseif ($_GET['salah'] == 5) {
+                    } elseif ($salah == 5) {
                         echo "<strong>Captcha Salah</strong><br>Silakan periksa kembali jawaban Anda.";
-                    } elseif ($_GET['salah'] == 3) {
-                        echo "<strong>Akun Terkunci</strong><br>Silakan tunggu beberapa menit.";
-                    } elseif ($_GET['salah'] == 4) {
+                    } elseif ($salah == 3) {
+                        $wait = isset($_GET['wait']) ? ceil((int) $_GET['wait'] / 60) : 5;
+                        echo "<strong>Akun Terkunci</strong><br>Terlalu banyak percobaan login.<br>Silakan tunggu sekitar $wait menit.";
+                    } elseif ($salah == 4) {
                         echo "<strong>Akses Ditolak</strong><br>Portal ini khusus untuk akun Guru.";
-                    } elseif ($_GET['salah'] == 6) {
+                    } elseif ($salah == 6) {
                         echo "<strong>User Tidak Aktif</strong><br>Akun Anda dinonaktifkan. Silakan hubungi admin.";
                     } else {
                         echo "<strong>Terjadi Kesalahan</strong><br>Silakan coba lagi nanti.";
@@ -385,7 +419,7 @@ unset($_SESSION['error_message']);
 
                 <div class="copyright">
                     SMP Negeri 171<br>
-                    Versi : <?php echo $ver; ?> | &copy; <?php echo date("Y"); ?>
+                    Versi : <?php echo htmlspecialchars($ver); ?> | &copy; <?php echo date("Y"); ?>
                 </div>
             </form>
         </div>

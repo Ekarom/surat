@@ -1,11 +1,15 @@
 <?php
-session_start();
-ob_start();
-// Include dbconn FIRST to handle session configuration
+ob_start(); // Output buffering HARUS pertama agar header() tidak error
+
+// Include dbconn FIRST to handle session configuration before session_start
 if (file_exists('../dbconn.php')) {
     include '../dbconn.php';
 } else {
     die("Database connection file missing.");
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
 // Check database connection
@@ -53,7 +57,7 @@ $limit_data = ($check_limit) ? $check_limit->fetch_assoc() : null;
 
 if ($limit_data) {
     $attempts = $limit_data['attempts'];
-    $last_attempt = strtotime($limit_data['last_attempt_time']);
+    $last_attempt = strtotime($limit_data['last_attempt_time'] ?? '0');
     $lockout_time = 5 * 60; // 5 minutes
 
     if ($attempts >= 3 && (time() - $last_attempt) < $lockout_time) {
@@ -80,18 +84,18 @@ if ($session_captcha === null || empty($user_captcha) || intval($user_captcha) !
 // =========================================================================================
 //                                   PROSES LOGIN (GURU - DARI TABEL PEGAWAI)
 // =========================================================================================
-$userid = $_POST['userid'] ?? ''; 
-$password = $_POST['password'] ?? ''; 
+$userid = $_POST['userid'] ?? '';
+$password = $_POST['password'] ?? '';
 
 // Query Database - TABEL PEGAWAI
 $stmt = $conn->prepare('SELECT id, nrk, nip, nm_pegawai, email, foto, status FROM pegawai WHERE (nrk = ? OR nip = ?) LIMIT 1');
 if ($stmt === false) {
-    header("Location: login_guru.php?salah=2"); 
+    header("Location: login_guru.php?salah=2");
     exit;
 }
 $stmt->bind_param("ss", $userid, $userid);
 $stmt->execute();
-$result = $stmt->get_result(); 
+$result = $stmt->get_result();
 $pegawai = $result->fetch_assoc();
 $stmt->close();
 
@@ -101,7 +105,7 @@ if ($pegawai) {
     // Allow either NRK or NIP as password for flexibility
     $nrk_pass = !empty($pegawai['nrk']) ? $pegawai['nrk'] : '';
     $nip_pass = !empty($pegawai['nip']) ? $pegawai['nip'] : '';
-    
+
     if (($nrk_pass !== '' && $password === $nrk_pass) || ($nip_pass !== '' && $password === $nip_pass)) {
         $is_authenticated = true;
     }
@@ -116,18 +120,18 @@ if ($is_authenticated) {
 
     // Login Sukses - Reset Attempts
     $conn->query("DELETE FROM login_attempts WHERE ip_address = '$ip_address'");
-    
+
     // Session Registration
     session_regenerate_id(true);
     $_SESSION['authenticated'] = true;
     $_SESSION['id'] = $pegawai['id']; // Pegawai ID
-    $_SESSION['nama'] = $pegawai['nm_pegawai']; 
-    $_SESSION['userid'] = $pegawai['nrk'] ?: $pegawai['nip']; 
-    $_SESSION['email'] = $pegawai['email']; 
+    $_SESSION['nama'] = $pegawai['nm_pegawai'];
+    $_SESSION['userid'] = $pegawai['nrk'] ?: $pegawai['nip'];
+    $_SESSION['email'] = $pegawai['email'];
     $_SESSION['level'] = '4'; // Force Level 4 for Guru Portal
-    $_SESSION['status'] = $pegawai['status'] == '1' ? 'Aktif' : $pegawai['status']; 
-    $_SESSION['poto'] = $pegawai['foto']; 
-    $_SESSION['nik'] = $pegawai['nrk'] ?: $pegawai['nip']; 
+    $_SESSION['status'] = $pegawai['status'] == '1' ? 'Aktif' : $pegawai['status'];
+    $_SESSION['poto'] = $pegawai['foto'];
+    $_SESSION['nik'] = $pegawai['nrk'] ?: $pegawai['nip'];
     $_SESSION['last_activity'] = time();
     $_SESSION['database_asli'] = $db;
 
@@ -135,14 +139,17 @@ if ($is_authenticated) {
     $nama = $pegawai['nm_pegawai'];
     $waktu = date("Y-m-d H:i:s");
     $info_log = "Login Guru (Tabel Pegawai)";
-    
+
     $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-    $user_log_id = $pegawai['nrk'] ?: $pegawai['nip'];
-    $stmt_log->bind_param("sssss", $user_log_id, $nama, $waktu, $ip_address, $info_log);
-    $stmt_log->execute();
+    if ($stmt_log !== false) {
+        $user_log_id = $pegawai['nrk'] ?: $pegawai['nip'];
+        $stmt_log->bind_param("sssss", $user_log_id, $nama, $waktu, $ip_address, $info_log);
+        $stmt_log->execute();
+        $stmt_log->close();
+    }
 
     // Redirect to specialized teacher portal
-    header("Location: index_guru.php");
+    header("Location: ./?");
     exit();
 
 } else {
@@ -154,11 +161,12 @@ if ($is_authenticated) {
 
     $q_attempts = $conn->query("SELECT attempts FROM login_attempts WHERE ip_address = '$ip_address'");
     $data_attempts = ($q_attempts) ? $q_attempts->fetch_assoc() : null;
-    
+
     $attempts_count = $data_attempts['attempts'] ?? 1;
     $remaining = 3 - $attempts_count;
-    if ($remaining < 0) $remaining = 0;
-    
+    if ($remaining < 0)
+        $remaining = 0;
+
     if ($attempts_count >= 3) {
         header("Location: login_guru.php?salah=3&wait=300");
     } else {

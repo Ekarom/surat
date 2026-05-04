@@ -228,8 +228,7 @@ if ($force_change_pass) {
                 </li>
 
                 <li class="nav-item">
-                  <a href="kepegawaian/" target=_blank
-                    class="nav-link <?php echo ($current_page == 'pegawai') ? 'active' : ''; ?>">
+                  <a href="kepegawaian/" target=_blank class="nav-link">
                     <i class="nav-icon las la-clipboard-check"></i>
                     <p>
                       Kepegawaian

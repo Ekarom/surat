@@ -31,13 +31,21 @@ FROM pegawai";
 $stats_res = $conn->query($stats_query);
 $stats = $stats_res ? $stats_res->fetch_assoc() : ['total' => 0, 'aktif' => 0, 'pns' => 0, 'pppk' => 0, 'pppk_pw' => 0, 'honorer' => 0];
 
+// User Online Logic
+if (isset($_SESSION['id'])) {
+    $uid = $_SESSION['id'];
+    $conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $uid");
+}
+$online_res = $conn->query("SELECT COUNT(*) as total FROM pegawai WHERE last_activity > DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
+$online_count = ($online_res && $online_res->num_rows > 0) ? $online_res->fetch_assoc()['total'] : 0;
+
 $info_boxes = [
     ['title' => 'Total Pegawai', 'value' => $stats['total'], 'unit' => 'Orang', 'icon' => 'fa-users', 'color' => 'bg-primary'],
     ['title' => 'Pegawai Aktif', 'value' => $stats['aktif'], 'unit' => '', 'icon' => 'fa-user-check', 'color' => 'bg-success'],
     ['title' => 'Jumlah PNS', 'value' => $stats['pns'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
     ['title' => 'Jumlah PPPK', 'value' => $stats['pppk'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
-    ['title' => 'Jumlah PPPK PW', 'value' => $stats['pppk_pw'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
     ['title' => 'Jumlah Honorer', 'value' => $stats['honorer'], 'unit' => '', 'icon' => 'fa-user-clock', 'color' => 'bg-warning'],
+    ['title' => 'User Online', 'value' => $online_count, 'unit' => 'Aktif', 'icon' => 'fa-signal online-pulse-icon', 'color' => 'bg-dark'],
 ];
 
 // Gender Distribution
@@ -46,8 +54,10 @@ $gender_res = $conn->query("SELECT jenis_kelamin, COUNT(*) as count FROM pegawai
 if ($gender_res) {
     while ($row = $gender_res->fetch_assoc()) {
         $val = strtoupper(trim($row['jenis_kelamin']));
-        if ($val === 'L' || strpos($val, 'LAKI') === 0) $genders['L'] += (int)$row['count'];
-        elseif ($val === 'P' || strpos($val, 'PEREMPUAN') === 0 || strpos($val, 'WANITA') === 0) $genders['P'] += (int)$row['count'];
+        if ($val === 'L' || strpos($val, 'LAKI') === 0)
+            $genders['L'] += (int) $row['count'];
+        elseif ($val === 'P' || strpos($val, 'PEREMPUAN') === 0 || strpos($val, 'WANITA') === 0)
+            $genders['P'] += (int) $row['count'];
     }
 }
 
@@ -55,13 +65,60 @@ if ($gender_res) {
 $unit_data = $conn->query("SELECT unit_kerja, COUNT(*) as count FROM pegawai GROUP BY unit_kerja ORDER BY count ASC LIMIT 5");
 
 // Employment Status Chart Data
-$status_labels = []; $status_values = [];
+$status_labels = [];
+$status_values = [];
 $status_res = $conn->query("SELECT status_pegawai, COUNT(*) as count FROM pegawai GROUP BY status_pegawai");
 if ($status_res) {
     while ($row = $status_res->fetch_assoc()) {
         $status_labels[] = $row['status_pegawai'] ?: 'Lainnya';
-        $status_values[] = (int)$row['count'];
+        $status_values[] = (int) $row['count'];
     }
+}
+
+/**
+ * 2. RETIREMENT DATA (Dashboard Summary)
+ */
+function getRetirementSummary($tglLahir, $jabatan)
+{
+    if (!$tglLahir || $tglLahir == '0000-00-00')
+        return null;
+    $bup = 60;
+    $jabatanUpper = strtoupper($jabatan);
+    if (strpos($jabatanUpper, 'UTAMA') !== false || strpos($jabatanUpper, 'PROFESOR') !== false)
+        $bup = 65;
+    $tglLahirObj = new DateTime($tglLahir);
+    $pensiunDate = clone $tglLahirObj;
+    $pensiunDate->modify("+$bup years");
+    $pensiunDate->modify("first day of next month");
+    $today = new DateTime();
+    $interval = $today->diff($pensiunDate);
+    $isRetired = ($today > $pensiunDate);
+    return [
+        'tmt' => $pensiunDate->format('Y-m-d'),
+        'tmt_display' => $pensiunDate->format('d-m-Y'),
+        'sisa_th' => $isRetired ? -1 : $interval->y,
+        'sisa_bln' => $isRetired ? -1 : $interval->m,
+        'isRetired' => $isRetired
+    ];
+}
+
+$pensiun_list = [];
+$res_pensiun = $conn->query("SELECT id, nm_pegawai, nip, tgl_lahir, jabatan FROM pegawai WHERE status = '1'");
+if ($res_pensiun) {
+    while ($row = $res_pensiun->fetch_assoc()) {
+        $ret = getRetirementSummary($row['tgl_lahir'], $row['jabatan']);
+        if ($ret && !$ret['isRetired']) {
+            $row['tmt_pensiun'] = $ret['tmt'];
+            $row['tmt_pensiun_display'] = $ret['tmt_display'];
+            $row['sisa_th'] = $ret['sisa_th'];
+            $row['sisa_bln'] = $ret['sisa_bln'];
+            $pensiun_list[] = $row;
+        }
+    }
+    usort($pensiun_list, function ($a, $b) {
+        return strcmp($a['tmt_pensiun'], $b['tmt_pensiun']);
+    });
+    $pensiun_list = array_slice($pensiun_list, 0, 5);
 }
 ?>
 
@@ -70,7 +127,6 @@ if ($status_res) {
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-1">Dashboard</h2>
-            <p class="text-muted small mb-0">Ringkasan data kepegawaian hari ini.</p>
         </div>
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb mb-0">
@@ -90,11 +146,13 @@ if ($status_res) {
                             <div class="icon-shape <?php echo $box['color']; ?> text-white rounded-3 me-2">
                                 <i class="fas <?php echo $box['icon']; ?> fa-xs"></i>
                             </div>
-                            <span class="text-muted fw-bold small text-uppercase letter-spacing-1"><?php echo $box['title']; ?></span>
+                            <span
+                                class="text-muted fw-bold small text-uppercase letter-spacing-1"><?php echo $box['title']; ?></span>
                         </div>
                         <div class="h4 fw-bold mb-0">
                             <?php echo number_format($box['value']); ?>
-                            <?php if ($box['unit']): ?><span class="fs-6 text-muted fw-normal ms-1"><?php echo $box['unit']; ?></span><?php endif; ?>
+                            <?php if ($box['unit']): ?><span
+                                    class="fs-6 text-muted fw-normal ms-1"><?php echo $box['unit']; ?></span><?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -104,38 +162,6 @@ if ($status_res) {
 
     <!-- Charts & Distributions -->
     <div class="row mt-4 g-4">
-        <!-- Work Unit Distribution -->
-        <div class="col-lg-5">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <h6 class="fw-bold mb-0"><i class="fas fa-building me-2 text-primary"></i> Sebaran Unit Kerja (Top 5)</h6>
-                </div>
-                <div class="card-body pt-0">
-                    <div class="mt-2">
-                        <?php if ($unit_data && $unit_data->num_rows > 0): ?>
-                            <?php while ($u = $unit_data->fetch_assoc()): 
-                                $percent = ($stats['total'] > 0) ? round(($u['count'] / $stats['total']) * 100) : 0;
-                            ?>
-                                <div class="mb-4">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <span class="small fw-bold"><?php echo htmlspecialchars($u['unit_kerja'] ?: 'N/A'); ?></span>
-                                        <span class="small text-muted"><?php echo $u['count']; ?> Org (<?php echo $percent; ?>%)</span>
-                                    </div>
-                                    <div class="progress" style="height: 8px; border-radius: 20px;">
-                                        <div class="progress-bar bg-primary rounded-pill shadow-none" style="width: <?php echo $percent; ?>%"></div>
-                                    </div>
-                                </div>
-                            <?php endwhile; ?>
-                        <?php else: ?>
-                            <div class="text-center py-5 opacity-50">
-                                <i class="fas fa-inbox fa-3x mb-2"></i>
-                                <p class="small">Data tidak ditemukan</p>
-                            </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <!-- Gender Distribution Chart -->
         <div class="col-lg-3">
@@ -170,12 +196,16 @@ if ($status_res) {
         </div>
     </div>
 
-    <!-- Recent Employees Table -->
-    <div class="mt-4">
+
+
+    <!-- Retirement Table -->
+    <div class="mt-4 pb-5">
         <div class="card border-0 shadow-sm">
             <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h6 class="fw-bold mb-0"><i class="fas fa-clock me-2 text-warning"></i> Pegawai Terbaru</h6>
-                <a href="?data_pegawai" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">Semua Data <i class="fas fa-arrow-right ms-1"></i></a>
+                <h6 class="fw-bold mb-0"><i class="fas fa-user-clock me-2 text-danger"></i> Estimasi Pensiun Terdekat
+                </h6>
+                <a href="?datapensiun" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">Detail Pensiun <i
+                        class="fas fa-arrow-right ms-1"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
@@ -183,36 +213,48 @@ if ($status_res) {
                         <thead class="bg-light">
                             <tr>
                                 <th class="text-center px-4" width="70">#</th>
-                                <th>NIP</th>
                                 <th>Nama Pegawai</th>
                                 <th>Jabatan</th>
-                                <th>Unit Kerja</th>
-                                <th class="text-center px-4">Status</th>
+                                <th>TMT Pensiun</th>
+                                <th class="text-center px-4">Sisa Waktu</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php
-                            $recent = $conn->query("SELECT * FROM pegawai ORDER BY id ASC LIMIT 5");
-                            if ($recent && $recent->num_rows > 0):
+                            <?php if (!empty($pensiun_list)):
                                 $no = 1;
-                                while ($row = $recent->fetch_assoc()): ?>
+                                foreach ($pensiun_list as $row):
+                                    $sisa = "";
+                                    if ($row['sisa_th'] > 0)
+                                        $sisa .= $row['sisa_th'] . " Th ";
+                                    if ($row['sisa_bln'] > 0)
+                                        $sisa .= $row['sisa_bln'] . " Bln";
+                                    if ($sisa == "")
+                                        $sisa = "Bulan Ini";
+
+                                    $is_near = ($row['sisa_th'] == 0);
+                                    ?>
                                     <tr>
                                         <td class="text-center px-4 text-muted"><?php echo $no++; ?></td>
-                                        <td class="fw-bold"><?php echo htmlspecialchars($row['nip'] ?: '-'); ?></td>
-                                        <td><?php echo htmlspecialchars($row['nm_pegawai']); ?></td>
-                                        <td><span class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span></td>
-                                        <td><span class="small text-muted"><?php echo htmlspecialchars($row['unit_kerja']); ?></span></td>
+                                        <td>
+                                            <div class="fw-bold"><?php echo htmlspecialchars($row['nm_pegawai']); ?></div>
+                                            <div class="extra-small text-muted"><?php echo $row['nip'] ?: '-'; ?></div>
+                                        </td>
+                                        <td><span
+                                                class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span>
+                                        </td>
+                                        <td class="fw-bold text-primary"><?php echo $row['tmt_pensiun_display']; ?></td>
                                         <td class="text-center px-4">
-                                            <?php if ($row['status'] == '1'): ?>
-                                                <span class="badge bg-success-soft text-success rounded-pill px-3">Aktif</span>
-                                            <?php else: ?>
-                                                <span class="badge bg-secondary-soft text-secondary rounded-pill px-3">Non-Aktif</span>
-                                            <?php endif; ?>
+                                            <span
+                                                class="badge <?php echo $is_near ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'; ?> rounded-pill px-3 fw-bold">
+                                                <?php echo $sisa; ?>
+                                            </span>
                                         </td>
                                     </tr>
-                                <?php endwhile;
+                                <?php endforeach;
                             else: ?>
-                                <tr><td colspan="6" class="text-center py-5 text-muted">Belum ada data terbaru.</td></tr>
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">Data pensiun tidak tersedia.</td>
+                                </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
@@ -275,7 +317,10 @@ if ($status_res) {
 </script>
 
 <style>
-    .letter-spacing-1 { letter-spacing: 1px; }
+    .letter-spacing-1 {
+        letter-spacing: 1px;
+    }
+
     .icon-shape {
         width: 35px;
         height: 35px;
@@ -283,12 +328,25 @@ if ($status_res) {
         align-items: center;
         justify-content: center;
     }
+
     .stat-card {
         transition: transform 0.2s;
     }
+
     .stat-card:hover {
         transform: translateY(-3px);
     }
+
+    .online-pulse-icon {
+        animation: pulse-red 2s infinite;
+    }
+
+    @keyframes pulse-red {
+        0% { opacity: 1; }
+        50% { opacity: 0.4; }
+        100% { opacity: 1; }
+    }
+
     .badge-soft-blue {
         background-color: #eff6ff;
         color: #3b82f6;
@@ -297,8 +355,23 @@ if ($status_res) {
         padding: 5px 10px;
         border-radius: 6px;
     }
-    .bg-success-soft { background-color: #f0fdf4; }
-    .bg-secondary-soft { background-color: #f8fafc; }
+
+    .bg-success-soft {
+        background-color: #f0fdf4;
+    }
+
+    .bg-secondary-soft {
+        background-color: #f8fafc;
+    }
+
+    .bg-danger-soft {
+        background-color: #fef2f2;
+    }
+
+    .bg-warning-soft {
+        background-color: #fffbeb;
+    }
+
     .table thead th {
         font-size: 0.75rem;
         text-transform: uppercase;
@@ -306,11 +379,19 @@ if ($status_res) {
         color: #64748b;
         border-bottom: 1px solid #f1f5f9;
     }
+
     .table tbody td {
         font-size: 0.9rem;
         padding: 1rem 0.75rem;
         border-bottom: 1px solid #f8fafc;
     }
-    .progress { background-color: #f1f5f9; overflow: visible; }
-    .progress-bar { box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3); }
+
+    .progress {
+        background-color: #f1f5f9;
+        overflow: visible;
+    }
+
+    .progress-bar {
+        box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+    }
 </style>

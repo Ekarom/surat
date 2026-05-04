@@ -22,9 +22,11 @@ $nik = $_SESSION['nik'] ?? '';
 // Determine current page
 $pages = [
     'dashboard' => 'dashboard_guru.php',
-    'profil' => 'profil_saya.php',
-    'data_pegawai' => 'pegawai.php',
-    'riwayat' => 'riwayat_saya.php'
+    'profil' => 'pegawai.php',
+    'data_saya' => 'data_saya.php',
+    'riwayat' => 'riwayat_saya.php',
+    'administrasi' => 'riwayat_administrasi.php',
+    'monitoring' => 'monitoring_berkas.php'
 ];
 
 $current_page = 'dashboard';
@@ -232,7 +234,7 @@ if (!file_exists($page_to_include)) {
         <div class="container-fluid px-3">
             <div class="d-flex align-items-center">
                 <button class="btn btn-link text-white p-0 me-3" id="sidebarToggle"><i class="fas fa-bars"></i></button>
-                <span class="navbar-brand-text">PORTAL GURU <span class="fw-light opacity-50 ms-2">| SMPN
+                <span class="navbar-brand-text">PORTAL PTK <span class="fw-light opacity-50 ms-2">| SMPN
                         171</span></span>
             </div>
             <ul class="navbar-nav ms-auto align-items-center">
@@ -243,7 +245,7 @@ if (!file_exists($page_to_include)) {
                     <span class="text-white text-white">Halo,
                         <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
                 <li class="nav-item">
-                    <a href="./logout.php" class="nav-link btn btn-danger btn-sm text-white px-3 ms-3">Logout
+                    <a href="./logout.php" class="nav-link btn btn-outline-danger btn-sm text-white px-3 ms-3">Logout
                         <i class="fa-solid fa-right-from-bracket ms-2"></i></a>
                 </li>
                 </li>
@@ -261,11 +263,23 @@ if (!file_exists($page_to_include)) {
                 </a>
                 <a href="?profil"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'profil') ? 'active' : ''; ?>">
-                    <i class="fas fa-user-circle"></i> Profil Saya
+                    <i class="fas fa-id-badge"></i> Profil Saya
+                </a>
+                <a href="?data_saya"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_saya') ? 'active' : ''; ?>">
+                    <i class="fas fa-address-card"></i> Data Saya
                 </a>
                 <a href="?riwayat"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'riwayat') ? 'active' : ''; ?>">
                     <i class="fas fa-history"></i> Riwayat Kepegawaian
+                </a>
+                <a href="?administrasi"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'administrasi') ? 'active' : ''; ?>">
+                    <i class="fas fa-file-signature"></i> Riwayat Administrasi
+                </a>
+                <a href="?monitoring"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'monitoring') ? 'active' : ''; ?>">
+                    <i class="fas fa-tasks"></i> Monitoring Berkas
                 </a>
             </div>
             <div class="list-group list-group-flush mt-auto pb-4">

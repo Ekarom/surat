@@ -27,9 +27,20 @@ if ($q_riwayat) {
 }
 
 $poto_db = $pegawai['foto'] ?? '';
-$folder_foto = "../file/foto/";
+$folder_foto = "../file/datakepegawaian/";
 $path_file_server = $folder_foto . $poto_db;
 $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_server : "../images/default.png";
+
+// Document Monitoring Progress
+$requirements = ['Pangkat', 'Jabatan', 'Pendidikan', 'Administrasi', 'KGB'];
+$q_check = $conn->prepare("SELECT kategori FROM riwayat_kepegawaian WHERE pegawai_id = ? AND file_lampiran IS NOT NULL AND file_lampiran != ''");
+$q_check->bind_param("i", $id_pegawai);
+$q_check->execute();
+$res_check = $q_check->get_result();
+$done_cats = [];
+while($r = $res_check->fetch_assoc()) $done_cats[$r['kategori']] = true;
+$count_done = count(array_intersect(array_keys($done_cats), $requirements));
+$percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 100 : 0;
 ?>
 
 <div class="content-wrapper bg-light-soft">
@@ -37,12 +48,12 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2 class="fw-bold mb-1">Dashboard Guru</h2>
+                    <h2 class="fw-bold mb-1">Dashboard PTK</h2>
                     <p class="text-muted small mb-0">Portal Mandiri Manajemen Kepegawaian SMP Negeri 171</p>
                 </div>
                 <nav aria-label="breadcrumb">
                     <ol class="breadcrumb mb-0">
-                        <li class="breadcrumb-item"><a href="index.php"
+                        <li class="breadcrumb-item"><a href="index_guru.php"
                                 class="text-decoration-none text-primary">Home</a></li>
                         <li class="breadcrumb-item active">Dashboard</li>
                     </ol>
@@ -68,7 +79,8 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
                             </div>
                             <div class="col-md-7">
                                 <h3 class="fw-bold mb-1 text-dark">Selamat Datang,
-                                    <?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>!</h3>
+                                    <?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>!
+                                </h3>
                                 <p class="mb-0 text-muted">Akses mandiri data kepegawaian Anda secara terpusat dan
                                     transparan.</p>
                                 <div class="mt-2">
@@ -78,12 +90,17 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
                                 </div>
                             </div>
                             <div class="col-md-3 text-md-end mt-3 mt-md-0 d-flex flex-column gap-2">
-                                <a href="?profil" class="btn btn-indigo rounded-pill px-4 shadow-sm">
-                                    <i class="fas fa-user-circle me-2"></i> Profil Saya
+                                <a href="?monitoring" class="btn btn-indigo rounded-pill px-4 shadow-sm">
+                                    <i class="fas fa-tasks me-2"></i> Monitor Berkas (<?php echo round($percent); ?>%)
                                 </a>
-                                <a href="?riwayat" class="btn btn-light border rounded-pill px-4 shadow-sm">
-                                    <i class="fas fa-history me-2 text-indigo"></i> Riwayat Saya
-                                </a>
+                                <div class="d-flex gap-2">
+                                    <a href="?profil" class="btn btn-light border rounded-pill px-3 shadow-sm flex-grow-1 small">
+                                        <i class="fas fa-user-circle me-1 text-indigo"></i> Profil
+                                    </a>
+                                    <a href="?riwayat" class="btn btn-light border rounded-pill px-3 shadow-sm flex-grow-1 small">
+                                        <i class="fas fa-history me-1 text-indigo"></i> Riwayat
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -100,7 +117,8 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Status</span>
                             </div>
                             <h4 class="fw-bold text-dark">
-                                <?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?></h4>
+                                <?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?>
+                            </h4>
                             <p class="text-muted small mb-0">Status Kepegawaian</p>
                         </div>
                     </div>
@@ -115,7 +133,8 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
                             </div>
                             <h4 class="fw-bold text-dark text-truncate"
                                 title="<?php echo htmlspecialchars($pegawai['jabatan']); ?>">
-                                <?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?></h4>
+                                <?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?>
+                            </h4>
                             <p class="text-muted small mb-0">Posisi Saat Ini</p>
                         </div>
                     </div>
@@ -131,23 +150,24 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
                             <h4 class="fw-bold text-dark"><?php echo htmlspecialchars($pegawai['golongan'] ?: '-'); ?>
                             </h4>
                             <p class="text-muted small mb-0">
-                                <?php echo htmlspecialchars($pegawai['pangkat'] ?: 'N/A'); ?></p>
+                                <?php echo htmlspecialchars($pegawai['pangkat'] ?: 'N/A'); ?>
+                            </p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <a href="?riwayat" class="text-decoration-none">
+                    <a href="?monitoring" class="text-decoration-none">
                         <div class="card border-0 shadow-sm h-100 stat-card-light">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
-                                    <div class="icon-box bg-orange-soft text-orange me-3"><i class="fas fa-history"></i>
+                                    <div class="icon-box bg-orange-soft text-orange me-3"><i class="fas fa-tasks"></i>
                                     </div>
                                     <span
-                                        class="text-muted small text-uppercase fw-bold letter-spacing-1">Riwayat</span>
+                                        class="text-muted small text-uppercase fw-bold letter-spacing-1">Berkas Digital</span>
                                 </div>
-                                <h4 class="fw-bold text-dark"><?php echo $riwayat_count; ?> <span
-                                        class="fs-6 fw-normal text-muted">Item</span></h4>
-                                <p class="text-muted small mb-0">Dokumen Tersimpan</p>
+                                <h4 class="fw-bold text-dark"><?php echo round($percent); ?>% <span
+                                        class="fs-6 fw-normal text-muted">Lengkap</span></h4>
+                                <p class="text-muted small mb-0"><?php echo $count_done; ?> dari 5 dokumen utama</p>
                             </div>
                         </div>
                     </a>
@@ -169,25 +189,29 @@ $src_foto = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_se
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Nomor Induk Pegawai
                                             (NIP)</label>
                                         <div class="text-dark fw-semibold fs-5">
-                                            <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></div>
+                                            <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?>
+                                        </div>
                                     </div>
                                     <div class="info-group mb-4">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Nomor Registrasi
                                             (NRK)</label>
                                         <div class="text-dark fw-semibold fs-5">
-                                            <?php echo htmlspecialchars($pegawai['nrk'] ?: '-'); ?></div>
+                                            <?php echo htmlspecialchars($pegawai['nrk'] ?: '-'); ?>
+                                        </div>
                                     </div>
                                     <div class="info-group">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Unit Kerja</label>
                                         <div class="text-dark fw-semibold">
-                                            <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: '-'); ?></div>
+                                            <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: '-'); ?>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="info-group mb-4">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Pendidikan</label>
                                         <div class="text-dark fw-semibold">
-                                            <?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?></div>
+                                            <?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?>
+                                        </div>
                                     </div>
                                     <div class="info-group mb-4">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Tempat, Tgl

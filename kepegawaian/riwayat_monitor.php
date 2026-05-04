@@ -24,7 +24,9 @@ if (!$pegawai) {
 }
 
 $poto_db = $pegawai['foto'] ?? '';
-$foto_path = (!empty($poto_db) && file_exists("../file/foto/" . $poto_db)) ? "../file/foto/" . $poto_db : "../images/default.png";
+$folder_foto = "../file/datakepegawaian/";
+$path_file_server = $folder_foto . $poto_db;
+$foto_path = (!empty($poto_db) && file_exists($path_file_server)) ? $path_file_server : "../images/default.png";
 
 // Fetch History Data
 $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = '$pegawai_id' ORDER BY tmt DESC");
@@ -50,9 +52,17 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
         border: none;
     }
 
-    .header-blue { background: #3b82f6; }
-    .header-red { background: #ef4444; }
-    .header-slate { background: #1e293b; }
+    .header-blue {
+        background: #3b82f6;
+    }
+
+    .header-red {
+        background: #ef4444;
+    }
+
+    .header-slate {
+        background: #1e293b;
+    }
 
     .info-row {
         display: flex;
@@ -61,7 +71,9 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
         align-items: center;
     }
 
-    .info-row:last-child { border-bottom: none; }
+    .info-row:last-child {
+        border-bottom: none;
+    }
 
     .info-label {
         width: 180px;
@@ -121,8 +133,15 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
     }
 
     @media (max-width: 768px) {
-        .info-row { flex-direction: column; align-items: flex-start; }
-        .info-label { width: 100%; margin-bottom: 5px; }
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .info-label {
+            width: 100%;
+            margin-bottom: 5px;
+        }
     }
 </style>
 
@@ -164,7 +183,8 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
                 </div>
                 <div class="info-row">
                     <div class="info-label">Unit Kerja</div>
-                    <div class="info-box"><?php echo htmlspecialchars($pegawai['unit_kerja'] ?: 'SMP Negeri 171 Jakarta'); ?></div>
+                    <div class="info-box">
+                        <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: 'SMP Negeri 171 Jakarta'); ?></div>
                 </div>
             </div>
         </div>
@@ -190,9 +210,10 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
 
 <div class="mt-2 mb-4">
     <h5 class="fw-bold d-flex align-items-center">
-        <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+        <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+            style="width: 32px; height: 32px;">
             <i class="fas fa-history small"></i>
-        </span> 
+        </span>
         Riwayat & Lampiran Dokumen
     </h5>
 </div>
@@ -203,13 +224,17 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
         while ($r = $q_riwayat->fetch_assoc()):
             $has_file = !empty($r['file_lampiran']);
             $icon = 'fa-file-alt';
-            if ($r['kategori'] == 'Pangkat') $icon = 'fa-award';
-            else if ($r['kategori'] == 'Jabatan') $icon = 'fa-user-tie';
-            else if ($r['kategori'] == 'Pendidikan') $icon = 'fa-graduation-cap';
+            if ($r['kategori'] == 'Pangkat')
+                $icon = 'fa-award';
+            else if ($r['kategori'] == 'Jabatan')
+                $icon = 'fa-user-tie';
+            else if ($r['kategori'] == 'Pendidikan')
+                $icon = 'fa-graduation-cap';
             ?>
             <div class="card-item-riwayat">
                 <div class="d-flex justify-content-between mb-3">
-                    <div class="bg-light text-primary rounded-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <div class="bg-light text-primary rounded-3 d-flex align-items-center justify-content-center"
+                        style="width: 40px; height: 40px;">
                         <i class="fas <?php echo $icon; ?> fs-5"></i>
                     </div>
                     <div>
@@ -218,9 +243,9 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
                         </span>
                     </div>
                 </div>
-                
+
                 <h6 class="fw-bold text-dark mb-1">
-                    <?php 
+                    <?php
                     if ($r['kategori'] == 'Pendidikan' && !empty($r['institusi'])) {
                         echo htmlspecialchars($r['institusi']);
                     } else if ($r['kategori'] == 'KGB' && !empty($r['gaji_pokok'])) {
@@ -231,19 +256,22 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
                     ?>
                 </h6>
                 <p class="text-muted extra-small mb-3">
-                    <?php echo htmlspecialchars($r['kategori']); ?> 
-                    <?php if ($r['kategori'] == 'Pendidikan' && !empty($r['jurusan'])) echo '• ' . htmlspecialchars($r['jurusan']); ?>
-                    <?php if (($r['kategori'] == 'Diklat' || $r['kategori'] == 'Seminar') && !empty($r['tempat'])) echo '• @ ' . htmlspecialchars($r['tempat']); ?>
-                    <?php if ($r['kategori'] == 'KGB') echo '• Masa Kerja: ' . ($r['masa_kerja_thn'] ?: 0) . 'th ' . ($r['masa_kerja_bln'] ?: 0) . 'bln'; ?>
-                    • TMT: <?php echo date('d/m/Y', strtotime($r['tmt'])); ?>
+                    <?php echo htmlspecialchars($r['kategori']); ?>
+                    <?php if ($r['kategori'] == 'Pendidikan' && !empty($r['jurusan']))
+                        echo '• ' . htmlspecialchars($r['jurusan']); ?>
+                    <?php if (($r['kategori'] == 'Diklat' || $r['kategori'] == 'Seminar') && !empty($r['tempat']))
+                        echo '• @ ' . htmlspecialchars($r['tempat']); ?>
+                    <?php if ($r['kategori'] == 'KGB')
+                        echo '• Masa Kerja: ' . ($r['masa_kerja_thn'] ?: 0) . 'th ' . ($r['masa_kerja_bln'] ?: 0) . 'bln'; ?>
+                    • TMT: <?php echo (!empty($r['tmt']) && $r['tmt'] != '0000-00-00') ? date('d/m/Y', strtotime($r['tmt'])) : '-'; ?>
                 </p>
-                
+
                 <div class="bg-light p-2 rounded mb-3 small">
                     <div class="text-muted extra-small">
                         <?php echo ($r['kategori'] == 'Pendidikan') ? 'No. Ijazah:' : 'No. SK:'; ?>
                     </div>
                     <div class="fw-bold">
-                        <?php 
+                        <?php
                         if ($r['kategori'] == 'Pendidikan' && !empty($r['no_ijazah'])) {
                             echo htmlspecialchars($r['no_ijazah']);
                         } else {
@@ -255,7 +283,8 @@ $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = 
 
                 <div class="d-grid mt-2">
                     <?php if ($has_file): ?>
-                        <a href="../file/datakepegawaian/<?php echo $r['file_lampiran']; ?>" target="_blank" class="btn btn-sm btn-outline-primary fw-bold">
+                        <a href="../file/datakepegawaian/<?php echo $r['file_lampiran']; ?>" target="_blank"
+                            class="btn btn-sm btn-outline-primary fw-bold">
                             <i class="fas fa-external-link-alt me-1"></i> Lihat Dokumen
                         </a>
                     <?php else: ?>

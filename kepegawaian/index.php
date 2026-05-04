@@ -25,7 +25,7 @@ $nuser = $_SESSION['nama'] ?? 'Admin';
 // Determine current page
 $pages = [
     'dashboard' => 'dashboard.php',
-    'data_pegawai' => 'pegawai.php',
+    'data_pegawai' => 'data_pegawai.php',
     'import_data_pegawai' => 'import_pegawai.php',
     'data_pensiun' => 'datapensiun.php',
     'riwayat_monitor' => 'riwayat_monitor.php'
@@ -84,7 +84,7 @@ if (!file_exists($page_to_include)) {
         /* 1. NAVBAR STYLE */
         .navbar {
             height: 60px;
-            background-color: #1e293b !important;
+            background-color: #040608ff !important;
             z-index: 1050;
         }
 
@@ -104,7 +104,7 @@ if (!file_exists($page_to_include)) {
             left: 0;
             margin-left: -260px;
             /* Default hidden on Mobile */
-            background-color: #334155;
+            background-color: #343a40;
             transition: margin 0.25s ease-out;
             z-index: 1000;
             overflow-y: auto;
@@ -283,94 +283,94 @@ if (!file_exists($page_to_include)) {
         </div>
     </div>
 
-    <!-- === MODAL: SELEKSI MONITORING === -->
-    <div class="modal fade" id="modalMonitorSelect" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <h5 class="fw-bold"><i class="fas fa-file-medical me-2 text-primary"></i>Monitoring Data
-                        Pegawai
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <p class="text-muted small mb-3">Silakan pilih nama pegawai untuk memantau kelengkapan Data
-                        Pegawai.
-                    </p>
-                    <div class="mb-4">
-                        <label class="form-label small fw-bold text-muted text-uppercase">Cari Pegawai</label>
-                        <select id="selectMonitorPegawai" class="form-select" style="width: 100%;">
-                            <option value="">-- Pilih Pegawai --</option>
-                        </select>
+        <!-- === MODAL: SELEKSI MONITORING === -->
+        <div class="modal fade" id="modalMonitorSelect" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4">
+                    <div class="modal-header border-0 pb-0 pt-4 px-4">
+                        <h5 class="fw-bold"><i class="fas fa-file-medical me-2 text-primary"></i>Monitoring Data
+                            Pegawai
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <div class="text-end pt-3">
-                        <button type="button" id="btnGoToMonitor"
-                            class="btn btn-primary btn-rounded px-4 w-100 py-2 shadow-sm" disabled>
-                            Buka Monitoring <i class="fas fa-arrow-right ms-2"></i>
-                        </button>
+                    <div class="modal-body p-4">
+                        <p class="text-muted small mb-3">Silakan pilih nama pegawai untuk memantau kelengkapan Data
+                            Pegawai.
+                        </p>
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Cari Pegawai</label>
+                            <select id="selectMonitorPegawai" class="form-select" style="width: 100%;">
+                                <option value="">-- Pilih Pegawai --</option>
+                            </select>
+                        </div>
+                        <div class="text-end pt-3">
+                            <button type="button" id="btnGoToMonitor"
+                                class="btn btn-primary btn-rounded px-4 w-100 py-2 shadow-sm" disabled>
+                                Buka Monitoring <i class="fas fa-arrow-right ms-2"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <script src="../js/toastin.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/3.2.6/js/dataTables.fixedColumns.min.js"></script>
+        <script src="../js/toastin.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/fixedcolumns/3.2.6/js/dataTables.fixedColumns.min.js"></script>
 
-    <script>
-        $("#sidebarToggle").click(function (e) { e.preventDefault(); $("body").toggleClass("toggled"); });
-        function updateClock() {
-            const now = new Date();
-            $('#realtime-clock').text(now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }));
-        }
-        setInterval(updateClock, 1000); updateClock();
+        <script>
+            $("#sidebarToggle").click(function (e) { e.preventDefault(); $("body").toggleClass("toggled"); });
+            function updateClock() {
+                const now = new Date();
+                $('#realtime-clock').text(now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }));
+            }
+            setInterval(updateClock, 1000); updateClock();
 
-        // Monitoring Logic
-        const modalMonitor = new bootstrap.Modal(document.getElementById('modalMonitorSelect'));
+            // Monitoring Logic
+            const modalMonitor = new bootstrap.Modal(document.getElementById('modalMonitorSelect'));
 
-        // Initialize Select2
-        $('#selectMonitorPegawai').select2({
-            theme: 'bootstrap-5',
-            dropdownParent: $('#modalMonitorSelect'),
-            placeholder: 'Ketik nama pegawai...'
-        });
+            // Initialize Select2
+            $('#selectMonitorPegawai').select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#modalMonitorSelect'),
+                placeholder: 'Ketik nama pegawai...'
+            });
 
-        $('#menuMonitoring').click(function (e) {
-            e.preventDefault();
-            modalMonitor.show();
-            loadMonitorOptions();
-        });
+            $('#menuMonitoring').click(function (e) {
+                e.preventDefault();
+                modalMonitor.show();
+                loadMonitorOptions();
+            });
 
-        function loadMonitorOptions() {
-            $.get('proses_pegawai.php', { action: 'listPegawai' }, function (res) {
-                if (res.status === 'success') {
-                    let options = '<option value="">-- Pilih Pegawai --</option>';
-                    res.data.forEach(p => {
-                        options += `<option value="${p.id}">${p.nm_pegawai} - ${p.nip || p.nrk || ''}</option>`;
-                    });
-                    $('#selectMonitorPegawai').html(options).trigger('change');
+            function loadMonitorOptions() {
+                $.get('proses_pegawai.php', { action: 'listPegawai' }, function (res) {
+                    if (res.status === 'success') {
+                        let options = '<option value="">-- Pilih Pegawai --</option>';
+                        res.data.forEach(p => {
+                            options += `<option value="${p.id}">${p.nm_pegawai} - ${p.nip || p.nrk || ''}</option>`;
+                        });
+                        $('#selectMonitorPegawai').html(options).trigger('change');
+                    }
+                });
+            }
+
+            $('#selectMonitorPegawai').on('change', function () {
+                const val = $(this).val();
+                if (val) {
+                    $('#btnGoToMonitor').prop('disabled', false);
+                } else {
+                    $('#btnGoToMonitor').prop('disabled', true);
                 }
             });
-        }
 
-        $('#selectMonitorPegawai').on('change', function () {
-            const val = $(this).val();
-            if (val) {
-                $('#btnGoToMonitor').prop('disabled', false);
-            } else {
-                $('#btnGoToMonitor').prop('disabled', true);
-            }
-        });
-
-        $('#btnGoToMonitor').click(function () {
-            const id = $('#selectMonitorPegawai').val();
-            if (id) {
-                window.location.href = `?riwayat_monitor&id=${id}`;
-            }
-        });
-    </script>
+            $('#btnGoToMonitor').click(function () {
+                const id = $('#selectMonitorPegawai').val();
+                if (id) {
+                    window.location.href = `?riwayat_monitor&id=${id}`;
+                }
+            });
+        </script>
 </body>
 
 </html>
