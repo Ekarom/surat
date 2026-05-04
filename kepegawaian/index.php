@@ -74,11 +74,26 @@ if (!file_exists($page_to_include)) {
     <!-- Core Scripts -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/fixedcolumns/3.2.6/js/dataTables.fixedColumns.min.js"></script>
 
     <style>
+        :root {
+            --sap-primary: #4f46e5;
+            --sap-primary-light: rgba(79, 70, 229, 0.1);
+            --sap-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            --sap-secondary: #64748b;
+            --sap-success: #10b981;
+            --sap-info: #0ea5e9;
+            --sap-danger: #ef4444;
+            --sap-warning: #f59e0b;
+            --sap-dark: #1e293b;
+        }
+
         body {
             overflow-x: hidden;
             background-color: #f8f9fa;
+            font-family: 'Outfit', sans-serif;
         }
 
         /* 1. SIDEBAR STYLE */
@@ -135,13 +150,14 @@ if (!file_exists($page_to_include)) {
         }
 
         #navbar {
-            background-color: rgba(0, 0, 0, 1);
+            background: var(--sap-primary-gradient);
             color: #fff;
+            border-bottom: none !important;
         }
 
 
         #sidebar-wrapper .list-group-item.active {
-            background-color: #0d6efd;
+            background-color: var(--sap-primary);
             color: #fff;
             font-weight: bold;
         }
@@ -204,7 +220,7 @@ if (!file_exists($page_to_include)) {
 
         .clock-wrapper {
             color: #f8f8f8ff;
-            font-size: 0, 95rem;
+            font-size: 0.95rem;
         }
 
         #toastiin-container.top-right {
@@ -285,7 +301,7 @@ if (!file_exists($page_to_include)) {
     </div>
 
     <div id="page-content-wrapper">
-        <div class="container-fluid">
+        <div class="container-fluid content">
             <?php include $page_to_include; ?>
         </div>
     </div>
@@ -324,8 +340,6 @@ if (!file_exists($page_to_include)) {
 
     <script src="../js/toastin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/fixedcolumns/3.2.6/js/dataTables.fixedColumns.min.js"></script>
 
     <script>
         $("#sidebarToggle").click(function (e) { e.preventDefault(); $("body").toggleClass("toggled"); });

@@ -58,89 +58,101 @@ if ($lv == '4') {
 
     .badge-soft {
         font-weight: 600;
-        padding: 0.35em 0.8em;
+        padding: 0.4rem 1rem;
         border-radius: 50px;
         font-size: 0.75rem;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
     }
 
     .badge-soft-pns {
-        background-color: rgba(79, 70, 229, 0.1);
-        color: #4f46e5;
+        background-color: #eff6ff;
+        color: #2563eb;
+        border: 1px solid #dbeafe;
     }
 
     .badge-soft-pppk {
-        background-color: rgba(14, 165, 233, 0.1);
-        color: #0ea5e9;
+        background-color: #f0fdfa;
+        color: #0d9488;
+        border: 1px solid #ccfbf1;
     }
 
     .badge-soft-honorer {
-        background-color: rgba(245, 158, 11, 0.1);
-        color: #f59e0b;
+        background-color: #fffbeb;
+        color: #d97706;
+        border: 1px solid #fef3c7;
     }
 
     .badge-soft-lainnya {
-        background-color: rgba(100, 116, 139, 0.1);
-        color: #64748b;
+        background-color: #f8fafc;
+        color: #475569;
+        border: 1px solid #f1f5f9;
     }
 
     .modern-modal {
-        border-radius: 1.25rem;
+        border-radius: 1.5rem;
         overflow: hidden;
     }
 
     .modern-label {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;
         color: var(--sap-secondary);
-        margin-bottom: 0.4rem;
+        margin-bottom: 0.5rem;
         display: block;
+        letter-spacing: 0.025em;
     }
 
     .modern-input,
     .form-select.modern-input {
-        border-radius: 0.75rem;
-        border: 1px solid var(--sap-gray-200);
-        padding: 0.6rem 1rem;
-        font-size: 0.9rem;
+        border-radius: 0.85rem;
+        border: 1.5px solid var(--sap-gray-200);
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
         background-color: var(--sap-gray-50);
-        transition: all 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     .modern-input:focus {
         background-color: #fff;
         border-color: var(--sap-primary);
         box-shadow: 0 0 0 4px var(--sap-primary-light);
+        outline: none;
     }
 
     .btn-rounded {
         border-radius: 50px;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    #customSearch {
+        transition: all 0.3s ease;
+        border: 1px solid transparent !important;
     }
 
     #customSearch:focus {
-        width: 300px !important;
+        width: 350px !important;
         background-color: #fff !important;
         border-color: var(--sap-primary) !important;
-        box-shadow: 0 0 0 4px var(--sap-primary-light) !important;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
     }
 </style>
 
+<div class="py-3"></div>
 <div class="container-fluid">
-    <div class="d-md-flex justify-content-between align-items-center mb-4">
+    <div class="d-md-flex justify-content-between align-items-center mb-1">
         <div>
             <h2 class="page-title mb-1">Manajemen Kepegawaian</h2>
             <p class="text-muted small mb-0">Kelola database profil, jabatan, dan status kepegawaian secara terpusat</p>
         </div>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb mb-0 small">
-                <li class="breadcrumb-item"><a href="index.php" class="text-decoration-none text-muted">Home</a></li>
-                <li class="breadcrumb-item active text-primary fw-bold">Admin Kepegawaian</li>
-            </ol>
-        </nav>
     </div>
 
     <div class="modern-card">
-        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
             <div class="d-flex align-items-center gap-2">
                 <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
                     id="tombolTambahPegawai">
@@ -150,19 +162,11 @@ if ($lv == '4') {
                     <i class="las la-file-excel me-2"></i> Download Data
                 </a>
             </div>
-            <div class="position-relative">
-                <i class="las la-search position-absolute top-50 translate-middle-y ms-3 text-muted"></i>
-                <input type="text" id="customSearch"
-                    class="form-control form-control-sm btn-rounded ps-5 border-0 bg-light"
-                    placeholder="Cari data pegawai..." style="width: 250px; height: 36px;">
-            </div>
-        </div>
 
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0" id="tabelPegawai">
-                    <thead class="bg-light">
-                        <tr>
+            <div class="card-body">
+                <table class="table table-striped" style="width:100%;">
+                    <thead class="box-shadow-0 bg-gradient-x-secondary">
+                        <tr class="text-white">
                             <th class="text-center px-3" width="50">No</th>
                             <th width="60">Foto</th>
                             <th>Nama & Identitas</th>
@@ -193,16 +197,20 @@ if ($lv == '4') {
                                 <td><img src="<?php echo $foto_path; ?>" class="rounded-circle shadow-sm"
                                         style="width: 38px; height: 38px; object-fit: cover;"></td>
                                 <td>
-                                    <div class="fw-bold text-dark"><?php echo $row['nm_pegawai']; ?></div>
-                                    <div class="small text-muted">NIP: <?php echo $row['nip'] ?: '-'; ?> NRK:
-                                        <?php echo $row['nrk'] ?: '-'; ?></div>
+                                    <div class="fw-bold text-dark mb-0"><?php echo $row['nm_pegawai']; ?></div>
+                                    <div class="small text-muted mt-n1">
+                                        NIP: <?php echo $row['nip'] ?: '-'; ?> <span class="mx-1 text-gray-300">|</span>
+                                        NRK: <?php echo $row['nrk'] ?: '-'; ?>
+                                    </div>
                                 </td>
                                 <td>
-                                    <div class="fw-medium text-dark"><?php echo $row['jabatan'] ?: '-'; ?></div>
-                                    <div class="extra-small text-muted"><?php echo $row['unit_kerja'] ?: '-'; ?></div>
+                                    <div class="fw-medium text-dark mb-0"><?php echo $row['jabatan'] ?: '-'; ?></div>
+                                    <div class="extra-small text-muted mt-n1"><?php echo $row['unit_kerja'] ?: '-'; ?></div>
                                 </td>
-                                <td class="text-center"><span
-                                        class="badge-soft <?php echo $cls; ?>"><?php echo $row['status_pegawai'] ?: '-'; ?></span>
+                                <td class="text-center">
+                                    <span class="badge-soft <?php echo $cls; ?>">
+                                        <?php echo $row['status_pegawai'] ?: '-'; ?>
+                                    </span>
                                 </td>
                                 <td class="text-center">
                                     <div class="form-check form-switch d-flex justify-content-center">
@@ -333,64 +341,97 @@ if ($lv == '4') {
 
 <style>
     /* Fixed Columns Robust Styling */
-    .DTFC_LeftWrapper, .DTFC_RightWrapper {
-        z-index: 10;
+    .DTFC_LeftWrapper,
+    .DTFC_RightWrapper {
+        z-index: 20 !important;
     }
-    
+
     /* Ensure fixed cells have a solid background */
-    .DTFC_LeftBodyWrapper td, 
+    .DTFC_LeftBodyWrapper td,
     .DTFC_LeftHeadWrapper th,
     .DTFC_RightBodyWrapper td,
     .DTFC_RightHeadWrapper th {
         background-color: #fff !important;
-        border-right: 1px solid var(--sap-gray-100);
+        border-right: 1px solid var(--sap-gray-100) !important;
     }
 
-    .DTFC_RightBodyWrapper td, .DTFC_RightHeadWrapper th {
-        border-right: none;
-        border-left: 1px solid var(--sap-gray-100);
+    .DTFC_RightBodyWrapper td,
+    .DTFC_RightHeadWrapper th {
+        border-right: none !important;
+        border-left: 1px solid var(--sap-gray-100) !important;
     }
 
     /* Shadow effects for separation */
     .DTFC_LeftWrapper {
-        box-shadow: 10px 0 15px -10px rgba(0,0,0,0.15);
+        box-shadow: 15px 0 30px -15px rgba(0, 0, 0, 0.08) !important;
     }
+
     .DTFC_RightWrapper {
-        box-shadow: -10px 0 15px -10px rgba(0,0,0,0.15);
+        box-shadow: -15px 0 30px -15px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    #tabelPegawai {
+        border-collapse: separate !important;
+        border-spacing: 0;
     }
 
     #tabelPegawai th {
-        font-size: 0.75rem;
+        font-size: 0.72rem;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.075em;
         font-weight: 700;
         color: var(--sap-secondary);
         padding: 1.25rem 1rem;
+        border-top: none;
+        background-color: var(--sap-gray-50);
     }
-    
+
     #tabelPegawai td {
-        padding: 1rem;
+        padding: 1.1rem 1rem;
         white-space: nowrap;
+        border-bottom: 1px solid var(--sap-gray-100);
+        transition: background-color 0.2s ease;
     }
-    
+
+    #tabelPegawai tr:hover td {
+        background-color: rgba(79, 70, 229, 0.02) !important;
+    }
+
     /* Fix for header alignment */
-    .dataTables_scrollHeadInner, .dataTables_scrollHeadInner table {
+    .dataTables_scrollHeadInner,
+    .dataTables_scrollHeadInner table {
         width: 100% !important;
     }
 
     /* Hide standard DT components we replaced */
-    .dataTables_filter, .dataTables_length {
+    .dataTables_filter,
+    .dataTables_length {
         display: none;
     }
 
     .dataTables_info {
         padding: 1.5rem !important;
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         color: var(--sap-secondary);
+        font-weight: 500;
     }
 
     .dataTables_paginate {
-        padding: 1rem !important;
+        padding: 1rem 1.5rem !important;
+    }
+
+    .paginate_button.page-item.active .page-link {
+        background-color: var(--sap-primary);
+        border-color: var(--sap-primary);
+        box-shadow: 0 4px 10px -2px var(--sap-primary-light);
+    }
+
+    .page-link {
+        border-radius: 8px !important;
+        margin: 0 3px;
+        color: var(--sap-secondary);
+        border: none;
+        padding: 0.5rem 0.8rem;
     }
 </style>
 
@@ -401,35 +442,12 @@ if ($lv == '4') {
         const modalDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
 
         // DataTable with FixedColumns
-        if ($.fn.DataTable) {
-            const table = $('#tabelPegawai').DataTable({
-                pageLength: 25,
-                scrollX: true,
-                scrollCollapse: true,
-                dom: 'rt<"d-flex justify-content-between align-items-center"ip>',
-                fixedColumns: {
-                    leftColumns: 3,
-                    rightColumns: 1
-                },
-                language: { 
-                    paginate: {
-                        previous: "<i class='las la-angle-left'></i>",
-                        next: "<i class='las la-angle-right'></i>"
-                    }
-                },
-                columnDefs: [
-                    { orderable: false, targets: [0, 1, 5, 6] },
-                    { width: "50px", targets: 0 },
-                    { width: "60px", targets: 1 },
-                    { width: "120px", targets: 6 }
-                ]
-            });
-
-            // Adjust columns on window resize
-            $(window).on('resize', function() {
-                setTimeout(() => table.columns.adjust(), 100);
-            });
-        }
+        $('.content table.table').DataTable({
+            scrollY: 450,
+            scrollX: true,
+            scrollCollapse: true,
+            paging: false,
+        });
 
         // Add
         $('#tombolTambahPegawai').click(function () {
