@@ -36,8 +36,14 @@ if (isset($_SESSION['id'])) {
     $uid = $_SESSION['id'];
     $conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $uid");
 }
-$online_res = $conn->query("SELECT COUNT(*) as total FROM pegawai WHERE last_activity > DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
-$online_count = ($online_res && $online_res->num_rows > 0) ? $online_res->fetch_assoc()['total'] : 0;
+$online_res = $conn->query("SELECT id, nm_pegawai, last_activity, status_pegawai FROM pegawai WHERE last_activity > DATE_SUB(NOW(), INTERVAL 5 MINUTE) ORDER BY last_activity DESC");
+$online_users = [];
+if ($online_res) {
+    while ($row = $online_res->fetch_assoc()) {
+        $online_users[] = $row;
+    }
+}
+$online_count = count($online_users);
 
 $info_boxes = [
     ['title' => 'Total Pegawai', 'value' => $stats['total'], 'unit' => 'Orang', 'icon' => 'fa-users', 'color' => 'bg-primary'],
@@ -45,7 +51,6 @@ $info_boxes = [
     ['title' => 'Jumlah PNS', 'value' => $stats['pns'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
     ['title' => 'Jumlah PPPK', 'value' => $stats['pppk'], 'unit' => '', 'icon' => 'fa-id-card', 'color' => 'bg-info'],
     ['title' => 'Jumlah Honorer', 'value' => $stats['honorer'], 'unit' => '', 'icon' => 'fa-user-clock', 'color' => 'bg-warning'],
-    ['title' => 'User Online', 'value' => $online_count, 'unit' => 'Aktif', 'icon' => 'fa-signal online-pulse-icon', 'color' => 'bg-dark'],
 ];
 
 // Gender Distribution
@@ -191,6 +196,53 @@ if ($res_pensiun) {
                     <div style="height: 220px;">
                         <canvas id="statusChart"></canvas>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Online Panel -->
+        <div class="col-lg-5">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <h6 class="fw-bold mb-0 me-2">User Online</h6>
+                        <span class="badge rounded-circle bg-success-soft text-success px-2 py-1" style="font-size: 0.7rem;"><?php echo $online_count; ?></span>
+                    </div>
+                    <div class="online-dot-pulse"></div>
+                </div>
+                <div class="card-body p-0">
+                    <div class="online-user-list">
+                        <?php if (!empty($online_users)): ?>
+                            <?php foreach ($online_users as $u): 
+                                $is_admin = (stripos($u['status_pegawai'], 'ADMIN') !== false || stripos($u['jabatan'], 'ADMIN') !== false);
+                                $role_label = $is_admin ? 'ADMIN' : 'GURU';
+                                $last_time = date('H:i', strtotime($u['last_activity']));
+                            ?>
+                                <div class="online-user-item p-3 d-flex justify-content-between align-items-center border-bottom">
+                                    <div>
+                                        <div class="fw-bold text-dark mb-1"><?php echo htmlspecialchars($u['nm_pegawai']); ?></div>
+                                        <span class="badge bg-success text-white extra-small px-2 py-1"><?php echo $role_label; ?></span>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="small text-success fw-bold d-flex align-items-center justify-content-end">
+                                            <span class="online-dot me-1"></span> Online
+                                        </div>
+                                        <div class="extra-small text-muted"><?php echo $last_time; ?></div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <div class="text-center py-5 opacity-50">
+                                <i class="fas fa-user-slash fa-3x mb-2"></i>
+                                <p class="small">Tidak ada pengguna aktif</p>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50" disabled>Prev</button>
+                    <span class="extra-small text-muted">Hal 1 / 1</span>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50" disabled>Next</button>
                 </div>
             </div>
         </div>
@@ -345,6 +397,38 @@ if ($res_pensiun) {
         0% { opacity: 1; }
         50% { opacity: 0.4; }
         100% { opacity: 1; }
+    }
+
+    .online-dot-pulse {
+        width: 10px;
+        height: 10px;
+        background-color: #10b981;
+        border-radius: 50%;
+        box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+        animation: pulse-green 2s infinite;
+    }
+
+    @keyframes pulse-green {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    .online-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        background-color: #10b981;
+        border-radius: 50%;
+    }
+
+    .online-user-item:last-child {
+        border-bottom: none !important;
+    }
+
+    .online-user-list {
+        max-height: 250px;
+        overflow-y: auto;
     }
 
     .badge-soft-blue {
