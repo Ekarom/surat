@@ -92,6 +92,19 @@ if ($conn && !$conn->connect_error) {
   if ($col_check2 && $col_check2->num_rows === 0) {
     @$conn->query("ALTER TABLE tb_user ADD COLUMN last_activity DATETIME NULL DEFAULT NULL");
   }
+  
+  $col_check3 = @$conn->query("SHOW COLUMNS FROM tb_user LIKE 'last_logout'");
+  if ($col_check3 && $col_check3->num_rows === 0) {
+    @$conn->query("ALTER TABLE tb_user ADD COLUMN last_logout DATETIME NULL DEFAULT NULL");
+  }
+}
+
+// Auto-migration: Pastikan kolom last_logout ada di tabel pegawai
+if ($conn && !$conn->connect_error) {
+  $col_check4 = @$conn->query("SHOW COLUMNS FROM pegawai LIKE 'last_logout'");
+  if ($col_check4 && $col_check4->num_rows === 0) {
+    @$conn->query("ALTER TABLE pegawai ADD COLUMN last_logout DATETIME NULL DEFAULT NULL");
+  }
 }
 
 // Update last_activity secara otomatis jika session aktif
@@ -383,19 +396,46 @@ $_SESSION['tapel'] = $tapel_val;
 $_SESSION['semester'] = $semester_val;
 $_SESSION['tahundb'] = $tahun; // Sync with global $tahun
 
-// Global Online Tracking: Update last_activity setiap request (HARUS setelah session_start)
+// Global Online Tracking & Logout Validation
 if ($conn && !$conn->connect_error && isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
   $sess_level = $_SESSION['level'] ?? '';
   $sess_id    = (int)($_SESSION['id'] ?? 0);
+  $login_time = $_SESSION['login_time'] ?? 0;
 
-  if ($sess_level == '4') {
-    // GURU: session id = pegawai.id langsung
-    if ($sess_id > 0) {
-      @$conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $sess_id");
+  if ($sess_id > 0) {
+    // 1. Cek Global Logout (Apakah ada logout dari perangkat lain?)
+    $last_logout_db = 0;
+    if ($sess_level == '4') {
+      $q_logout = $conn->query("SELECT last_logout FROM pegawai WHERE id = $sess_id");
+    } else {
+      $q_logout = $conn->query("SELECT last_logout FROM tb_user WHERE id = $sess_id");
     }
-  } else {
-    // ADMIN / STAFF: session id = tb_user.id, update langsung di tb_user
-    if ($sess_id > 0) {
+
+    if ($q_logout && $q_logout->num_rows > 0) {
+      $row_logout = $q_logout->fetch_assoc();
+      $last_logout_db = $row_logout['last_logout'] ? strtotime($row_logout['last_logout']) : 0;
+    }
+
+    if ($last_logout_db > $login_time) {
+      // Sesi ini sudah tidak valid karena ada logout global
+      session_unset();
+      session_destroy();
+      
+      // Tentukan path redirect yang benar
+      $is_subdir = (strpos($_SERVER['PHP_SELF'], '/kepegawaian/') !== false);
+      if ($sess_level == '4') {
+        $target = $is_subdir ? "login_ptk.php" : "kepegawaian/login_ptk.php";
+      } else {
+        $target = $is_subdir ? "../login.php" : "login.php";
+      }
+      header("Location: $target?error=globallogout");
+      exit;
+    }
+
+    // 2. Update Activity (Status Online)
+    if ($sess_level == '4') {
+      @$conn->query("UPDATE pegawai SET last_activity = NOW() WHERE id = $sess_id");
+    } else {
       @$conn->query("UPDATE tb_user SET last_activity = NOW() WHERE id = $sess_id");
     }
   }

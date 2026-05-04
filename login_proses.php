@@ -189,6 +189,7 @@ if ($is_authenticated) {
     $_SESSION['poto'] = $user['poto']; 
     $_SESSION['nik'] = $user['nik']; 
     $_SESSION['last_activity'] = time();
+    $_SESSION['login_time'] = time();
 
     // Set compatibility mapping
     $_SESSION['skradm'] = $user['userid'];

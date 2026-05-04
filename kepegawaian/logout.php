@@ -12,9 +12,9 @@ if (isset($_SESSION['id']) && isset($_SESSION['level'])) {
     $offline_time = date('Y-m-d H:i:s', strtotime('-10 minutes'));
     
     if ($level == '4') {
-        mysqli_query($conn, "UPDATE pegawai SET last_activity = '$offline_time' WHERE id = $uid");
+        mysqli_query($conn, "UPDATE pegawai SET last_activity = '$offline_time', last_logout = NOW() WHERE id = $uid");
     } else {
-        mysqli_query($conn, "UPDATE tb_user SET last_activity = '$offline_time' WHERE id = $uid");
+        mysqli_query($conn, "UPDATE tb_user SET last_activity = '$offline_time', last_logout = NOW() WHERE id = $uid");
     }
 }
 

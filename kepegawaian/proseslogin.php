@@ -88,7 +88,7 @@ $userid = $_POST['userid'] ?? '';
 $password = $_POST['password'] ?? '';
 
 // Query Database - TABEL PEGAWAI
-$stmt = $conn->prepare('SELECT id, nrk, nip, nm_pegawai, email, foto, status FROM pegawai WHERE (nrk = ? OR nip = ?) LIMIT 1');
+$stmt = $conn->prepare('SELECT id, nrk, nip, nm_pegawai, email, foto, status, google_auth_secret FROM pegawai WHERE (nrk = ? OR nip = ?) LIMIT 1');
 if ($stmt === false) {
     header("Location: login_ptk.php?salah=2");
     exit;
@@ -121,6 +121,34 @@ if ($is_authenticated) {
     // Login Sukses - Reset Attempts
     $conn->query("DELETE FROM login_attempts WHERE ip_address = '$ip_address'");
 
+    // =========================================================================================
+    //                                   TWO-FACTOR AUTH (2FA) FLOW
+    // =========================================================================================
+    $_SESSION['2fa_ptk_user_id'] = $pegawai['id'];
+
+    if (empty($pegawai['google_auth_secret'])) {
+        // Belum setup 2FA -> Redirect ke Setup
+        header("Location: setup_2fa_ptk.php");
+        exit();
+    } else {
+        // Sudah setup 2FA -> Redirect ke Verifikasi
+        
+        // Log activity: Attempting 2FA
+        $nama = $pegawai['nm_pegawai'];
+        $waktu = date("Y-m-d H:i:s");
+        $info_log = "Login Guru (Waiting 2FA)";
+        $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
+        if ($stmt_log !== false) {
+            $user_log_id = $pegawai['nrk'] ?: $pegawai['nip'];
+            $stmt_log->bind_param("sssss", $user_log_id, $nama, $waktu, $ip_address, $info_log);
+            $stmt_log->execute();
+            $stmt_log->close();
+        }
+
+        header("Location: verify2fa_ptk.php");
+        exit();
+    }
+
     // Session Registration
     session_regenerate_id(true);
     $_SESSION['authenticated'] = true;
@@ -134,6 +162,7 @@ if ($is_authenticated) {
     $_SESSION['poto'] = $pegawai['foto'];
     $_SESSION['nik'] = $pegawai['nrk'] ?: $pegawai['nip'];
     $_SESSION['last_activity'] = time();
+    $_SESSION['login_time'] = time();
     $_SESSION['database_asli'] = $db;
 
     // Log Login
