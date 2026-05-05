@@ -255,7 +255,7 @@ if (!file_exists($page_to_include)) {
                     </li>
                     <li class="nav-item">
                         <span class="nav-link text-white">Halo,
-                            <strong><?php echo htmlspecialchars($nuser); ?></strong></span>
+                            <strong><?php echo htmlspecialchars($nuser ?? ''); ?></strong></span>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link btn btn btn-outline-danger btn-sm text-white px-3 ms-lg-2 my-2 my-lg-0"

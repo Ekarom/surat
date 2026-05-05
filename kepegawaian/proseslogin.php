@@ -84,8 +84,8 @@ if ($session_captcha === null || empty($user_captcha) || intval($user_captcha) !
 // =========================================================================================
 //                                   PROSES LOGIN (GURU - DARI TABEL PEGAWAI)
 // =========================================================================================
-$userid = $_POST['userid'] ?? '';
-$password = $_POST['password'] ?? '';
+$userid = trim($_POST['userid'] ?? '');
+$password = trim($_POST['password'] ?? '');
 
 // Query Database - TABEL PEGAWAI
 $stmt = $conn->prepare('SELECT id, nrk, nip, nm_pegawai, email, foto, status, google_auth_secret FROM pegawai WHERE (nrk = ? OR nip = ?) LIMIT 1');
@@ -99,14 +99,15 @@ $result = $stmt->get_result();
 $pegawai = $result->fetch_assoc();
 $stmt->close();
 
-// Authentication Logic
+// Authentication Logic: Check if password matches either NRK or NIP
 $is_authenticated = false;
 if ($pegawai) {
-    // Allow either NRK or NIP as password for flexibility
-    $nrk_pass = !empty($pegawai['nrk']) ? $pegawai['nrk'] : '';
-    $nip_pass = !empty($pegawai['nip']) ? $pegawai['nip'] : '';
+    // Both NIP and NRK can serve as the password
+    $nrk_db = !empty($pegawai['nrk']) ? trim($pegawai['nrk']) : '';
+    $nip_db = !empty($pegawai['nip']) ? trim($pegawai['nip']) : '';
 
-    if (($nrk_pass !== '' && $password === $nrk_pass) || ($nip_pass !== '' && $password === $nip_pass)) {
+    // Verify password against either NRK or NIP
+    if (($nrk_db !== '' && $password === $nrk_db) || ($nip_db !== '' && $password === $nip_db)) {
         $is_authenticated = true;
     }
 }

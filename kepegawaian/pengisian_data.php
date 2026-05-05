@@ -333,8 +333,8 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 </label>
                                 <input type="file" id="foto_input" name="foto" class="d-none" accept="image/*">
                             </div>
-                            <h6 class="fw-bold mb-1"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></h6>
-                            <p class="text-muted small">NIP. <?php echo htmlspecialchars($pegawai['nip']); ?></p>
+                            <h6 class="fw-bold mb-1"><?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?></h6>
+                            <p class="text-muted small">NIP. <?php echo htmlspecialchars($pegawai['nip'] ?? ''); ?></p>
                         </div>
 
                         <!-- Form Section -->
@@ -345,7 +345,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-6">
                                     <label class="modern-label">Nama Lengkap (*)</label>
                                     <input type="text" name="nm_pegawai" class="form-control modern-input" required
-                                        value="<?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>">
                                     <div class="invalid-feedback">Nama lengkap wajib diisi.</div>
                                 </div>
                                 <div class="col-md-3">
@@ -373,7 +373,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-4">
                                     <label class="modern-label">Tempat Lahir (*)</label>
                                     <input type="text" name="tempat_lahir" class="form-control modern-input" required
-                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir'] ?? ''); ?>">
                                     <div class="invalid-feedback">Tempat lahir wajib diisi.</div>
                                 </div>
                                 <div class="col-md-4">
@@ -386,43 +386,43 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                     <label class="modern-label">NUPTK (16 Digit)</label>
                                     <input type="text" name="nuptk" class="form-control modern-input" pattern="\d{16}"
                                         placeholder="Contoh: 1234567890123456"
-                                        value="<?php echo htmlspecialchars($pegawai['nuptk']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nuptk'] ?? ''); ?>">
                                     <div class="invalid-feedback">NUPTK harus berupa 16 digit angka.</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">NIK (No. KTP - 16 Digit) (*)</label>
                                     <input type="text" name="nik" class="form-control modern-input" required
                                         pattern="\d{16}" placeholder="Contoh: 3171XXXXXXXXXXXX"
-                                        value="<?php echo htmlspecialchars($pegawai['nik']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nik'] ?? ''); ?>">
                                     <div class="invalid-feedback">NIK wajib diisi (16 digit angka).</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">Nomor Kartu Keluarga (16 Digit) (*)</label>
                                     <input type="text" name="no_kk" class="form-control modern-input" required
                                         pattern="\d{16}" placeholder="Contoh: 3171XXXXXXXXXXXX"
-                                        value="<?php echo htmlspecialchars($pegawai['no_kk']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_kk'] ?? ''); ?>">
                                     <div class="invalid-feedback">No. KK wajib diisi (16 digit angka).</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">Nama Ibu Kandung</label>
                                     <input type="text" name="nama_ibu" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">Nama Suami/Istri</label>
                                     <input type="text" name="nama_pasangan" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="modern-label">NPWP</label>
                                     <input type="text" name="npwp" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['npwp']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['npwp'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-12">
                                     <label class="modern-label">Hobby / Kegemaran</label>
                                     <input type="text" name="hobby" class="form-control modern-input"
                                         placeholder="Contoh: Membaca, Olahraga, Musik"
-                                        value="<?php echo htmlspecialchars($pegawai['hobby']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['hobby'] ?? ''); ?>">
                                 </div>
                             </div>
 
@@ -442,7 +442,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-4">
                                     <label class="modern-label">Pendidikan Terakhir</label>
                                     <input type="text" name="pendidikan" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['pendidikan']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">Golongan</label>
@@ -470,22 +470,22 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Karpeg</label>
                                     <input type="text" name="no_karpeg" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Taspen</label>
                                     <input type="text" name="no_taspen" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['no_taspen']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_taspen'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. BPJS</label>
                                     <input type="text" name="no_bpjs" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Karis/Karsu</label>
                                     <input type="text" name="no_karis_karsu" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['no_karis_karsu']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_karis_karsu'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="modern-label">Masa Kerja (Thn / Bln)</label>
@@ -509,40 +509,40 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-6">
                                     <label class="modern-label">No. HP / WhatsApp (*)</label>
                                     <input type="text" name="no_hp" class="form-control modern-input" required
-                                        pattern="\d{10,15}" value="<?php echo htmlspecialchars($pegawai['no_hp']); ?>">
+                                        pattern="\d{10,15}" value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
                                     <div class="invalid-feedback">No. HP wajib diisi (10-15 angka).</div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="modern-label">Email (*)</label>
                                     <input type="email" name="email" class="form-control modern-input" required
-                                        value="<?php echo htmlspecialchars($pegawai['email']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['email'] ?? ''); ?>">
                                     <div class="invalid-feedback">Email tidak valid.</div>
                                 </div>
                                 <div class="col-12">
                                     <label class="modern-label">Alamat Lengkap Domisili (*)</label>
                                     <textarea name="alamat" class="form-control modern-input" required
-                                        rows="3"><?php echo htmlspecialchars($pegawai['alamat']); ?></textarea>
+                                        rows="3"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></textarea>
                                     <div class="invalid-feedback">Alamat lengkap wajib diisi.</div>
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">RT</label>
                                     <input type="text" name="rt" class="form-control modern-input" placeholder="000"
-                                        value="<?php echo htmlspecialchars($pegawai['rt']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['rt'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">RW</label>
                                     <input type="text" name="rw" class="form-control modern-input" placeholder="000"
-                                        value="<?php echo htmlspecialchars($pegawai['rw']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['rw'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">Kelurahan</label>
                                     <input type="text" name="kelurahan" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['kelurahan']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['kelurahan'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">Kecamatan</label>
                                     <input type="text" name="kecamatan" class="form-control modern-input"
-                                        value="<?php echo htmlspecialchars($pegawai['kecamatan']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['kecamatan'] ?? ''); ?>">
                                 </div>
                             </div>
 

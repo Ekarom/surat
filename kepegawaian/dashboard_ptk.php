@@ -72,13 +72,13 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                             </div>
                             <div class="col-md-7">
                                 <h3 class="fw-bold mb-1 text-dark">Selamat Datang,
-                                    <?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>!
+                                    <?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>!
                                 </h3>
                                 <p class="mb-0 text-muted">Akses mandiri data kepegawaian Anda secara terpusat dan
                                     transparan.</p>
                                 <div class="mt-2">
                                     <span
-                                        class="badge bg-primary-soft text-primary rounded-pill px-3"><?php echo htmlspecialchars($pegawai['nrk'] ?: $pegawai['nip']); ?></span>
+                                        class="badge bg-primary-soft text-primary rounded-pill px-3"><?php echo htmlspecialchars(($pegawai['nrk'] ?: $pegawai['nip']) ?? ''); ?></span>
                                     <span class="badge bg-success-soft text-success rounded-pill px-3 ms-1">Aktif</span>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Status</span>
                             </div>
                             <h4 class="fw-bold text-dark">
-                                <?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?>
+                                <?php echo htmlspecialchars(($pegawai['status_pegawai'] ?: '-') ?? ''); ?>
                             </h4>
                             <p class="text-muted small mb-0">Status Kepegawaian</p>
                         </div>
@@ -125,8 +125,8 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Jabatan</span>
                             </div>
                             <h4 class="fw-bold text-dark text-truncate"
-                                title="<?php echo htmlspecialchars($pegawai['jabatan']); ?>">
-                                <?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?>
+                                title="<?php echo htmlspecialchars($pegawai['jabatan'] ?? ''); ?>">
+                                <?php echo htmlspecialchars(($pegawai['jabatan'] ?: '-') ?? ''); ?>
                             </h4>
                             <p class="text-muted small mb-0">Posisi Saat Ini</p>
                         </div>
@@ -140,10 +140,10 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                 </div>
                                 <span class="text-muted small text-uppercase fw-bold letter-spacing-1">Pangkat</span>
                             </div>
-                            <h4 class="fw-bold text-dark"><?php echo htmlspecialchars($pegawai['golongan'] ?: '-'); ?>
+                            <h4 class="fw-bold text-dark"><?php echo htmlspecialchars(($pegawai['golongan'] ?: '-') ?? ''); ?>
                             </h4>
                             <p class="text-muted small mb-0">
-                                <?php echo htmlspecialchars($pegawai['pangkat'] ?: 'N/A'); ?>
+                                <?php echo htmlspecialchars(($pegawai['pangkat'] ?: 'N/A') ?? ''); ?>
                             </p>
                         </div>
                     </div>
@@ -182,20 +182,20 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Nomor Induk Pegawai
                                             (NIP)</label>
                                         <div class="text-dark fw-semibold fs-5">
-                                            <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?>
+                                            <?php echo htmlspecialchars(($pegawai['nip'] ?: '-') ?? ''); ?>
                                         </div>
                                     </div>
                                     <div class="info-group mb-4">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Nomor Registrasi
                                             (NRK)</label>
                                         <div class="text-dark fw-semibold fs-5">
-                                            <?php echo htmlspecialchars($pegawai['nrk'] ?: '-'); ?>
+                                            <?php echo htmlspecialchars(($pegawai['nrk'] ?: '-') ?? ''); ?>
                                         </div>
                                     </div>
                                     <div class="info-group">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Unit Kerja</label>
                                         <div class="text-dark fw-semibold">
-                                            <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: '-'); ?>
+                                            <?php echo htmlspecialchars(($pegawai['unit_kerja'] ?: '-') ?? ''); ?>
                                         </div>
                                     </div>
                                 </div>
@@ -203,7 +203,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                     <div class="info-group mb-4">
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Pendidikan</label>
                                         <div class="text-dark fw-semibold">
-                                            <?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?>
+                                            <?php echo htmlspecialchars(($pegawai['pendidikan'] ?: '-') ?? ''); ?>
                                         </div>
                                     </div>
                                     <div class="info-group mb-4">
@@ -212,7 +212,7 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                         <div class="text-dark fw-semibold">
                                             <?php
                                             $tgl = (!empty($pegawai['tgl_lahir']) && $pegawai['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tgl_lahir'])) : '-';
-                                            echo htmlspecialchars($pegawai['tempat_lahir'] ?: '-') . ", " . $tgl;
+                                            echo htmlspecialchars(($pegawai['tempat_lahir'] ?: '-') ?? '') . ", " . $tgl;
                                             ?>
                                         </div>
                                     </div>
@@ -220,10 +220,10 @@ $percent = (count($requirements) > 0) ? ($count_done / count($requirements)) * 1
                                         <label class="text-muted small text-uppercase mb-1 fw-bold">Kontak</label>
                                         <div class="text-dark fw-semibold"><i
                                                 class="las la-phone-alt small me-2 text-muted"></i>
-                                            <?php echo htmlspecialchars($pegawai['no_hp'] ?: '-'); ?></div>
+                                            <?php echo htmlspecialchars(($pegawai['no_hp'] ?: '-') ?? ''); ?></div>
                                         <div class="text-dark fw-semibold"><i
                                                 class="las la-envelope small me-2 text-muted"></i>
-                                            <?php echo htmlspecialchars($pegawai['email'] ?: '-'); ?></div>
+                                            <?php echo htmlspecialchars(($pegawai['email'] ?: '-') ?? ''); ?></div>
                                     </div>
                                 </div>
                             </div>

@@ -26,14 +26,23 @@ function getRetirementDetails($tglLahir, $jabatan, $statusPegawai)
         ];
     }
 
-    $bup = 60; // Default Batas Usia Pensiun (Updated to 60)
+    $bup = 60; // Default BUP for most functional positions (like Teachers)
     $jabatanUpper = strtoupper($jabatan);
 
     // BUP rules based on position type
     if (strpos($jabatanUpper, 'UTAMA') !== false || strpos($jabatanUpper, 'PROFESOR') !== false) {
         $bup = 65;
+    } 
+    // BUP 58 for Administrative / Implementation roles (if not a Guru)
+    elseif (strpos($jabatanUpper, 'GURU') === false) {
+        $adminKeywords = ['STAF', 'TATA USAHA', 'TU', 'ADMIN', 'PELAKSANA', 'PENGADMINISTRASI', 'BENDAHARA', 'CARAKA', 'KEBERSIHAN', 'KEAMANAN'];
+        foreach ($adminKeywords as $kw) {
+            if (strpos($jabatanUpper, $kw) !== false) {
+                $bup = 58;
+                break;
+            }
+        }
     }
-    // Note: Default is now 60, matching most functional positions
 
     $tglLahirObj = new DateTime($tglLahir);
     $pensiunDate = clone $tglLahirObj;

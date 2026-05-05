@@ -291,7 +291,7 @@ if (!file_exists($page_to_include)) {
 
             <div class="sidebar-heading">Sistem & Data</div>
             <div class="list-group list-group-flush">
-                <a href="?import_data_pegawai"
+                <a href="?data_pegawai&import"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'import_data_pegawai') ? 'active' : ''; ?>">
                     <i class="las la-upload"></i> Upload Data Pegawai
                 </a>
@@ -309,15 +309,14 @@ if (!file_exists($page_to_include)) {
 
     <!-- === MODAL: SELEKSI MONITORING === -->
     <div class="modal fade" id="modalMonitorSelect" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-0 pb-0 pt-4 px-4">
-                    <h5 class="fw-bold"><i class="las la-file-medical me-2 text-primary"></i>Monitoring Data
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="fw-bold">Monitoring Data
                         Pegawai
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body p-4">
+                <div class="modal-body">
                     <p class="text-muted small mb-3">Silakan pilih nama pegawai untuk memantau kelengkapan Data
                         Pegawai.
                     </p>
@@ -327,7 +326,7 @@ if (!file_exists($page_to_include)) {
                             <option value="">-- Pilih Pegawai --</option>
                         </select>
                     </div>
-                    <div class="text-end pt-3">
+                    <div class="text-end pt-1">
                         <button type="button" id="btnGoToMonitor"
                             class="btn btn-primary btn-rounded px-4 w-100 py-2 shadow-sm" disabled>
                             Buka Monitoring <i class="las la-arrow-right ms-2"></i>
