@@ -1,8 +1,15 @@
 <?php
 include "cfg/konek.php";
+?>
+<!-- Toastin Assets -->
+<link rel="stylesheet" href="css/toastin.css">
+<script src="js/toastin.js"></script>
+<?php
+
 
 // --- FUNGSI UPDATE DATA (Global Scope) ---
-function updateData($conn, $fields, $id = 1) {
+function updateData($conn, $fields, $id = 1)
+{
     $setQuery = [];
     $types = "";
     $values = [];
@@ -17,7 +24,8 @@ function updateData($conn, $fields, $id = 1) {
 
     $sql = "UPDATE profils SET " . implode(", ", $setQuery) . " WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    if (!$stmt) return false;
+    if (!$stmt)
+        return false;
 
     $stmt->bind_param($types, ...$values);
     return $stmt->execute();
@@ -27,14 +35,20 @@ function updateData($conn, $fields, $id = 1) {
 $cek_awal = $sqlconn->query("SELECT id FROM profils WHERE id = 1");
 if ($cek_awal && $cek_awal->num_rows == 0) {
     $sql_seed = "INSERT INTO profils (
-        id, sudin, kop_dinas, nsekolah, alamat, kecamatan, kelurahan, provinsi, kabupaten, kodepos, no_telp, email, website, 
+        id, sudin, kop_dinas, nsekolah, alamat, kecamatan, kelurahan, provinsi, kabupaten, kodepos, no_telp, email, website, youtube, facebook, instagram,
         nipkasudin, nrkkasudin, kasudin, nipkepsek, nrkkepsek, kepsek, nippengawas, nrpengawas, pengawas, nikipsi, nrkpsi, nampsi, nipkasi, nrkasi, kasi, nipktu, nrktu, ktu, logo_sekolah, background_login, logo_pemda
     ) VALUES (
-        1, '', '', '', '', '', '', '', '', '', '', '', '', 
+        1, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
         '', '', '', '', '', '', '', '', '', '', 
         '', '', '', '', '', 'logo_default.png', 'bg_default.jpg', ''
     )";
     $sqlconn->query($sql_seed);
+}
+
+// Ensure social media columns exist
+$check_cols = $sqlconn->query("SHOW COLUMNS FROM profils LIKE 'youtube'");
+if ($check_cols && $check_cols->num_rows == 0) {
+    $sqlconn->query("ALTER TABLE profils ADD youtube VARCHAR(255) AFTER website, ADD facebook VARCHAR(255) AFTER youtube, ADD instagram VARCHAR(255) AFTER facebook");
 }
 
 // --- LOGIK POST REQUEST ---
@@ -54,7 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             'kodepos' => $_POST['pos'],
             'no_telp' => $_POST['tlp'],
             'email' => $_POST['email'],
-            'website' => $_POST['web']
+            'website' => $_POST['web'],
+            'youtube' => $_POST['youtube'],
+            'facebook' => $_POST['facebook'],
+            'instagram' => $_POST['instagram']
         ];
         if (updateData($sqlconn, $fields)) {
             echo "<script>showToast({ type: 'success', messageUser: 'Data Sekolah Berhasil Disimpan!', position: 'top-right', transitionIn: 'to-bottom', duration: 7000 });</script>";
@@ -65,11 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
 
     // B. Update Data Pejabat
     $pejabatConfig = [
-        'kasudin'  => ['nama' => 'kasudin',  'nip' => 'nipkasudin',  'nrk' => 'nrkkasudin'],
-        'kepsek'   => ['nama' => 'kepsek',   'nip' => 'nipkepsek',   'nrk' => 'nrkkepsek'],
+        'kasudin' => ['nama' => 'kasudin', 'nip' => 'nipkasudin', 'nrk' => 'nrkkasudin'],
+        'kepsek' => ['nama' => 'kepsek', 'nip' => 'nipkepsek', 'nrk' => 'nrkkepsek'],
         'pengawas' => ['nama' => 'pengawas', 'nip' => 'nippengawas', 'nrk' => 'nrpengawas'],
-        'kasi'     => ['nama' => 'kasi',     'nip' => 'nipkasi',     'nrk' => 'nrkasi'],
-        'ktu'      => ['nama' => 'ktu',      'nip' => 'nipktu',      'nrk' => 'nrktu']
+        'kasi' => ['nama' => 'kasi', 'nip' => 'nipkasi', 'nrk' => 'nrkasi'],
+        'ktu' => ['nama' => 'ktu', 'nip' => 'nipktu', 'nrk' => 'nrktu']
     ];
 
     foreach ($pejabatConfig as $jabatan => $cols) {
@@ -94,8 +111,40 @@ $data = ($result) ? $result->fetch_assoc() : null;
 // Inisialisasi data kosong jika belum ada record (Fallback)
 if (!$data) {
     $columns = [
-        'sudin', 'kop_dinas', 'nsekolah', 'npsn', 'alamat', 'kecamatan', 'kelurahan', 'provinsi', 'kabupaten', 'kodepos', 'no_telp', 'email', 'website', 
-        'nipkasudin', 'nrkkasudin', 'kasudin', 'nipkepsek', 'nrkkepsek', 'kepsek', 'nippengawas', 'nrkpengawas', 'pengawas', 'nipkasi', 'nrkkasi', 'kasi', 'nipktu', 'nrkktu', 'ktu', 'logo_sekolah', 'background_login', 'logo_pemda'
+        'sudin',
+        'kop_dinas',
+        'nsekolah',
+        'npsn',
+        'alamat',
+        'kecamatan',
+        'kelurahan',
+        'provinsi',
+        'kabupaten',
+        'kodepos',
+        'no_telp',
+        'email',
+        'website',
+        'youtube',
+        'facebook',
+        'instagram',
+        'nipkasudin',
+        'nrkkasudin',
+        'kasudin',
+        'nipkepsek',
+        'nrkkepsek',
+        'kepsek',
+        'nippengawas',
+        'nrkpengawas',
+        'pengawas',
+        'nipkasi',
+        'nrkkasi',
+        'kasi',
+        'nipktu',
+        'nrkktu',
+        'ktu',
+        'logo_sekolah',
+        'background_login',
+        'logo_pemda'
     ];
     $data = array_fill_keys($columns, '');
 }
@@ -124,13 +173,13 @@ if (!$data) {
     }
 
     .nav-tabs .nav-link {
-        color: rgba(255,255,255,0.7) !important;
+        color: rgba(255, 255, 255, 0.7) !important;
         border: none !important;
     }
 
     .nav-tabs .nav-link.active {
         color: #fff !important;
-        background: rgba(255,255,255,0.2) !important;
+        background: rgba(255, 255, 255, 0.2) !important;
         font-weight: bold;
         border-radius: 5px 5px 0 0;
     }
@@ -144,12 +193,29 @@ if (!$data) {
 </style>
 
 <div class="content-wrapper">
-    <div class="content-header">
+    <section class="content-header">
         <div class="container-fluid">
-            <div class="row mb-4 align-items-center">
-                <!-- KOLOM KIRI: Data Identitas & Pejabat -->
+            <div class="row">
                 <div class="col-sm-6">
-                    <div class="card">
+                    <h1 class="m-0">Data Sekolah</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="#">Home</a></li>
+                        <li class="breadcrumb-item active">Profil Sekolah</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- KOLOM KIRI: Data Identitas & Pejabat -->
+                <div class="col-md-7">
+                    <!-- Data Identitas Sekolah -->
+                    <div class="card card-primary card-outline">
                         <div class="card-header bg-menu-gradient">
                             <h3 class="card-title text-white">Data Identitas Sekolah</h3>
                         </div>
@@ -162,7 +228,8 @@ if (!$data) {
                                         <textarea id="summernote" name="kop_dinas"><?= $data['kop_dinas'] ?></textarea>
                                         <div class="mt-2">
                                             <small class="text-muted">Gunakan template untuk hasil presisi.</small>
-                                            <button type="button" class="btn btn-outline-success btn-sm ml-2" id="useTemplate">
+                                            <button type="button" class="btn btn-outline-success btn-sm ml-2"
+                                                id="useTemplate">
                                                 <i class="fas fa-file-alt"></i> Gunakan Template Kop SMPN 171
                                             </button>
                                         </div>
@@ -171,38 +238,44 @@ if (!$data) {
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Sudin</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="sudin" value="<?= $data['sudin'] ?>">
+                                        <input type="text" class="form-control" name="sudin"
+                                            value="<?= $data['sudin'] ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Nama Sekolah</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="nsekolah" value="<?= $data['nsekolah'] ?>">
+                                        <input type="text" class="form-control" name="nsekolah"
+                                            value="<?= $data['nsekolah'] ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">NPSN</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="npsn" value="<?= isset($data['npsn']) ? $data['npsn'] : '' ?>">
+                                        <input type="text" class="form-control" name="npsn"
+                                            value="<?= isset($data['npsn']) ? $data['npsn'] : '' ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Jalan</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="njalan" value="<?= isset($data['alamat']) ? $data['alamat'] : '' ?>">
+                                        <input type="text" class="form-control" name="njalan"
+                                            value="<?= isset($data['alamat']) ? $data['alamat'] : '' ?>">
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Kelurahan</label>
-                                            <input type="text" class="form-control" name="nkel" value="<?= isset($data['kelurahan']) ? $data['kelurahan'] : '' ?>">
+                                            <input type="text" class="form-control" name="nkel"
+                                                value="<?= isset($data['kelurahan']) ? $data['kelurahan'] : '' ?>">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Kecamatan</label>
-                                            <input type="text" class="form-control" name="nkec" value="<?= isset($data['kecamatan']) ? $data['kecamatan'] : '' ?>">
+                                            <input type="text" class="form-control" name="nkec"
+                                                value="<?= isset($data['kecamatan']) ? $data['kecamatan'] : '' ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -210,13 +283,15 @@ if (!$data) {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Kabupaten/Kota</label>
-                                            <input type="text" class="form-control" name="nkab" value="<?= isset($data['kabupaten']) ? $data['kabupaten'] : '' ?>">
+                                            <input type="text" class="form-control" name="nkab"
+                                                value="<?= isset($data['kabupaten']) ? $data['kabupaten'] : '' ?>">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Provinsi</label>
-                                            <input type="text" class="form-control" name="nprovinsi" value="<?= isset($data['provinsi']) ? $data['provinsi'] : '' ?>">
+                                            <input type="text" class="form-control" name="nprovinsi"
+                                                value="<?= isset($data['provinsi']) ? $data['provinsi'] : '' ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -224,31 +299,72 @@ if (!$data) {
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Kode Pos</label>
-                                            <input type="text" class="form-control" name="pos" value="<?= isset($data['kodepos']) ? $data['kodepos'] : '' ?>">
+                                            <input type="text" class="form-control" name="pos"
+                                                value="<?= isset($data['kodepos']) ? $data['kodepos'] : '' ?>">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label>Telepon</label>
-                                            <input type="text" class="form-control" name="tlp" value="<?= isset($data['no_telp']) ? $data['no_telp'] : '' ?>">
+                                            <input type="text" class="form-control" name="tlp"
+                                                value="<?= isset($data['no_telp']) ? $data['no_telp'] : '' ?>">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Email</label>
                                     <div class="col-sm-9">
-                                        <input type="email" class="form-control" name="email" value="<?= $data['email'] ?>">
+                                        <input type="email" class="form-control" name="email"
+                                            value="<?= $data['email'] ?>">
                                     </div>
                                 </div>
                                 <div class="form-group row">
                                     <label class="col-sm-3 col-form-label">Website</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" name="web" value="<?= isset($data['website']) ? $data['website'] : '' ?>">
+                                        <input type="text" class="form-control" name="web"
+                                            value="<?= isset($data['website']) ? $data['website'] : '' ?>">
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Youtube</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-danger text-white border-0"><i class="fab fa-youtube"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control" name="youtube"
+                                                value="<?= isset($data['youtube']) ? $data['youtube'] : '' ?>" placeholder="URL Channel Youtube">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Facebook</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-primary text-white border-0"><i class="fab fa-facebook"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control" name="facebook"
+                                                value="<?= isset($data['facebook']) ? $data['facebook'] : '' ?>" placeholder="URL Profile Facebook">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group row">
+                                    <label class="col-sm-3 col-form-label">Instagram</label>
+                                    <div class="col-sm-9">
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text bg-purple text-white border-0"><i class="fab fa-instagram"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control" name="instagram"
+                                                value="<?= isset($data['instagram']) ? $data['instagram'] : '' ?>" placeholder="Username Instagram">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="card-footer text-right">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Simpan</button>
+                                <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i>
+                                    Simpan</button>
                             </div>
                         </form>
                     </div>
@@ -258,19 +374,24 @@ if (!$data) {
                         <div class="card-header bg-menu-gradient p-0 pt-1 border-bottom-0">
                             <ul class="nav nav-tabs" id="custom-tabs-three-tab" role="tablist">
                                 <li class="nav-item">
-                                    <a class="nav-link active" id="tab-kasudin" data-toggle="pill" href="#content-kasudin" role="tab" style="color: #fff;">Kasudin</a>
+                                    <a class="nav-link active" id="tab-kasudin" data-toggle="pill"
+                                        href="#content-kasudin" role="tab" style="color: #fff;">Kasudin</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-kepsek" data-toggle="pill" href="#content-kepsek" role="tab" style="color: #fff;">Kepsek</a>
+                                    <a class="nav-link" id="tab-kepsek" data-toggle="pill" href="#content-kepsek"
+                                        role="tab" style="color: #fff;">Kepsek</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-pengawas" data-toggle="pill" href="#content-pengawas" role="tab" style="color: #fff;">Pengawas</a>
+                                    <a class="nav-link" id="tab-pengawas" data-toggle="pill" href="#content-pengawas"
+                                        role="tab" style="color: #fff;">Pengawas</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-kasi" data-toggle="pill" href="#content-kasi" role="tab" style="color: #fff;">Kasi</a>
+                                    <a class="nav-link" id="tab-kasi" data-toggle="pill" href="#content-kasi" role="tab"
+                                        style="color: #fff;">Kasi</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" id="tab-ktu" data-toggle="pill" href="#content-ktu" role="tab" style="color: #fff;">KTU</a>
+                                    <a class="nav-link" id="tab-ktu" data-toggle="pill" href="#content-ktu" role="tab"
+                                        style="color: #fff;">KTU</a>
                                 </li>
                             </ul>
                         </div>
@@ -278,33 +399,41 @@ if (!$data) {
                             <div class="tab-content" id="custom-tabs-three-tabContent">
                                 <?php
                                 $pejabatMap = [
-                                    'kasudin'  => ['label' => 'Kepala Suku Dinas', 'cols' => ['kasudin', 'nipkasudin', 'nrkkasudin']],
-                                    'kepsek'   => ['label' => 'Kepala Sekolah',      'cols' => ['kepsek', 'nipkepsek', 'nrkkepsek']],
-                                    'pengawas' => ['label' => 'Pengawas Sekolah',    'cols' => ['pengawas', 'nippengawas', 'nrpengawas']],
-                                    'kasi'     => ['label' => 'Kepala Seksi',        'cols' => ['kasi', 'nipkasi', 'nrkasi']],
-                                    'ktu'      => ['label' => 'Kepala Tata Usaha',   'cols' => ['ktu', 'nipktu', 'nrktu']]
+                                    'kasudin' => ['label' => 'Kepala Suku Dinas', 'cols' => ['kasudin', 'nipkasudin', 'nrkkasudin']],
+                                    'kepsek' => ['label' => 'Kepala Sekolah', 'cols' => ['kepsek', 'nipkepsek', 'nrkkepsek']],
+                                    'pengawas' => ['label' => 'Pengawas Sekolah', 'cols' => ['pengawas', 'nippengawas', 'nrpengawas']],
+                                    'kasi' => ['label' => 'Kepala Seksi', 'cols' => ['kasi', 'nipkasi', 'nrkasi']],
+                                    'ktu' => ['label' => 'Kepala Tata Usaha', 'cols' => ['ktu', 'nipktu', 'nrktu']]
                                 ];
 
                                 foreach ($pejabatMap as $key => $info) {
                                     $active = ($key == 'kasudin') ? 'show active' : '';
-                                ?>
+                                    ?>
                                     <div class="tab-pane fade <?= $active ?>" id="content-<?= $key ?>" role="tabpanel">
                                         <form method="POST" action="">
                                             <input type="hidden" name="action" value="update_<?= $key ?>">
                                             <div class="form-group">
                                                 <label>Nama <?= $info['label'] ?></label>
-                                                <input type="text" class="form-control" name="nama" value="<?= isset($data[$info['cols'][0]]) ? $data[$info['cols'][0]] : '' ?>">
+                                                <input type="text" class="form-control" name="nama"
+                                                    value="<?= isset($data[$info['cols'][0]]) ? $data[$info['cols'][0]] : '' ?>">
                                             </div>
                                             <div class="form-group">
                                                 <label>NIP</label>
-                                                <input type="text" class="form-control" name="nip" value="<?= isset($data[$info['cols'][1]]) ? $data[$info['cols'][1]] : '' ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '')" inputmode="numeric" placeholder="Hanya Angka">
+                                                <input type="text" class="form-control" name="nip"
+                                                    value="<?= isset($data[$info['cols'][1]]) ? $data[$info['cols'][1]] : '' ?>"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                                    inputmode="numeric" placeholder="Hanya Angka">
                                             </div>
                                             <div class="form-group">
                                                 <label>NRK</label>
-                                                <input type="text" class="form-control" name="nrk" value="<?= isset($data[$info['cols'][2]]) ? $data[$info['cols'][2]] : '' ?>" oninput="this.value = this.value.replace(/[^0-9]/g, '')" inputmode="numeric" placeholder="Hanya Angka">
+                                                <input type="text" class="form-control" name="nrk"
+                                                    value="<?= isset($data[$info['cols'][2]]) ? $data[$info['cols'][2]] : '' ?>"
+                                                    oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                                    inputmode="numeric" placeholder="Hanya Angka">
                                             </div>
                                             <div class="card-footer text-right">
-                                                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i>&nbsp;Simpan</button>
+                                                <button type="submit" class="btn btn-success"><i
+                                                        class="fas fa-save"></i>&nbsp;Simpan</button>
                                             </div>
                                         </form>
                                     </div>
@@ -315,7 +444,7 @@ if (!$data) {
                 </div>
 
                 <!-- KOLOM KANAN: Upload Gambar -->
-                <div class="col-md-6">
+                <div class="col-md-5">
                     <?php
                     $uploads = [
                         'logo_sekolah' => 'Logo Sekolah',
@@ -325,7 +454,7 @@ if (!$data) {
 
                     foreach ($uploads as $field => $title) {
                         $currentImg = !empty($data[$field]) ? "images/" . $data[$field] : "images/noimage.png";
-                    ?>
+                        ?>
                         <div class="card card-danger card-outline">
                             <div class="card-header bg-menu-gradient">
                                 <h3 class="card-title text-white"><?= $title ?></h3>
@@ -335,20 +464,26 @@ if (!$data) {
                                     <img id="preview_<?= $field ?>" src="<?= $currentImg ?>" alt="Preview">
                                 </div>
                                 <div class="btn-group mb-2" id="controls_<?= $field ?>" style="display:none;">
-                                    <button type="button" class="btn btn-sm btn-default" onclick="rotateImage('<?= $field ?>', -90)"><i class="fas fa-undo"></i></button>
-                                    <button type="button" class="btn btn-sm btn-default" onclick="rotateImage('<?= $field ?>', 90)"><i class="fas fa-redo"></i></button>
+                                    <button type="button" class="btn btn-sm btn-default"
+                                        onclick="rotateImage('<?= $field ?>', -90)"><i class="fas fa-undo"></i></button>
+                                    <button type="button" class="btn btn-sm btn-default"
+                                        onclick="rotateImage('<?= $field ?>', 90)"><i class="fas fa-redo"></i></button>
                                 </div>
                                 <div class="form-group">
                                     <div class="custom-file">
-                                        <input type="file" class="custom-file-input" id="file_<?= $field ?>" accept="image/jpeg, image/png" onchange="previewFile('<?= $field ?>')">
-                                        <label class="custom-file-label text-left" for="file_<?= $field ?>">Pilih file...</label>
+                                        <input type="file" class="custom-file-input" id="file_<?= $field ?>"
+                                            accept="image/jpeg, image/png" onchange="previewFile('<?= $field ?>')">
+                                        <label class="custom-file-label text-left" for="file_<?= $field ?>">Pilih
+                                            file...</label>
                                     </div>
                                     <small class="text-muted">Format: JPG/PNG</small>
                                 </div>
                                 <div class="progress" id="progress_wrap_<?= $field ?>">
-                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" id="progress_<?= $field ?>" role="progressbar" style="width: 0%">0%</div>
+                                    <div class="progress-bar bg-success progress-bar-striped progress-bar-animated"
+                                        id="progress_<?= $field ?>" role="progressbar" style="width: 0%">0%</div>
                                 </div>
-                                <button type="button" class="btn btn-warning btn-block mt-2" onclick="uploadFile('<?= $field ?>')">
+                                <button type="button" class="btn btn-warning btn-block mt-2"
+                                    onclick="uploadFile('<?= $field ?>')">
                                     <i class="fas fa-upload"></i> Upload
                                 </button>
                             </div>
@@ -357,12 +492,12 @@ if (!$data) {
                 </div>
             </div>
         </div>
-    </div>
+    </section>
 </div>
 
 <!-- JAVASCRIPT UNTUK PREVIEW, ROTATE & UPLOAD -->
 <script>
-    $(document).ready(function() {
+    $(document).ready(function () {
         function doInitSummernote() {
             const $editor = $('#summernote');
             if ($editor.length === 0) return;
@@ -380,7 +515,7 @@ if (!$data) {
                     ['view', ['fullscreen', 'codeview', 'help']]
                 ],
                 callbacks: {
-                    onInit: function() {
+                    onInit: function () {
                         console.log('Summernote Initialized Successfully');
                     }
                 }
@@ -402,7 +537,7 @@ if (!$data) {
                 script.id = jsId;
                 script.src = 'https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.js';
                 script.onload = callback;
-                script.onerror = function() {
+                script.onerror = function () {
                     console.error('Gagal memuat Summernote JS dari CDN.');
                 };
                 document.head.appendChild(script);
@@ -423,12 +558,12 @@ if (!$data) {
         if (typeof $.fn.summernote !== 'undefined') {
             doInitSummernote();
         } else {
-            loadSummernoteAssets(function() {
+            loadSummernoteAssets(function () {
                 doInitSummernote();
             });
         }
 
-        $('#useTemplate').click(function() {
+        $('#useTemplate').click(function () {
             if (typeof $.fn.summernote === 'undefined') return;
 
             var nsekolah = $('input[name="nsekolah"]').val() || 'NAMA SEKOLAH';
@@ -440,8 +575,8 @@ if (!$data) {
             var email = $('input[name="email"]').val() || 'email@sch.id';
             var pos = $('input[name="pos"]').val() || '00000';
 
-            var logoPemda = "<?= !empty($data['logo_pemda']) ? 'images/'.$data['logo_pemda'] : 'images/logo_pemda_default.png' ?>";
-            var logoSekolah = "<?= !empty($data['logo_sekolah']) ? 'images/'.$data['logo_sekolah'] : 'images/logo_sekolah_default.png' ?>";
+            var logoPemda = "<?= !empty($data['logo_pemda']) ? '../images/' . $data['logo_pemda'] : 'images/logo_pemda_default.png' ?>";
+            var logoSekolah = "<?= !empty($data['logo_sekolah']) ? '../images/' . $data['logo_sekolah'] : 'images/logo_sekolah_default.png' ?>";
 
             var template = `
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">
@@ -484,7 +619,7 @@ if (!$data) {
         var reader = new FileReader();
 
         if (file) {
-            reader.onloadend = function() {
+            reader.onloadend = function () {
                 preview.src = reader.result;
                 rotations[field] = 0;
                 updateRotation(field);
@@ -521,7 +656,7 @@ if (!$data) {
 
         var xhr = new XMLHttpRequest();
 
-        xhr.upload.addEventListener("progress", function(evt) {
+        xhr.upload.addEventListener("progress", function (evt) {
             if (evt.lengthComputable) {
                 var percentComplete = parseInt((evt.loaded / evt.total) * 100);
                 var progressWrap = document.getElementById('progress_wrap_' + field);
@@ -533,14 +668,14 @@ if (!$data) {
             }
         }, false);
 
-        xhr.onreadystatechange = function() {
+        xhr.onreadystatechange = function () {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
                     try {
                         var resp = JSON.parse(xhr.responseText);
                         if (resp.status === 'success') {
                             showToast({ type: 'success', messageUser: resp.msg, position: 'top-right', transitionIn: 'to-bottom', duration: 7000 });
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 document.getElementById('progress_wrap_' + field).style.display = 'none';
                                 document.getElementById('controls_' + field).style.display = 'none';
                             }, 2000);

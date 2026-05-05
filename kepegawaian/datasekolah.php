@@ -15,12 +15,34 @@ $query = "SELECT * FROM profils WHERE id = 1";
 $res = $conn->query($query);
 $school = ($res && $res->num_rows > 0) ? $res->fetch_assoc() : [];
 
-if (!$school) {
-    echo "<div class='container-fluid py-4'><div class='alert alert-warning'>Data profil sekolah belum diatur.</div></div>";
+$base_dir = file_exists('dbconn.php') ? '' : '../';
+
+// [CHECKPOINT] Jika data kosong, tampilkan Halaman Instruksi Sinkronisasi
+if (!$school || empty($school['nsekolah'])) {
+    ?>
+    <div class="container-fluid py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <div class="premium-card p-5">
+                    <div class="mb-4">
+                        <div class="p-4 bg-light d-inline-block rounded-circle mb-3">
+                            <i class="las la-school fs-1 text-muted" style="font-size: 4rem !important;"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark">Data Profil Belum Tersedia</h3>
+                    <p class="text-muted mb-4">Profil sekolah di modul Kepegawaian belum diatur atau masih
+                        kosong.<br>Silakan lakukan sinkronisasi data dari Profil Utama untuk melanjutkan.</p>
+                    <a href="?sinkron_sekolah" class="btn btn-primary btn-lg px-5 rounded-pill shadow">
+                        <i class="las la-sync-alt me-2"></i> Sinkronkan Sekarang
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php
     return;
 }
 
-$base_dir = file_exists('dbconn.php') ? '' : '../';
 $logo_path = $base_dir . "images/" . ($school['logo_sekolah'] ?: 'logo_default.png');
 if (!file_exists($logo_path))
     $logo_path = $base_dir . "images/logo_default.png";
@@ -291,14 +313,9 @@ if (!file_exists($logo_path))
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h3 class="fw-bold mb-0 text-dark">Data Profil Sekolah</h3>
-            <p class="text-muted small mb-0">Informasi identitas dan pimpinan satuan pendidikan.</p>
+            <p class="text-muted small mb-0">Identitas sekolah yang dikelola melalui <a href="?sinkron_sekolah"
+                    class="text-primary fw-bold">Halaman Sinkronisasi</a>.</p>
         </div>
-        <?php if (isset($lv) && $lv == '1'): ?>
-            <button class="btn btn-primary px-4 shadow-sm rounded-pill" data-bs-toggle="modal"
-                data-bs-target="#editProfilModal">
-                <i class="las la-edit me-1"></i> Edit Profil
-            </button>
-        <?php endif; ?>
     </div>
 
     <div class="row g-4">
@@ -384,10 +401,6 @@ if (!file_exists($logo_path))
                     <div class="info-box">
                         <div class="info-box-label">Kode Pos</div>
                         <div class="info-box-value"><?php echo htmlspecialchars($school['kodepos']); ?></div>
-                    </div>
-                    <div class="info-box">
-                        <div class="info-box-label">Kode Sekolah</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['kode'] ?: '-'); ?></div>
                     </div>
                 </div>
             </div>
@@ -482,370 +495,5 @@ if (!file_exists($logo_path))
     </div>
 </div>
 
-<?php if (isset($lv) && $lv == '1'): ?>
-    <!-- Edit Profil Modal -->
-    <div class="modal fade" id="editProfilModal" tabindex="-1" aria-labelledby="editProfilModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-xl">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 24px; overflow: hidden;">
-                <div class="modal-header bg-primary text-white p-4 border-0">
-                    <div>
-                        <h5 class="modal-title fw-bold" id="editProfilModalLabel text-white">Pengaturan Profil Sekolah</h5>
-                        <p class="mb-0 small opacity-75">Sesuaikan identitas dan informasi pimpinan sekolah.</p>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <form id="formEditProfil" enctype="multipart/form-data">
-                    <div class="modal-body p-0">
-                        <ul class="nav nav-pills nav-justified bg-light p-2" id="editTabs" role="tablist">
-                            <li class="nav-item">
-                                <button class="nav-link active rounded-pill py-3 fw-bold" id="identity-tab"
-                                    data-bs-toggle="tab" data-bs-target="#identity" type="button" role="tab">
-                                    <i class="las la-id-card me-1"></i> Identitas
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link rounded-pill py-3 fw-bold" id="officials-tab" data-bs-toggle="tab"
-                                    data-bs-target="#officials" type="button" role="tab">
-                                    <i class="las la-user-tie me-1"></i> Pimpinan
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link rounded-pill py-3 fw-bold" id="social-tab" data-bs-toggle="tab"
-                                    data-bs-target="#social" type="button" role="tab">
-                                    <i class="las la-share-alt me-1"></i> Media Sosial
-                                </button>
-                            </li>
-                            <li class="nav-item">
-                                <button class="nav-link rounded-pill py-3 fw-bold" id="assets-tab" data-bs-toggle="tab"
-                                    data-bs-target="#assets" type="button" role="tab">
-                                    <i class="las la-photo-video me-1"></i> Aset Visual
-                                </button>
-                            </li>
-                        </ul>
-                        <div class="tab-content p-4" id="editTabsContent">
-                            <!-- Tab Identitas -->
-                            <div class="tab-pane fade show active" id="identity" role="tabpanel">
-                                <div class="mb-4">
-                                    <label class="form-label fw-bold"><i class="las la-edit me-1 text-primary"></i>Kop Surat
-                                        / Header</label>
-                                    <textarea name="kop_dinas"
-                                        id="kop_dinas_editor"><?php echo $school['kop_dinas'] ?? ''; ?></textarea>
-                                </div>
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Nama Sekolah</label>
-                                        <input type="text" name="nsekolah" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['nsekolah']); ?>" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">NPSN</label>
-                                        <input type="text" name="npsn" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['npsn']); ?>" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label small fw-bold">Kode Sekolah</label>
-                                        <input type="text" name="kode" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['kode'] ?? ''); ?>">
-                                    </div>
-                                    <div class="col-md-12">
-                                        <label class="form-label small fw-bold">Alamat Lengkap</label>
-                                        <textarea name="alamat" class="form-control rounded-3"
-                                            rows="2"><?php echo htmlspecialchars($school['alamat']); ?></textarea>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Kelurahan</label>
-                                        <input type="text" name="kelurahan" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['kelurahan']); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Kecamatan</label>
-                                        <input type="text" name="kecamatan" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['kecamatan']); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Kabupaten/Kota</label>
-                                        <input type="text" name="kabupaten" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['kabupaten']); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Provinsi</label>
-                                        <input type="text" name="provinsi" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['provinsi']); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Kode Pos</label>
-                                        <input type="text" name="kodepos" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['kodepos']); ?>">
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label small fw-bold">Telepon</label>
-                                        <input type="text" name="no_telp" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['no_telp']); ?>">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Email Sekolah</label>
-                                        <input type="email" name="email" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['email']); ?>">
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Website</label>
-                                        <input type="text" name="website" class="form-control rounded-3"
-                                            value="<?php echo htmlspecialchars($school['website']); ?>">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tab Pimpinan -->
-                            <div class="tab-pane fade" id="officials" role="tabpanel">
-                                <div class="bg-light p-3 rounded-4 mb-4">
-                                    <h6 class="fw-bold text-primary mb-3 d-flex align-items-center"><i
-                                            class="las la-user-tie me-2 fs-4"></i> Kepala Sekolah</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Nama Lengkap & Gelar</label>
-                                            <input type="text" name="kepsek" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['kepsek']); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">NIP</label>
-                                            <input type="text" name="nipkepsek" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['nipkepsek']); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">NRK</label>
-                                            <input type="text" name="nrkkepsek" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['nrkkepsek'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-light p-3 rounded-4 mb-4">
-                                    <h6 class="fw-bold text-primary mb-3 d-flex align-items-center"><i
-                                            class="las la-user-shield me-2 fs-4"></i> Kepala Tata Usaha</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Nama Lengkap</label>
-                                            <input type="text" name="ktu" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['ktu'] ?? ''); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">NIP</label>
-                                            <input type="text" name="nipktu" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['nipktu'] ?? ''); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">NRK</label>
-                                            <input type="text" name="nrkktu" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['nrkktu'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="bg-light p-3 rounded-4">
-                                    <h6 class="fw-bold text-primary mb-3 d-flex align-items-center"><i
-                                            class="las la-user-check me-2 fs-4"></i> Pengawas Sekolah</h6>
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label small fw-bold">Nama Lengkap</label>
-                                            <input type="text" name="pengawas" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['pengawas'] ?? ''); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">NIP</label>
-                                            <input type="text" name="nippengawas" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['nippengawas'] ?? ''); ?>">
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small fw-bold">NRK</label>
-                                            <input type="text" name="nrkpengawas" class="form-control rounded-3"
-                                                value="<?php echo htmlspecialchars($school['nrkpengawas'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tab Media Sosial -->
-                            <div class="tab-pane fade" id="social" role="tabpanel">
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-danger text-white border-0"><i
-                                                    class="lab la-youtube fs-4"></i></span>
-                                            <input type="text" name="youtube" class="form-control"
-                                                placeholder="Link YouTube"
-                                                value="<?php echo htmlspecialchars($school['youtube'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-primary text-white border-0"><i
-                                                    class="lab la-facebook fs-4"></i></span>
-                                            <input type="text" name="facebook" class="form-control"
-                                                placeholder="Link Facebook"
-                                                value="<?php echo htmlspecialchars($school['facebook'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-info text-white border-0"><i
-                                                    class="lab la-twitter fs-4"></i></span>
-                                            <input type="text" name="twitter" class="form-control"
-                                                placeholder="Link Twitter"
-                                                value="<?php echo htmlspecialchars($school['twitter'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="input-group">
-                                            <span class="input-group-text bg-danger text-white border-0"
-                                                style="background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);"><i
-                                                    class="lab la-instagram fs-4"></i></span>
-                                            <input type="text" name="instagram" class="form-control"
-                                                placeholder="Link Instagram"
-                                                value="<?php echo htmlspecialchars($school['instagram'] ?? ''); ?>">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Tab Logo & Assets -->
-                            <div class="tab-pane fade" id="assets" role="tabpanel">
-                                <div class="row g-4">
-                                    <div class="col-md-4">
-                                        <div class="p-3 border rounded-4 text-center h-100">
-                                            <label class="form-label small fw-bold d-block mb-3">Logo Sekolah</label>
-                                            <div class="mb-3 bg-light rounded-3 p-3 d-inline-block">
-                                                <img src="<?php echo $logo_path; ?>"
-                                                    style="height: 100px; width: 100px; object-fit: contain;">
-                                            </div>
-                                            <input type="file" name="logo_sekolah"
-                                                class="form-control form-control-sm rounded-pill" accept="image/*">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 border rounded-4 text-center h-100">
-                                            <label class="form-label small fw-bold d-block mb-3">Logo Pemda</label>
-                                            <div class="mb-3 bg-light rounded-3 p-3 d-inline-block">
-                                                <img src="<?php echo $logo_pemda_path; ?>"
-                                                    style="height: 100px; width: 100px; object-fit: contain;">
-                                            </div>
-                                            <input type="file" name="logo_pemda"
-                                                class="form-control form-control-sm rounded-pill" accept="image/*">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="p-3 border rounded-4 text-center h-100">
-                                            <label class="form-label small fw-bold d-block mb-3">Stempel Sekolah</label>
-                                            <div class="mb-3 bg-light rounded-3 p-3 d-inline-block">
-                                                <img src="<?php echo $stempel_path; ?>"
-                                                    style="height: 100px; width: 100px; object-fit: contain;">
-                                            </div>
-                                            <input type="file" name="stempel_sekolah"
-                                                class="form-control form-control-sm rounded-pill" accept="image/*">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 border rounded-4 text-center">
-                                            <label class="form-label small fw-bold d-block mb-3">Background Login</label>
-                                            <div class="mb-3 bg-light rounded-3 p-2 w-100 overflow-hidden"
-                                                style="height: 120px;">
-                                                <img src="<?php echo $bg_login_path; ?>" class="w-100 h-100"
-                                                    style="object-fit: cover; border-radius: 8px;">
-                                            </div>
-                                            <input type="file" name="background_login"
-                                                class="form-control form-control-sm rounded-pill" accept="image/*">
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="p-3 border rounded-4 text-center">
-                                            <label class="form-label small fw-bold d-block mb-3">TTD Kepala Sekolah</label>
-                                            <div class="mb-3 bg-light rounded-3 p-2 w-100 overflow-hidden"
-                                                style="height: 120px; display: flex; align-items: center; justify-content: center;">
-                                                <?php $ttd_path = $base_dir . "file/logo/" . ($school['ttd_kepsek'] ?: 'ttd_default.png'); ?>
-                                                <img src="<?php echo $ttd_path; ?>"
-                                                    style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                                            </div>
-                                            <input type="file" name="ttd_kepsek"
-                                                class="form-control form-control-sm rounded-pill" accept="image/*">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer bg-light p-3 border-0">
-                        <button type="button" class="btn btn-link text-muted fw-bold text-decoration-none px-4"
-                            data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary px-5 fw-bold shadow rounded-pill" id="btnSimpanProfil">
-                            <i class="las la-save me-1"></i> Simpan Perubahan
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-
-    <!-- Load Summernote & SweetAlert2 -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        $(document).ready(function () {
-            // Initialize Summernote
-            $('#kop_dinas_editor').summernote({
-                placeholder: 'Masukkan Kop Surat...',
-                tabsize: 2,
-                height: 300,
-                toolbar: [
-                    ['style', ['style']],
-                    ['font', ['bold', 'underline', 'clear']],
-                    ['color', ['color']],
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    ['table', ['table']],
-                    ['insert', ['link', 'picture']],
-                    ['view', ['fullscreen', 'codeview']]
-                ]
-            });
-
-            // Handle Form Submit
-            $('#formEditProfil').on('submit', function (e) {
-                e.preventDefault();
-
-                const btn = $('#btnSimpanProfil');
-                const originalText = btn.html();
-                btn.prop('disabled', true).html('<i class="las la-spinner la-spin me-1"></i> Menyimpan...');
-
-                const formData = new FormData(this);
-
-                $.ajax({
-                    url: 'kepegawaian/proses_profil_sekolah.php',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function (res) {
-                        if (res.status === 'success') {
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: res.message,
-                                timer: 2000,
-                                showConfirmButton: false
-                            }).then(() => {
-                                location.reload();
-                            });
-                        } else {
-                            Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
-                            btn.prop('disabled', false).html(originalText);
-                        }
-                    },
-                    error: function () {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Terjadi kesalahan sistem.' });
-                        btn.prop('disabled', false).html(originalText);
-                    }
-                });
-            });
-        });
-    </script>
-<?php endif; ?>
+<!-- Load SweetAlert2 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

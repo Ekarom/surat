@@ -30,6 +30,7 @@ $pages = [
     'data_pensiun' => 'datapensiun.php',
     'data_kenaikan_pangkat' => 'datakenaikanpangkat.php',
     'data_sekolah' => 'datasekolah.php',
+    'sinkron_sekolah' => 'sinkron_sekolah.php',
     'riwayat_monitor' => 'riwayat_monitor.php'
 ];
 
@@ -305,17 +306,21 @@ if (!file_exists($page_to_include)) {
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'import_data_pegawai') ? 'active' : ''; ?>">
                     <i class="las la-cloud-upload-alt"></i> Upload Data Pegawai
                 </a>
+                <a href="?sinkron_sekolah"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'sinkron_sekolah') ? 'active' : ''; ?>">
+                    <i class="las la-sync-alt"></i> Sinkronisasi Data Sekolah
+                </a>
             </div>
         </div>
         <!-- /#sidebar-wrapper -->
-    </div>
 
-    <div id="page-content-wrapper">
-        <div class="container-fluid content">
-            <?php include $page_to_include; ?>
+        <div id="page-content-wrapper">
+            <div class="container-fluid content">
+                <?php include $page_to_include; ?>
+            </div>
         </div>
     </div>
-    </div>
+    <!-- /#wrapper -->
 
     <!-- === MODAL: SELEKSI MONITORING === -->
     <div class="modal fade" id="modalMonitorSelect" tabindex="-1" aria-hidden="true">
