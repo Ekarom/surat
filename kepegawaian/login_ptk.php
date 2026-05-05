@@ -410,6 +410,8 @@ unset($_SESSION['error_message']);
                         echo "<strong>Akses Ditolak</strong><br>Portal ini khusus untuk akun Guru.";
                     } elseif ($salah == 6) {
                         echo "<strong>User Tidak Aktif</strong><br>Akun Anda dinonaktifkan. Silakan hubungi admin.";
+                    } elseif ($salah == 2) {
+                        echo "<strong>Gagal Menghubungi Database</strong><br>Terjadi kesalahan sistem atau struktur tabel tidak sesuai. Hubungi Admin.";
                     } else {
                         echo "<strong>Terjadi Kesalahan</strong><br>Silakan coba lagi nanti.";
                     }

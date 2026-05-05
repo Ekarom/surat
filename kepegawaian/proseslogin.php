@@ -149,15 +149,19 @@ if ($is_authenticated) {
         exit();
     }
 
-    // Session Registration
+    // --- Session Registration ---
+    // Reachable if 2FA is bypassed due to missing vendor or other reasons.
+    
     session_regenerate_id(true);
+    unset($_SESSION['2fa_ptk_user_id']); // Clear 2FA session since we're bypassing
+    
     $_SESSION['authenticated'] = true;
-    $_SESSION['id'] = $pegawai['id']; // Pegawai ID
+    $_SESSION['id'] = $pegawai['id'];
     $_SESSION['nama'] = $pegawai['nm_pegawai'];
     $_SESSION['userid'] = $pegawai['nrk'] ?: $pegawai['nip'];
-    $_SESSION['skradm'] = $_SESSION['userid']; // Compatibility with secure.php
+    $_SESSION['skradm'] = $_SESSION['userid'];
     $_SESSION['email'] = $pegawai['email'];
-    $_SESSION['level'] = '4'; // Force Level 4 for Guru Portal
+    $_SESSION['level'] = '4';
     $_SESSION['status'] = $pegawai['status'] == '1' ? 'Aktif' : $pegawai['status'];
     $_SESSION['poto'] = $pegawai['foto'];
     $_SESSION['nik'] = $pegawai['nrk'] ?: $pegawai['nip'];
@@ -165,10 +169,10 @@ if ($is_authenticated) {
     $_SESSION['login_time'] = time();
     $_SESSION['database_asli'] = $db;
 
-    // Log Login
+    // Log Login (Bypassed if applicable)
     $nama = $pegawai['nm_pegawai'];
     $waktu = date("Y-m-d H:i:s");
-    $info_log = "Login Guru (Tabel Pegawai)";
+    $info_log = isset($bypass_flag) ? "Login Guru (2FA BYPASSED - Vendor Missing)" : "Login Guru (Direct)";
 
     $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
     if ($stmt_log !== false) {

@@ -418,6 +418,12 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                     <input type="text" name="npwp" class="form-control modern-input"
                                         value="<?php echo htmlspecialchars($pegawai['npwp']); ?>">
                                 </div>
+                                <div class="col-md-12">
+                                    <label class="modern-label">Hobby / Kegemaran</label>
+                                    <input type="text" name="hobby" class="form-control modern-input"
+                                        placeholder="Contoh: Membaca, Olahraga, Musik"
+                                        value="<?php echo htmlspecialchars($pegawai['hobby']); ?>">
+                                </div>
                             </div>
 
                             <!-- DATA KEPEGAWAIAN -->
@@ -518,6 +524,26 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                         rows="3"><?php echo htmlspecialchars($pegawai['alamat']); ?></textarea>
                                     <div class="invalid-feedback">Alamat lengkap wajib diisi.</div>
                                 </div>
+                                <div class="col-md-3">
+                                    <label class="modern-label">RT</label>
+                                    <input type="text" name="rt" class="form-control modern-input" placeholder="000"
+                                        value="<?php echo htmlspecialchars($pegawai['rt']); ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="modern-label">RW</label>
+                                    <input type="text" name="rw" class="form-control modern-input" placeholder="000"
+                                        value="<?php echo htmlspecialchars($pegawai['rw']); ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="modern-label">Kelurahan</label>
+                                    <input type="text" name="kelurahan" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['kelurahan']); ?>">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="modern-label">Kecamatan</label>
+                                    <input type="text" name="kecamatan" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['kecamatan']); ?>">
+                                </div>
                             </div>
 
                             <div class="mt-5 text-end">
@@ -552,6 +578,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                         'Organisasi' => 'las la-sitemap',
                         'Anak' => 'las la-child',
                         'Beasiswa' => 'las la-user-graduate',
+                        'Pengalaman Kerja' => 'las la-briefcase-medical',
                         'Lainnya' => 'las la-ellipsis-h'
                     ];
                     $first = true;
@@ -913,6 +940,12 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                 <div class="col-md-6"><label class="modern-label">Tempat Lahir</label><input type="text" id="r_tempat" class="form-control modern-input" value="${data?.tempat || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Tanggal Lahir (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Jenis Kelamin / Status</label><select id="r_jurusan" class="form-select modern-input"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>`;
+            } else if (kat === 'Pengalaman Kerja') {
+                html = `
+                <div class="col-12"><label class="modern-label">Nama Perusahaan / Instansi (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-12"><label class="modern-label">Jabatan (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tgl Mulai</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" value="${data?.tmt || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">Durasi (Tahun/Bulan)</label><input type="text" id="r_durasi" class="form-control modern-input" placeholder="Contoh: 2 Tahun" value="${data?.durasi || ''}"></div>`;
             } else {
                 html = `
                 <div class="col-12"><label class="modern-label">Keterangan / Deskripsi (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>

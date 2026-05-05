@@ -169,6 +169,14 @@ if (!isset($conn)) {
                                 <tr><td class="fw-bold text-primary">J</td><td>Golongan</td><td class="text-center text-muted">Tidak</td></tr>
                                 <tr><td class="fw-bold text-primary">K</td><td>Unit Kerja</td><td class="text-center text-muted">Tidak</td></tr>
                                 <tr><td class="fw-bold text-primary">L</td><td>Status Pegawai</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">M</td><td>NUPTK</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">N</td><td>Agama</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">O</td><td>RT</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">P</td><td>RW</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">Q</td><td>Kelurahan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">R</td><td>Kecamatan</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">S</td><td>No. HP</td><td class="text-center text-muted">Tidak</td></tr>
+                                <tr><td class="fw-bold text-primary">T</td><td>Email</td><td class="text-center text-muted">Tidak</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -239,14 +247,24 @@ if (!isset($conn)) {
         const total = excelData.length;
         let success = 0;
         let error = 0;
+        let errorLog = [];
 
         for (let i = 0; i < total; i++) {
             const row = excelData[i];
+            
+            // Skip empty rows (strictly)
+            if (!row || row.length === 0 || (!row[0] && !row[1] && !row[2])) {
+                continue;
+            }
+
             const percent = Math.round(((i + 1) / total) * 100);
 
             document.getElementById('progressBar').style.width = percent + '%';
             document.getElementById('progressPercent').textContent = percent + '%';
-            document.getElementById('progressStatus').textContent = `Mengirim data: ${row[1] || '...'}`;
+            document.getElementById('progressStatus').textContent = `Mengirim data: ${row[2] || row[0] || '...'}`;
+
+            // Add small delay to prevent server overload
+            await new Promise(resolve => setTimeout(resolve, 100));
 
             try {
                 const response = await fetch('proses_import_excel.php', {
@@ -265,26 +283,48 @@ if (!isset($conn)) {
                         golongan: row[9] || '',
                         unit_kerja: row[10] || '',
                         status_pegawai: row[11] || '',
-                        tgl_lulus: row[12] || '',
-                        tmt_golongan: row[13] || '',
-                        no_hp: row[14] || '',
-                        email: row[15] || ''
+                        nuptk: row[12] || '',
+                        agama: row[13] || '',
+                        rt: row[14] || '',
+                        rw: row[15] || '',
+                        kelurahan: row[16] || '',
+                        kecamatan: row[17] || '',
+                        no_hp: row[18] || '',
+                        email: row[19] || ''
                     })
                 });
-                const res = await response.json();
-                if (res.status === 'success') success++; else error++;
+                
+                const text = await response.text();
+                let res;
+                try {
+                    res = JSON.parse(text);
+                } catch (e) {
+                    throw new Error("Respon Server Bukan JSON: " + text.substring(0, 50));
+                }
+
+                if (res.status === 'success') {
+                    success++;
+                } else {
+                    error++;
+                    errorLog.push(`Baris ${i + 2} (${row[0] || 'NIP Kosong'}): ${res.message}`);
+                }
             } catch (err) {
                 error++;
+                errorLog.push(`Baris ${i + 2}: ${err.message || 'Kesalahan Koneksi'}`);
             }
         }
 
-        showAlert('success', `Selesai! Berhasil: ${success}, Gagal/Duplikat: ${error}.`);
+        let alertMsg = `Selesai! Berhasil: ${success}, Gagal: ${error}.`;
+        if (errorLog.length > 0) {
+            alertMsg += `<hr><div class="extra-small text-start" style="max-height:150px; overflow-y:auto;"><strong>Detail Error:</strong><br>${errorLog.join('<br>')}</div>`;
+        }
+        showAlert(error > 0 ? 'warning' : 'success', alertMsg);
         document.getElementById('progressStatus').textContent = 'Proses import selesai.';
         document.getElementById('progressBar').classList.remove('progress-bar-animated');
     }
 
     function downloadTemplate() {
-        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "Tanggal Lulus", "TMT Golongan", "No hp", "Email"]];
+        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "Email"]];
         const worksheet = XLSX.utils.aoa_to_sheet(header);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template");

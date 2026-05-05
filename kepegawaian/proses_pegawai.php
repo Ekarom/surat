@@ -95,6 +95,13 @@ try {
         'masa_kerja_thn' => "INT",
         'masa_kerja_bln' => "INT",
         'gaji_pokok' => "DECIMAL(15,2)",
+        'alamat' => "TEXT",
+        'rt' => "VARCHAR(10)",
+        'rw' => "VARCHAR(10)",
+        'kelurahan' => "VARCHAR(100)",
+        'kecamatan' => "VARCHAR(100)",
+        'hobby' => "TEXT",
+        'pengalaman_kerja' => "TEXT",
         'last_activity' => "DATETIME"
     ];
 
@@ -244,6 +251,32 @@ try {
             }
         }
         echo '</table>';
+        exit;
+    }
+
+    // --- SYNC PENSIUN ---
+    if ($action == 'syncPensiun') {
+        header('Content-Type: application/json');
+        
+        // Audit data: check employees with missing birth dates
+        $q_missing = $conn->query("SELECT COUNT(*) FROM pegawai WHERE (tgl_lahir IS NULL OR tgl_lahir = '0000-00-00') AND status = '1'");
+        $missing_count = $q_missing->fetch_row()[0];
+        
+        $q_total = $conn->query("SELECT COUNT(*) FROM pegawai WHERE status = '1'");
+        $total_count = $q_total->fetch_row()[0];
+        
+        $valid_count = $total_count - $missing_count;
+        
+        ob_clean();
+        echo json_encode([
+            'status' => 'success', 
+            'message' => "Sinkronisasi berhasil! $valid_count data pegawai siap dihitung masa pensiunnya. ($missing_count data tidak memiliki tgl lahir).",
+            'stats' => [
+                'total' => $total_count,
+                'valid' => $valid_count,
+                'missing' => $missing_count
+            ]
+        ]);
         exit;
     }
 
@@ -419,6 +452,13 @@ try {
         $masa_kerja_bln = $_POST['masa_kerja_bln'] ?? ($current_data['masa_kerja_bln'] ?? 0);
         $gaji_pokok = !empty($_POST['gaji_pokok']) ? floatval(str_replace(['.', ','], ['', '.'], $_POST['gaji_pokok'])) : ($current_data['gaji_pokok'] ?? 0);
         
+        $rt = $_POST['rt'] ?? ($current_data['rt'] ?? '');
+        $rw = $_POST['rw'] ?? ($current_data['rw'] ?? '');
+        $kelurahan = $_POST['kelurahan'] ?? ($current_data['kelurahan'] ?? '');
+        $kecamatan = $_POST['kecamatan'] ?? ($current_data['kecamatan'] ?? '');
+        $hobby = $_POST['hobby'] ?? ($current_data['hobby'] ?? '');
+        $pengalaman_kerja = $_POST['pengalaman_kerja'] ?? ($current_data['pengalaman_kerja'] ?? '');
+        
         $foto_lama = $_POST['foto_lama'] ?? ($current_data['foto'] ?? '');
         $status = $_POST['status'] ?? ($current_data['status'] ?? '1');
 
@@ -434,16 +474,16 @@ try {
         }
 
         if (empty($id)) {
-            // Insert - Fixed placeholder mismatch (33 fields)
-            $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, nik, no_kk, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            // Insert - Fixed placeholder mismatch (39 fields)
+            $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, nik, no_kk, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok, rt, rw, kelurahan, kecamatan, hobby, pengalaman_kerja) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssssssssssssssiid", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok);
+            $stmt->bind_param("ssssssssssssssssssssssssssssssiidssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja);
         } else {
             // Update - Added missing fields
-            $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, nik=?, no_kk=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=? WHERE id=?";
+            $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, nik=?, no_kk=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=?, rt=?, rw=?, kelurahan=?, kecamatan=?, hobby=?, pengalaman_kerja=? WHERE id=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssssssssssssssiidi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $id);
+            $stmt->bind_param("ssssssssssssssssssssssssssssssiidssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $id);
         }
 
         if ($stmt->execute()) {

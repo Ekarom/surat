@@ -14,7 +14,9 @@ if (session_status() === PHP_SESSION_NONE) {
 if (file_exists('../vendor/autoload.php')) {
     require '../vendor/autoload.php';
 } else {
-    die("Error: Library dependencies (vendor/autoload.php) not found.");
+    $_SESSION['error_message'] = "Library 2FA (vendor) tidak ditemukan. Silakan hubungi admin.";
+    header("Location: login_ptk.php");
+    exit();
 }
 
 use PragmaRX\Google2FA\Google2FA;
