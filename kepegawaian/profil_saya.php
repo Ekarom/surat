@@ -297,6 +297,27 @@ $highlights = $stmt_last->get_result();
                     </div>
                 </div>
             </div>
+
+            <!-- School Info Card [NEW] -->
+            <div class="card border-0 shadow-sm rounded-4 p-4 mt-4">
+                <h5 class="section-title">
+                    <i class="las la-school text-primary"></i> Unit Kerja / Sekolah
+                </h5>
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="bg-light p-3 rounded-4">
+                            <i class="las la-building fa-3x text-primary opacity-50"></i>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="h5 fw-bold mb-1"><?php echo htmlspecialchars($GLOBALS['namasek'] ?? 'Sekolah Belum Diatur'); ?></div>
+                        <div class="text-muted small">NPSN: <?php echo htmlspecialchars($GLOBALS['npsn'] ?? '-'); ?></div>
+                        <div class="mt-2 small text-dark">
+                            <i class="las la-map-marker me-1"></i> <?php echo htmlspecialchars($GLOBALS['alamatsek'] ?? '-'); ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- Contact & Actions -->

@@ -102,6 +102,7 @@ try {
         'kecamatan' => "VARCHAR(100)",
         'hobby' => "TEXT",
         'pengalaman_kerja' => "TEXT",
+        'is_pensiun_synced' => "TINYINT(1) DEFAULT 0",
         'last_activity' => "DATETIME"
     ];
 
@@ -258,6 +259,9 @@ try {
     if ($action == 'syncPensiun') {
         header('Content-Type: application/json');
         
+        // Actually perform the sync: Set all active employees to synced
+        $conn->query("UPDATE pegawai SET is_pensiun_synced = 1 WHERE status = '1'");
+        
         // Audit data: check employees with missing birth dates
         $q_missing = $conn->query("SELECT COUNT(*) FROM pegawai WHERE (tgl_lahir IS NULL OR tgl_lahir = '0000-00-00') AND status = '1'");
         $missing_count = $q_missing->fetch_row()[0];
@@ -270,7 +274,7 @@ try {
         ob_clean();
         echo json_encode([
             'status' => 'success', 
-            'message' => "Sinkronisasi berhasil! $valid_count data pegawai siap dihitung masa pensiunnya. ($missing_count data tidak memiliki tgl lahir).",
+            'message' => "Sinkronisasi berhasil! $total_count data pegawai telah disinkronkan ke modul pensiun.",
             'stats' => [
                 'total' => $total_count,
                 'valid' => $valid_count,

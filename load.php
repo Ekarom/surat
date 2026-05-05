@@ -35,97 +35,43 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
             <div class="container-fluid">
                 <!-- DASHBOARD ADMIN (LEVEL 1) -->
                 <div class="row">
-                    <!-- Box 1: Surat Masuk -->
-                    <div class="col-lg-2 col-6">
-                        <div class="small-box bg-gradient-x-primary">
-                            <div class="inner text-white">
-                                <?php
-                                // Get active year and switch database
-                                $tahun_aktif_card = (!empty($tahunsklh)) ? $tahunsklh : (isset($tahun) ? $tahun : date('Y'));
-                                $db_card = "sas_" . $tahun_aktif_card;
+                    <?php
+                    // Get active year and switch database once
+                    $tahun_aktif_card = (!empty($tahunsklh)) ? $tahunsklh : (isset($tahun) ? $tahun : date('Y'));
+                    $db_card = "sas_" . $tahun_aktif_card;
 
-                                // Use existing connection if database matches, or try new one silently
-                                if (isset($db) && $db === $db_card) {
-                                    $conn_card = $conn;
-                                } else {
-                                    $conn_card = @mysqli_connect('localhost', 'root', '', $db_card);
-                                }
+                    // Use existing connection if database matches, or try new one silently
+                    $conn_card = (isset($db) && $db === $db_card) ? $conn : (@mysqli_connect('localhost', 'root', '', $db_card) ?: $conn);
 
-                                if (!$conn_card) {
-                                    $conn_card = $conn;
-                                }
+                    $dashboard_cards = [
+                        ['label' => 'Surat Masuk', 'table' => 'dokumenmasuk', 'bg' => 'bg-gradient-x-primary', 'icon' => 'las la-chart-bar', 'link' => '?page=suratmasuk'],
+                        ['label' => 'Surat Keluar', 'table' => 'dokumenkeluar', 'bg' => 'bg-gradient-x-success', 'icon' => 'las la-chart-bar', 'link' => '?page=suratkeluar'],
+                        ['label' => 'Surat Keputusan', 'table' => 'dokumenkeputusan', 'bg' => 'bg-gradient-x-danger', 'icon' => 'las la-chart-bar', 'link' => '?page=suratkeputusan'],
+                        ['label' => 'Surat Edaran', 'table' => 'dokumenedaran', 'bg' => 'bg-gradient-x-warning', 'icon' => 'las la-chart-bar', 'link' => '?page=suratedaran'],
+                    ];
 
-                                $rs1 = mysqli_query($conn_card, "SELECT COUNT(*) as total FROM dokumenmasuk");
-                                $data1 = mysqli_fetch_assoc($rs1);
-                                $countgtk = $data1['total'] ?? 0;
-                                echo "<h3>$countgtk</h3>";
-                                ?>
-                                <p>Surat Masuk (<?php echo $tahun_aktif_card; ?>)</p>
+                    foreach ($dashboard_cards as $card) {
+                        $rs = mysqli_query($conn_card, "SELECT COUNT(*) as total FROM {$card['table']}");
+                        $count = ($rs) ? (mysqli_fetch_assoc($rs)['total'] ?? 0) : 0;
+                        ?>
+                        <div class="col-lg-3 col-6">
+                            <div class="small-box <?php echo $card['bg']; ?>">
+                                <div class="inner text-white">
+                                    <h3><?php echo $count; ?></h3>
+                                    <p><?php echo $card['label']; ?> (<?php echo $tahun_aktif_card; ?>)</p>
+                                </div>
+                                <div class="icon"><i class="<?php echo $card['icon']; ?>"></i></div>
+                                <a href="<?php echo $card['link']; ?>" class="small-box-footer">More info <i
+                                        class="bi bi-link-45deg"></i></a>
                             </div>
-                            <div class="icon"><i class="ion ion-stats-bars"></i></div>
-                            <a href="?page=suratmasuk" class="small-box-footer">More info <i
-                                    class="bi bi-link-45deg"></i></a>
                         </div>
-                    </div>
+                    <?php }
 
-                    <!-- Box 2: Surat Keluar -->
-                    <div class="col-lg-2 col-6">
-                        <div class="small-box bg-gradient-x-success">
-                            <div class="inner text-white">
-                                <?php
-                                $rs2 = mysqli_query($conn_card, "SELECT COUNT(*) as total FROM dokumenkeluar");
-                                $data2 = mysqli_fetch_assoc($rs2);
-                                $countkeluar = $data2['total'] ?? 0;
-                                echo "<h3>$countkeluar</h3>";
-                                ?>
-                                <p>Surat Keluar (<?php echo $tahun_aktif_card; ?>)</p>
-                            </div>
-                            <div class="icon"><i class="ion ion-stats-bars"></i></div>
-                            <a href="?page=suratkeluar" class="small-box-footer">More info <i
-                                    class="bi bi-link-45deg"></i></a>
-                        </div>
-                    </div>
-
-                    <!-- Box 3: Surat Keputusan -->
-                    <div class="col-lg-2 col-6">
-                        <div class="small-box bg-gradient-x-danger">
-                            <div class="inner text-white">
-                                <?php
-                                $rs3 = mysqli_query($conn_card, "SELECT COUNT(*) as total FROM dokumenkeputusan");
-                                $data3 = mysqli_fetch_assoc($rs3);
-                                $countkeputusan = $data3['total'] ?? 0;
-                                echo "<h3>$countkeputusan</h3>";
-                                ?>
-                                <p>Surat Keputusan (<?php echo $tahun_aktif_card; ?>)</p>
-                            </div>
-                            <div class="icon"><i class="ion ion-stats-bars"></i></div>
-                            <a href="?page=suratkeputusan" class="small-box-footer">More info <i
-                                    class="bi bi-link-45deg"></i></a>
-                        </div>
-                    </div>
-
-                    <!-- Box 4: Surat Edaran -->
-                    <div class="col-lg-2 col-6">
-                        <div class="small-box bg-gradient-x-warning">
-                            <div class="inner text-white">
-                                <?php
-                                $rs4 = mysqli_query($conn_card, "SELECT COUNT(*) as total FROM dokumenedaran");
-                                $data4 = mysqli_fetch_assoc($rs4);
-                                $countedaran = $data4['total'] ?? 0;
-                                echo "<h3>$countedaran</h3>";
-
-                                // Close card connection if different from main connection
-                                if ($conn_card !== $conn) {
-                                    mysqli_close($conn_card);
-                                }
-                                ?>
-                                <p>Surat Edaran (<?php echo $tahun_aktif_card; ?>)</p>
-                            </div>
-                            <div class="icon"><i class="ion ion-stats-bars"></i></div>
-                            <a href="?page=suratedaran" class="small-box-footer">More info <i
-                                    class="bi bi-link-45deg"></i></a>
-                        </div>
-                    </div>
+                    // Close card connection if different from main connection
+                    if ($conn_card !== $conn) {
+                        mysqli_close($conn_card);
+                    }
+                    ?>
                 </div>
                 <!-- /.row -->
 
@@ -188,14 +134,11 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
 
                         <!-- DIRECT CHAT -->
 
-                        <div class="card direct-chat direct-chat text-white">
+                        <div class="card direct-chat direct-chat">
 
                             <div class="card-header bg-gradient-x-info">
 
-                                <h3 class="card-title">
-
-                                    <i class="fas fa-history mr-1"></i>
-
+                                <h3 class="card-title text-white">
                                     History Log
 
                                 </h3>
@@ -206,7 +149,7 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
 
                                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
 
-                                        <i class="fas fa-minus"></i>
+                                        <i class="la la-minus"></i>
 
                                     </button>
 
@@ -228,8 +171,6 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                 
                                     if (isset($log1) && $log1 instanceof mysqli_result && mysqli_num_rows($log1) > 0) {
 
-                                        $i = isset($log5['n1']) ? $log5['n1'] : 0;
-
                                         // Reset pointer if needed, though usually fresh
                                         mysqli_data_seek($log1, 0);
 
@@ -242,10 +183,10 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                                 <div class="direct-chat-infos clearfix">
 
                                                     <span
-                                                        class="direct-chat-name float-left"><?php echo htmlspecialchars($log2['nama']); ?></span>
+                                                        class="direct-chat-name float-left text-dark fw-bold"><?php echo htmlspecialchars($log2['nama'] ?: $log2['user']); ?></span>
 
                                                     <span
-                                                        class="direct-chat-timestamp float-right"><?php echo $log2['waktu']; ?></span>
+                                                        class="direct-chat-timestamp float-right text-dark opacity-75"><?php echo htmlspecialchars($log2['waktu']); ?></span>
 
                                                 </div>
 
@@ -260,8 +201,6 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                             </div>
 
                                             <?php
-
-                                            $i--;
 
                                         }
 
@@ -646,27 +585,17 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                         <div class="card direct-chat direct-chat">
 
                             <div class="card-header bg-menu-gradient">
-
-                                <h3 class="card-title">
-
-                                    <i class="fas fa-history mr-1"></i>
-
+                                <h3 class="card-title text-white">
+                                    <i class="la la-history mr-1"></i>
                                     History Log
-
                                 </h3>
-
-
-
                                 <div class="card-tools">
-
                                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
-
-                                        <i class="fas fa-minus"></i>
+                                        <i class="la la-minus"></i>
 
                                     </button>
 
                                 </div>
-
                             </div>
 
                             <!-- /.card-header -->
@@ -683,8 +612,6 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                 
                                     if (isset($log1) && $log1 instanceof mysqli_result && mysqli_num_rows($log1) > 0) {
 
-                                        $i = isset($log5['n1']) ? $log5['n1'] : 0;
-
                                         // Reset pointer if needed, though usually fresh
                                         mysqli_data_seek($log1, 0);
 
@@ -697,10 +624,10 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                                 <div class="direct-chat-infos clearfix">
 
                                                     <span
-                                                        class="direct-chat-name float-left"><?php echo htmlspecialchars($log2['nama']); ?></span>
+                                                        class="direct-chat-name float-left text-dark fw-bold"><?php echo htmlspecialchars($log2['nama'] ?: $log2['user']); ?></span>
 
                                                     <span
-                                                        class="direct-chat-timestamp float-right"><?php echo $log2['waktu']; ?></span>
+                                                        class="direct-chat-timestamp float-right text-dark opacity-75"><?php echo htmlspecialchars($log2['waktu']); ?></span>
 
                                                 </div>
 
@@ -715,8 +642,6 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                             </div>
 
                                             <?php
-
-                                            $i--;
 
                                         }
 
@@ -1122,9 +1047,9 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
 
                             <div class="card-header bg-menu-gradient">
 
-                                <h3 class="card-title">
+                                <h3 class="card-title text-white">
 
-                                    <i class="fas fa-history mr-1"></i>
+                                    <i class="la la-history mr-1"></i>
 
                                     History Log
 
@@ -1136,7 +1061,7 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
 
                                     <button type="button" class="btn btn-tool" data-card-widget="collapse">
 
-                                        <i class="fas fa-minus"></i>
+                                        <i class="la la-minus"></i>
 
                                     </button>
 
@@ -1158,8 +1083,6 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                 
                                     if (isset($log1) && $log1 instanceof mysqli_result && mysqli_num_rows($log1) > 0) {
 
-                                        $i = isset($log5['n1']) ? $log5['n1'] : 0;
-
                                         // Reset pointer if needed, though usually fresh
                                         mysqli_data_seek($log1, 0);
 
@@ -1172,10 +1095,10 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                                 <div class="direct-chat-infos clearfix">
 
                                                     <span
-                                                        class="direct-chat-name float-left"><?php echo htmlspecialchars($log2['nama']); ?></span>
+                                                        class="direct-chat-name float-left text-dark fw-bold"><?php echo htmlspecialchars($log2['nama'] ?: $log2['user']); ?></span>
 
                                                     <span
-                                                        class="direct-chat-timestamp float-right"><?php echo $log2['waktu']; ?></span>
+                                                        class="direct-chat-timestamp float-right text-dark opacity-75"><?php echo htmlspecialchars($log2['waktu']); ?></span>
 
                                                 </div>
 
@@ -1190,8 +1113,6 @@ mysqli_report(MYSQLI_REPORT_OFF); // Pastikan operator @ berfungsi untuk koneksi
                                             </div>
 
                                             <?php
-
-                                            $i--;
 
                                         }
 

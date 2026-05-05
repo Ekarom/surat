@@ -83,357 +83,357 @@ if (!isset($conn)) {
             <p class="text-muted small mb-0">Unggah berkas Excel untuk memperbarui database pegawai secara massal</p>
         </div>
     </div>
-    
+
     <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="modern-card p-4">
-                    <h5 class="fw-bold mb-4">Pilih File Excel</h5>
-                    <div id="alertContainer"></div>
+        <div class="col-lg-6">
+            <div class="modern-card p-4">
+                <h5 class="fw-bold mb-4">Pilih File Excel</h5>
+                <div id="alertContainer"></div>
 
-                    <div class="drop-zone" id="dropZone" onclick="document.getElementById('excelFile').click()">
-                        <i class="la la-cloud-upload"></i>
-                        <h5 class="fw-bold">Drag & Drop file di sini</h5>
-                        <p class="text-muted small">Atau klik untuk memilih file dari komputer Anda</p>
-                        <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
-                        <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 mt-2 fw-bold">
-                            Pilih File Excel
-                        </button>
-                    </div>
+                <div class="drop-zone" id="dropZone" onclick="document.getElementById('excelFile').click()">
+                    <i class="la la-cloud-upload"></i>
+                    <h5 class="fw-bold">Drag & Drop file di sini</h5>
+                    <p class="text-muted small">Atau klik untuk memilih file dari komputer Anda</p>
+                    <input type="file" id="excelFile" class="d-none" accept=".xlsx, .xls">
+                    <button type="button" class="btn btn-outline-info btn-sm btn-rounded px-4 mt-2 fw-bold">
+                        Pilih File Excel
+                    </button>
+                </div>
 
-                    <div id="fileInfo" class="d-none mt-3 p-3 rounded-4 bg-light border border-dashed">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="small fw-bold text-dark">
-                                <i class="las la-file-excel me-2 text-success"></i>
-                                <span id="fileName">file.xlsx</span>
-                            </span>
-                            <button type="button"
-                                class="btn btn-sm btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
-                                style="width: 24px; height: 24px;" onclick="resetFile()">
-                                <i class="las la-times" style="font-size: 10px;"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-2 border-top text-center">
-                        <button type="button" id="btnImport" class="btn btn-primary btn-rounded px-5 fw-bold shadow-sm"
-                            disabled onclick="startImport()">
-                            <i class="las la-cloud-upload-alt me-2"></i> Mulai Import Sekarang
+                <div id="fileInfo" class="d-none mt-3 p-3 rounded-4 bg-light border border-dashed">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="small fw-bold text-dark">
+                            <i class="las la-file-excel me-2 text-success"></i>
+                            <span id="fileName">file.xlsx</span>
+                        </span>
+                        <button type="button"
+                            class="btn btn-sm btn-danger rounded-circle p-0 d-flex align-items-center justify-content-center"
+                            style="width: 24px; height: 24px;" onclick="resetFile()">
+                            <i class="las la-times" style="font-size: 10px;"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Progress Card -->
-                <div id="progressCard" class="modern-card mt-4 p-4 d-none">
-                    <h6 class="fw-bold mb-3">Memproses Data... <span id="progressPercent"
-                            class="float-end text-primary">0%</span></h6>
-                    <div class="progress mb-2" style="height: 8px; border-radius: 10px; background: #f1f5f9;">
-                        <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
-                            role="progressbar" style="width: 0%"></div>
-                    </div>
-                    <p class="text-muted extra-small mb-0" id="progressStatus">Membaca file excel...</p>
+                <div class="mt-4 pt-2 border-top text-center">
+                    <button type="button" id="btnImport" class="btn btn-outline-info btn-rounded px-5 fw-bold shadow-sm"
+                        disabled onclick="startImport()">
+                        <i class="las la-cloud-upload-alt me-2"></i>Upload
+                    </button>
                 </div>
             </div>
 
-            <div class="col-lg-6">
-                <div class="modern-card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h6 class="fw-bold mb-0 text-muted extra-small uppercase">Struktur Kolom Excel</h6>
-                        <button type="button" onclick="downloadTemplate()"
-                            class="btn btn-link text-decoration-none p-0 extra-small fw-bold">
-                            <i class="las la-download me-1"></i> Template
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-sm mb-0">
-                            <thead>
-                                <tr>
-                                    <th width="60">Kolom</th>
-                                    <th>Keterangan</th>
-                                    <th class="text-center">Wajib</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="fw-bold text-primary">A</td>
-                                    <td>NIP / NIK</td>
-                                    <td class="text-center"><span class="text-danger fw-bold">Ya</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">B</td>
-                                    <td>NRK</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">C</td>
-                                    <td>Nama Lengkap</td>
-                                    <td class="text-center"><span class="text-danger fw-bold">Ya</span></td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">D</td>
-                                    <td>Tempat Lahir</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">E</td>
-                                    <td>Tanggal Lahir</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">F</td>
-                                    <td>Gender (L/P)</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">G</td>
-                                    <td>Pendidikan</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">H</td>
-                                    <td>Jabatan</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">I</td>
-                                    <td>Pangkat</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">J</td>
-                                    <td>Golongan</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">K</td>
-                                    <td>Unit Kerja</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">L</td>
-                                    <td>Status Pegawai</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">M</td>
-                                    <td>NUPTK</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">N</td>
-                                    <td>Agama</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">O</td>
-                                    <td>Alamat (Jalan)</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">P</td>
-                                    <td>RT</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">Q</td>
-                                    <td>RW</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">R</td>
-                                    <td>Kelurahan</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">S</td>
-                                    <td>Kecamatan</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">T</td>
-                                    <td>No. HP</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                                <tr>
-                                    <td class="fw-bold text-primary">U</td>
-                                    <td>Email</td>
-                                    <td class="text-center text-muted">Tidak</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-4 alert alert-info bg-soft-primary border-0 rounded-4">
-                        <div class="d-flex gap-3">
-                            <i class="las la-info-circle mt-1 text-primary"></i>
-                            <div class="small">
-                                <strong class="d-block mb-1">Informasi Penting</strong>
-                                <span>Baris pertama dianggap sebagai Header dan akan diabaikan. Pastikan format tanggal
-                                    adalah <strong>YYYY-MM-DD</strong>.</span>
-                            </div>
+            <!-- Progress Card -->
+            <div id="progressCard" class="modern-card mt-4 p-4 d-none">
+                <h6 class="fw-bold mb-3">Memproses Data... <span id="progressPercent"
+                        class="float-end text-primary">0%</span></h6>
+                <div class="progress mb-2" style="height: 8px; border-radius: 10px; background: #f1f5f9;">
+                    <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                        role="progressbar" style="width: 0%"></div>
+                </div>
+                <p class="text-muted extra-small mb-0" id="progressStatus">Membaca file excel...</p>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="modern-card p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-muted extra-small uppercase">Struktur Kolom Excel</h6>
+                    <button type="button" onclick="downloadTemplate()"
+                        class="btn btn-link text-decoration-none p-0 extra-small fw-bold">
+                        <i class="las la-download me-1"></i> Template
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-sm mb-0">
+                        <thead>
+                            <tr>
+                                <th width="60">Kolom</th>
+                                <th>Keterangan</th>
+                                <th class="text-center">Wajib</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold text-primary">A</td>
+                                <td>NIP / NIK</td>
+                                <td class="text-center"><span class="text-danger fw-bold">Ya</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">B</td>
+                                <td>NRK</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">C</td>
+                                <td>Nama Lengkap</td>
+                                <td class="text-center"><span class="text-danger fw-bold">Ya</span></td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">D</td>
+                                <td>Tempat Lahir</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">E</td>
+                                <td>Tanggal Lahir</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">F</td>
+                                <td>Gender (L/P)</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">G</td>
+                                <td>Pendidikan</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">H</td>
+                                <td>Jabatan</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">I</td>
+                                <td>Pangkat</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">J</td>
+                                <td>Golongan</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">K</td>
+                                <td>Unit Kerja</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">L</td>
+                                <td>Status Pegawai</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">M</td>
+                                <td>NUPTK</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">N</td>
+                                <td>Agama</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">O</td>
+                                <td>Alamat (Jalan)</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">P</td>
+                                <td>RT</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">Q</td>
+                                <td>RW</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">R</td>
+                                <td>Kelurahan</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">S</td>
+                                <td>Kecamatan</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">T</td>
+                                <td>No. HP</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">U</td>
+                                <td>Email</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 alert alert-info bg-soft-primary border-0 rounded-4">
+                    <div class="d-flex gap-3">
+                        <i class="las la-info-circle mt-1 text-primary"></i>
+                        <div class="small">
+                            <strong class="d-block mb-1">Informasi Penting</strong>
+                            <span>Baris pertama dianggap sebagai Header dan akan diabaikan. Pastikan format tanggal
+                                adalah <strong>YYYY-MM-DD</strong>.</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- SheetJS Library -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<!-- SheetJS Library -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
-    <script>
-        let excelData = [];
+<script>
+    let excelData = [];
 
-        document.getElementById('excelFile').addEventListener('change', function (e) {
-            const file = e.target.files[0];
-            if (file) handleFile(file);
-        });
+    document.getElementById('excelFile').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) handleFile(file);
+    });
 
-        function handleFile(file) {
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileInfo').classList.remove('d-none');
-            document.getElementById('dropZone').classList.add('d-none');
+    function handleFile(file) {
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileInfo').classList.remove('d-none');
+        document.getElementById('dropZone').classList.add('d-none');
 
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { 
-                    type: 'array',
-                    cellDates: true,
-                    cellNF: false,
-                    cellText: false
-                });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {
+                type: 'array',
+                cellDates: true,
+                cellNF: false,
+                cellText: false
+            });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
 
-                // Convert to JSON with raw:false to prevent scientific notation for NIP
-                excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
+            // Convert to JSON with raw:false to prevent scientific notation for NIP
+            excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
 
-                // Remove header row
-                excelData.shift();
+            // Remove header row
+            excelData.shift();
 
-                if (excelData.length > 0) {
-                    document.getElementById('btnImport').disabled = false;
-                    showAlert('success', `File terbaca! Ditemukan ${excelData.length} baris data.`);
-                } else {
-                    showAlert('danger', 'File kosong atau tidak memiliki data.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
+            if (excelData.length > 0) {
+                document.getElementById('btnImport').disabled = false;
+                showAlert('success', `File terbaca! Ditemukan ${excelData.length} baris data.`);
+            } else {
+                showAlert('danger', 'File kosong atau tidak memiliki data.');
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
 
-        function resetFile() {
-            document.getElementById('excelFile').value = '';
-            document.getElementById('fileInfo').classList.add('d-none');
-            document.getElementById('dropZone').classList.remove('d-none');
-            document.getElementById('btnImport').disabled = true;
-            excelData = [];
-        }
+    function resetFile() {
+        document.getElementById('excelFile').value = '';
+        document.getElementById('fileInfo').classList.add('d-none');
+        document.getElementById('dropZone').classList.remove('d-none');
+        document.getElementById('btnImport').disabled = true;
+        excelData = [];
+    }
 
-        async function startImport() {
-            document.getElementById('btnImport').disabled = true;
-            document.getElementById('progressCard').classList.remove('d-none');
+    async function startImport() {
+        document.getElementById('btnImport').disabled = true;
+        document.getElementById('progressCard').classList.remove('d-none');
 
-            const total = excelData.length;
-            let success = 0;
-            let error = 0;
-            let errorLog = [];
+        const total = excelData.length;
+        let success = 0;
+        let error = 0;
+        let errorLog = [];
 
-            // Helper functions
-            const cleanValue = (val) => {
-                if (!val) return '';
-                let str = String(val).trim();
-                if (str.toUpperCase().includes('E+')) {
-                    return Number(str).toLocaleString('fullwide', { useGrouping: false });
-                }
-                return str;
-            };
+        // Helper functions
+        const cleanValue = (val) => {
+            if (!val) return '';
+            let str = String(val).trim();
+            if (str.toUpperCase().includes('E+')) {
+                return Number(str).toLocaleString('fullwide', { useGrouping: false });
+            }
+            return str;
+        };
 
-            const formatDate = (val) => {
-                if (!val) return '';
-                if (val instanceof Date) {
-                    const y = val.getFullYear();
-                    const m = String(val.getMonth() + 1).padStart(2, '0');
-                    const d = String(val.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${d}`;
-                }
-                return String(val).trim();
-            };
+        const formatDate = (val) => {
+            if (!val) return '';
+            if (val instanceof Date) {
+                const y = val.getFullYear();
+                const m = String(val.getMonth() + 1).padStart(2, '0');
+                const d = String(val.getDate()).padStart(2, '0');
+                return `${y}-${m}-${d}`;
+            }
+            return String(val).trim();
+        };
 
-            for (let i = 0; i < total; i++) {
-                const row = excelData[i];
+        for (let i = 0; i < total; i++) {
+            const row = excelData[i];
 
-                // Default missing NIP/NRK to '0' if requested, but NIP should ideally be unique
-                const rawNip = cleanValue(row[0]) || '0';
-                const rawNama = (row[2] || '').toString().trim();
-                
-                if (!rawNama) {
-                    continue; // Still skip if Nama is missing as it's a minimum requirement
-                }
+            // Default missing NIP/NRK to '0' if requested, but NIP should ideally be unique
+            const rawNip = cleanValue(row[0]) || '0';
+            const rawNama = (row[2] || '').toString().trim();
 
-                const percent = Math.round(((i + 1) / total) * 100);
-
-                document.getElementById('progressBar').style.width = percent + '%';
-                document.getElementById('progressPercent').textContent = percent + '%';
-                document.getElementById('progressStatus').textContent = `Mengirim data: ${row[2] || row[0] || '...'}`;
-
-                // Add small delay to prevent server overload
-                await new Promise(resolve => setTimeout(resolve, 100));
-
-                try {
-                    const response = await fetch('proses_import_excel.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: new URLSearchParams({
-                            nip: rawNip,
-                            nrk: cleanValue(row[1]) || '0',
-                            nama: row[2] || '',
-                            tempat_lahir: row[3] || '',
-                            tgl_lahir: formatDate(row[4]),
-                            jenis_kelamin: row[5] || '',
-                            pendidikan: row[6] || '',
-                            jabatan: row[7] || '',
-                            pangkat: row[8] || '',
-                            golongan: row[9] || '',
-                            unit_kerja: row[10] || '',
-                            status_pegawai: row[11] || '',
-                            nuptk: row[12] || '',
-                            agama: row[13] || '',
-                            alamat: row[14] || '',
-                            rt: row[15] || '',
-                            rw: row[16] || '',
-                            kelurahan: row[17] || '',
-                            kecamatan: row[18] || '',
-                            no_hp: row[19] || '',
-                            email: row[20] || ''
-                        })
-                    });
-
-                    const text = await response.text();
-                    let res;
-                    try {
-                        res = JSON.parse(text);
-                    } catch (e) {
-                        throw new Error("Respon Server Bukan JSON: " + text.substring(0, 50));
-                    }
-
-                    if (res.status === 'success') {
-                        success++;
-                    } else {
-                        error++;
-                        errorLog.push(`Baris ${i + 2} (${row[0] || 'NIP Kosong'}): ${res.message}`);
-                    }
-                } catch (err) {
-                    error++;
-                    errorLog.push(`Baris ${i + 2}: ${err.message || 'Kesalahan Koneksi'}`);
-                }
+            if (!rawNama) {
+                continue; // Still skip if Nama is missing as it's a minimum requirement
             }
 
-            let alertMsg = `<div class="d-flex align-items-center mb-2">
+            const percent = Math.round(((i + 1) / total) * 100);
+
+            document.getElementById('progressBar').style.width = percent + '%';
+            document.getElementById('progressPercent').textContent = percent + '%';
+            document.getElementById('progressStatus').textContent = `Mengirim data: ${row[2] || row[0] || '...'}`;
+
+            // Add small delay to prevent server overload
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            try {
+                const response = await fetch('proses_import_excel.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        nip: rawNip,
+                        nrk: cleanValue(row[1]) || '0',
+                        nama: row[2] || '',
+                        tempat_lahir: row[3] || '',
+                        tgl_lahir: formatDate(row[4]),
+                        jenis_kelamin: row[5] || '',
+                        pendidikan: row[6] || '',
+                        jabatan: row[7] || '',
+                        pangkat: row[8] || '',
+                        golongan: row[9] || '',
+                        unit_kerja: row[10] || '',
+                        status_pegawai: row[11] || '',
+                        nuptk: row[12] || '',
+                        agama: row[13] || '',
+                        alamat: row[14] || '',
+                        rt: row[15] || '',
+                        rw: row[16] || '',
+                        kelurahan: row[17] || '',
+                        kecamatan: row[18] || '',
+                        no_hp: row[19] || '',
+                        email: row[20] || ''
+                    })
+                });
+
+                const text = await response.text();
+                let res;
+                try {
+                    res = JSON.parse(text);
+                } catch (e) {
+                    throw new Error("Respon Server Bukan JSON: " + text.substring(0, 50));
+                }
+
+                if (res.status === 'success') {
+                    success++;
+                } else {
+                    error++;
+                    errorLog.push(`Baris ${i + 2} (${row[0] || 'NIP Kosong'}): ${res.message}`);
+                }
+            } catch (err) {
+                error++;
+                errorLog.push(`Baris ${i + 2}: ${err.message || 'Kesalahan Koneksi'}`);
+            }
+        }
+
+        let alertMsg = `<div class="d-flex align-items-center mb-2">
                                 <i class="las la-check-circle fs-4 me-2 text-success"></i>
                                 <span class="fw-bold">Proses Import Selesai!</span>
                             </div>
                             <p class="mb-3">Berhasil: <b>${success}</b>, Gagal: <b>${error}</b>.</p>`;
-            
-            if (success > 0) {
-                alertMsg += `
+
+        if (success > 0) {
+            alertMsg += `
                     <div class="d-flex gap-2 mb-2">
                         <a href="?data_pegawai" class="btn btn-light btn-sm btn-rounded px-3 extra-small fw-bold border">
                             <i class="las la-users me-1"></i> Lihat Data
@@ -443,44 +443,44 @@ if (!isset($conn)) {
                         </a>
                     </div>
                 `;
-            }
-
-            if (errorLog.length > 0) {
-                alertMsg += `<hr><div class="extra-small text-start" style="max-height:150px; overflow-y:auto;"><strong>Detail Error:</strong><br>${errorLog.join('<br>')}</div>`;
-            }
-            showAlert(error > 0 ? 'warning' : 'success', alertMsg);
-            document.getElementById('progressStatus').textContent = 'Proses import selesai.';
-            document.getElementById('progressBar').classList.remove('progress-bar-animated');
         }
 
-        function downloadTemplate() {
-            const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "Alamat", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "Email"]];
-            const worksheet = XLSX.utils.aoa_to_sheet(header);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
-            XLSX.writeFile(workbook, "template_pegawai.xlsx");
+        if (errorLog.length > 0) {
+            alertMsg += `<hr><div class="extra-small text-start" style="max-height:150px; overflow-y:auto;"><strong>Detail Error:</strong><br>${errorLog.join('<br>')}</div>`;
         }
+        showAlert(error > 0 ? 'warning' : 'success', alertMsg);
+        document.getElementById('progressStatus').textContent = 'Proses import selesai.';
+        document.getElementById('progressBar').classList.remove('progress-bar-animated');
+    }
 
-        function showAlert(type, msg) {
-            const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
+    function downloadTemplate() {
+        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "Alamat", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "Email"]];
+        const worksheet = XLSX.utils.aoa_to_sheet(header);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
+        XLSX.writeFile(workbook, "template_pegawai.xlsx");
+    }
+
+    function showAlert(type, msg) {
+        const container = document.getElementById('alertContainer');
+        container.innerHTML = `<div class="alert alert-${type} alert-dismissible fade show" role="alert">
         ${msg}
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>`;
-        }
-    </script>
+    }
+</script>
 
-    <style>
-        .extra-small {
-            font-size: 0.75rem;
-        }
+<style>
+    .extra-small {
+        font-size: 0.75rem;
+    }
 
-        .bg-soft-primary {
-            background-color: var(--sap-primary-light);
-            color: var(--sap-primary);
-        }
+    .bg-soft-primary {
+        background-color: var(--sap-primary-light);
+        color: var(--sap-primary);
+    }
 
-        .border-dashed {
-            border-style: dashed !important;
-        }
-    </style>
+    .border-dashed {
+        border-style: dashed !important;
+    }
+</style>

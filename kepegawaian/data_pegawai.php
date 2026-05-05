@@ -15,26 +15,12 @@ if ($lv == '4') {
 }
 
 ?>
+<link rel="stylesheet" href="../plugins/css/palette-gradient.min.css">
+
+
 
 <style>
     /* Reuse styles from pegawai.php */
-    :root {
-        --sap-primary: #4f46e5;
-        --sap-primary-light: rgba(79, 70, 229, 0.1);
-        --sap-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-        --sap-secondary: #64748b;
-        --sap-success: #10b981;
-        --sap-info: #0ea5e9;
-        --sap-danger: #ef4444;
-        --sap-warning: #f59e0b;
-        --sap-dark: #1e293b;
-        --sap-gray-50: #f8fafc;
-        --sap-gray-100: #f1f5f9;
-        --sap-gray-200: #e2e8f0;
-        --sap-border-radius: 1rem;
-        --sap-shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-        --sap-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    }
 
     .page-title {
         font-weight: 800;
@@ -50,11 +36,6 @@ if ($lv == '4') {
         overflow: hidden;
     }
 
-    .modern-card-header {
-        background-color: #fff;
-        border-bottom: 1px solid var(--sap-gray-100);
-        padding: 1.25rem 1.5rem;
-    }
 
     .badge-soft {
         font-weight: 600;
@@ -169,6 +150,89 @@ if ($lv == '4') {
         border-radius: 10px;
         background: #f1f5f9;
     }
+
+    .sync-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-left: 5px;
+        vertical-align: middle;
+    }
+
+    .sync-pending {
+        background-color: var(--sap-warning);
+        box-shadow: 0 0 5px var(--sap-warning);
+    }
+
+    .table thead th {
+        padding: 1.25rem 1rem !important;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        letter-spacing: 0.075em;
+        border: none !important;
+        vertical-align: middle;
+    }
+
+    .table tbody td {
+        padding: 1.1rem 1rem !important;
+        vertical-align: middle;
+        white-space: nowrap;
+        border-bottom: 1px solid var(--sap-gray-100);
+    }
+
+    @media print {
+
+        .navbar,
+        #sidebar-wrapper,
+        .btn,
+        .dataTables_filter,
+        .dataTables_info,
+        .dataTables_paginate,
+        .modern-card-header,
+        .d-print-none,
+        .status-switch {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        #page-content-wrapper {
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .container-fluid {
+            padding: 0 !important;
+        }
+
+        .modern-card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        table.table thead th {
+            background-color: #f8f9fa !important;
+            color: black !important;
+            border: 1px solid #dee2e6 !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        table.table td {
+            border: 1px solid #dee2e6 !important;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
+    }
 </style>
 
 <div class="py-3"></div>
@@ -180,35 +244,29 @@ if ($lv == '4') {
         </div>
     </div>
 
-    <div class="modern-card">
-        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div class="d-flex align-items-center gap-2" style="position: relative; z-index: 100;">
-                <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
-                    id="tombolTambahPegawai">
+    <div class="card">
+        <div class="card-header">
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="tombolTambahPegawai">
                     <i class="las la-user-plus me-2"></i> Tambah Pegawai
                 </button>
-                <button type="button" class="btn btn-outline-info btn-sm btn-rounded px-4 shadow-sm" id="btnSyncPensiun">
+                <button type="button" class="btn btn-outline-warning btn-sm" id="btnSyncPensiun">
                     <i class="las la-sync me-2"></i> Sinkron Pensiun
                 </button>
-                <a href="?import_data_pegawai" class="btn btn-outline-success btn-sm btn-rounded px-4 shadow-sm" id="btnShowImport">
+                <a href="?import_data_pegawai" class="btn btn-outline-success btn-sm" id="btnShowImport">
                     <i class="las la-file-excel me-2"></i> Import Excel
                 </a>
-                <a href="proses_pegawai.php?action=download" class="btn btn-success btn-sm btn-rounded px-4 shadow-sm">
+                <a href="proses_pegawai.php?action=download" class="btn btn-outline-info btn-sm px-4 shadow-sm">
                     <i class="las la-file-excel me-2"></i> Download Data
                 </a>
             </div>
 
-            <div class="position-relative">
-                <i class="las la-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-                <input type="text" id="customSearch" class="form-control form-control-sm modern-input ps-5"
-                    placeholder="Cari nama, NIP, atau jabatan..." style="min-width: 280px;">
-            </div>
         </div>
 
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0" id="tabelPegawai" style="width:100%;">
-                    <thead class="box-shadow-0 bg-gradient-x-secondary">
+                    <thead class="bg-gradient-x-primary">
                         <tr class="text-white">
                             <th class="text-center px-3" width="50">No</th>
                             <th width="60">Foto</th>
@@ -240,7 +298,13 @@ if ($lv == '4') {
                                 <td><img src="<?php echo $foto_path; ?>" class="rounded-circle shadow-sm"
                                         style="width: 38px; height: 38px; object-fit: cover;"></td>
                                 <td>
-                                    <div class="fw-bold text-dark mb-0"><?php echo $row['nm_pegawai']; ?></div>
+                                    <div class="fw-bold text-dark mb-0">
+                                        <?php echo $row['nm_pegawai']; ?>
+                                        <?php if (($row['is_pensiun_synced'] ?? 1) == 0): ?>
+                                            <span class="sync-indicator sync-pending"
+                                                title="Belum disinkronkan ke modul pensiun"></span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div class="small text-muted mt-n1">
                                         NIP: <?php echo $row['nip'] ?: '-'; ?> <span class="mx-1 text-gray-300">|</span>
                                         NRK: <?php echo $row['nrk'] ?: '-'; ?>
@@ -263,13 +327,10 @@ if ($lv == '4') {
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
-                                        <button class="btn btn-sm btn-light border shadow-sm tombol-view"
-                                            data-id="<?php echo $row['id']; ?>" title="Lihat Detail"><i
-                                                class="las la-eye text-primary"></i></button>
-                                        <button class="btn btn-sm btn-light border shadow-sm tombol-edit"
+                                        <button class="btn btn-sm btn-outline-primary border shadow-sm tombol-edit"
                                             data-id="<?php echo $row['id']; ?>" title="Edit Cepat"><i
                                                 class="las la-edit text-warning"></i></button>
-                                        <button class="btn btn-sm btn-light border shadow-sm tombol-hapus"
+                                        <button class="btn btn-sm btn-outline-danger border shadow-sm tombol-hapus"
                                             data-id="<?php echo $row['id']; ?>" title="Hapus"><i
                                                 class="las la-trash text-danger"></i></button>
                                     </div>
@@ -385,62 +446,21 @@ if ($lv == '4') {
 
 <!-- SheetJS Library -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-
 <style>
-    /* Fixed Columns Robust Styling */
-    .DTFC_LeftWrapper,
-    .DTFC_RightWrapper {
-        z-index: 20 !important;
+    /* Ensure DataTable headers don't double up or misalign */
+    .dataTables_scrollHead {
+        border-radius: var(--sap-border-radius) var(--sap-border-radius) 0 0;
+        overflow: hidden !important;
     }
 
-    /* Ensure fixed cells have a solid background */
-    .DTFC_LeftBodyWrapper td,
-    .DTFC_LeftHeadWrapper th,
-    .DTFC_RightBodyWrapper td,
-    .DTFC_RightHeadWrapper th {
-        background-color: #fff !important;
-        border-right: 1px solid var(--sap-gray-100) !important;
+    .dataTables_scrollBody thead th {
+        padding: 0 !important;
+        height: 0 !important;
+        line-height: 0 !important;
+        visibility: hidden !important;
     }
 
-    .DTFC_RightBodyWrapper td,
-    .DTFC_RightHeadWrapper th {
-        border-right: none !important;
-        border-left: 1px solid var(--sap-gray-100) !important;
-    }
-
-    /* Shadow effects for separation */
-    .DTFC_LeftWrapper {
-        box-shadow: 15px 0 30px -15px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    .DTFC_RightWrapper {
-        box-shadow: -15px 0 30px -15px rgba(0, 0, 0, 0.08) !important;
-    }
-
-    #tabelPegawai {
-        border-collapse: separate !important;
-        border-spacing: 0;
-    }
-
-    #tabelPegawai th {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.075em;
-        font-weight: 700;
-        color: var(--sap-secondary);
-        padding: 1.25rem 1rem;
-        border-top: none;
-        background-color: var(--sap-gray-50);
-    }
-
-    #tabelPegawai td {
-        padding: 1.1rem 1rem;
-        white-space: nowrap;
-        border-bottom: 1px solid var(--sap-gray-100);
-        transition: background-color 0.2s ease;
-    }
-
-    #tabelPegawai tr:hover td {
+    .table tr:hover td {
         background-color: rgba(79, 70, 229, 0.02) !important;
     }
 
@@ -450,11 +470,6 @@ if ($lv == '4') {
         width: 100% !important;
     }
 
-    /* Hide standard DT components we replaced */
-    .dataTables_filter,
-    .dataTables_length {
-        display: none;
-    }
 
     .dataTables_info {
         padding: 1.5rem !important;
@@ -489,11 +504,14 @@ if ($lv == '4') {
         const modalDetail = new bootstrap.Modal(document.getElementById('modalDetail'));
 
         // DataTable with FixedColumns
-        $('.content table.table').DataTable({
+        const table = $('.content table.table').DataTable({
             scrollY: 450,
             scrollX: true,
             scrollCollapse: true,
             paging: false,
+            columnDefs: [
+                { orderable: false, targets: [0, 1, 5, 6] } // Disable sorting for No, Foto, Aktif, Aksi
+            ]
         });
 
         // Add
@@ -587,20 +605,16 @@ if ($lv == '4') {
             }
         });
 
-        // Search
-        $('#customSearch').on('keyup', function () {
-            table.search($(this).val()).draw();
-        });
 
         // Sync Pensiun Action
-        $('#btnSyncPensiun').click(function() {
+        $('#btnSyncPensiun').click(function () {
             const btn = $(this);
             const originalHtml = btn.html();
-            
+
             btn.prop('disabled', true).html('<i class="las la-sync la-spin me-2"></i> Syncing...');
-            
-            $.post(ajaxUrl, { action: 'syncPensiun' }, function(res) {
-                if(res.status === 'success') {
+
+            $.post(ajaxUrl, { action: 'syncPensiun' }, function (res) {
+                if (res.status === 'success') {
                     toastr.success(res.message);
                     setTimeout(() => {
                         window.location.href = '?data_pensiun&sync=' + new Date().getTime();
@@ -609,7 +623,7 @@ if ($lv == '4') {
                     toastr.error(res.message);
                     btn.prop('disabled', false).html(originalHtml);
                 }
-            }, 'json').fail(function() {
+            }, 'json').fail(function () {
                 toastr.error('Gagal menghubungi server.');
                 btn.prop('disabled', false).html(originalHtml);
             });

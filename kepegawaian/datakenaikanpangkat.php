@@ -1,6 +1,6 @@
 <?php
 /**
- * Data Masa Kerja & Pensiun - Optimized
+ * Data Kenaikan Pangkat - Optimized
  * Managed by Antigravity AI
  */
 
@@ -10,72 +10,57 @@ if (!isset($conn) || !$conn) {
 }
 
 /**
- * Function to calculate retirement details
- * Based on Indonesian Government Regulations
+ * Function to calculate promotion details
+ * Standard 4-year cycle for regular promotion
  */
-function getRetirementDetails($tglLahir, $jabatan, $statusPegawai)
+function getPromotionDetails($tmtGolongan)
 {
-    if (!$tglLahir || $tglLahir == '0000-00-00') {
+    if (!$tmtGolongan || $tmtGolongan == '0000-00-00') {
         return [
-            'bup' => '-',
-            'tmt' => '-',
-            'sisa' => 'Data tgl lahir kosong',
-            'isRetired' => false,
+            'next_promotion' => '-',
+            'sisa' => 'Data TMT Kosong',
+            'isDue' => false,
             'percent' => 0,
             'error' => true
         ];
     }
 
-    $bup = 60; // Default BUP for most functional positions (like Teachers)
-    $jabatanUpper = strtoupper($jabatan);
-
-    // BUP rules based on position type
-    if (strpos($jabatanUpper, 'UTAMA') !== false || strpos($jabatanUpper, 'PROFESOR') !== false) {
-        $bup = 65;
-    }
-    // BUP 58 for Administrative / Implementation roles (if not a Guru)
-    elseif (strpos($jabatanUpper, 'GURU') === false) {
-        $adminKeywords = ['STAF', 'TATA USAHA', 'TU', 'ADMIN', 'PELAKSANA', 'PENGADMINISTRASI', 'BENDAHARA', 'CARAKA', 'KEBERSIHAN', 'KEAMANAN'];
-        foreach ($adminKeywords as $kw) {
-            if (strpos($jabatanUpper, $kw) !== false) {
-                $bup = 58;
-                break;
-            }
-        }
-    }
-
-    $tglLahirObj = new DateTime($tglLahir);
-    $pensiunDate = clone $tglLahirObj;
-    $pensiunDate->modify("+$bup years");
-
-    // TMT Pensiun is usually the 1st of the month AFTER reaching BUP age
-    $pensiunDate->modify("first day of next month");
+    $tmtDate = new DateTime($tmtGolongan);
+    $nextPromoDate = clone $tmtDate;
+    $nextPromoDate->modify("+4 years");
 
     $today = new DateTime();
-    $interval = $today->diff($pensiunDate);
+    $interval = $today->diff($nextPromoDate);
 
-    $isRetired = ($today > $pensiunDate);
+    $isDue = ($today > $nextPromoDate);
     $sisa = "";
 
-    if ($isRetired) {
-        $sisa = "Pensiun";
+    if ($isDue) {
+        $sisa = "Sudah Waktunya";
     } else {
         if ($interval->y > 0)
             $sisa .= $interval->y . " Th ";
         if ($interval->m > 0)
-            $sisa .= $interval->m . " Bln";
-        if ($sisa == "")
+            $sisa .= $interval->m . " Bln ";
+        if ($interval->d > 0 && $interval->y == 0)
+            $sisa .= $interval->d . " Hari";
+            
+        if (trim($sisa) == "")
             $sisa = "Bulan Ini";
     }
 
-    // Calculate percentage of career completed (assumed 0-BUP years)
-    $percent = min(max(round((($bup - ($interval->invert ? 0 : $interval->y)) / $bup) * 100), 0), 100);
+    // Calculate percentage of 4-year cycle completed
+    $totalDays = 4 * 365.25;
+    $passedInterval = $tmtDate->diff($today);
+    $passedDays = $passedInterval->days;
+    if ($passedInterval->invert) $passedDays = 0;
+    
+    $percent = min(max(round(($passedDays / $totalDays) * 100), 0), 100);
 
     return [
-        'bup' => $bup . " Th",
-        'tmt' => $pensiunDate->format('d-m-Y'),
-        'sisa' => $sisa,
-        'isRetired' => $isRetired,
+        'next_promotion' => $nextPromoDate->format('d-m-Y'),
+        'sisa' => trim($sisa),
+        'isDue' => $isDue,
         'percent' => $percent,
         'error' => false
     ];
@@ -83,11 +68,11 @@ function getRetirementDetails($tglLahir, $jabatan, $statusPegawai)
 
 // Fetch all active employees
 $employees = [];
-$query = "SELECT id, nm_pegawai, nip, tgl_lahir, status_pegawai, jabatan, unit_kerja FROM pegawai WHERE status = '1' AND is_pensiun_synced = 1 ORDER BY nm_pegawai ASC";
+$query = "SELECT id, nm_pegawai, nip, pangkat, golongan, tmt_golongan, status_pegawai, jabatan, unit_kerja FROM pegawai WHERE status = '1' ORDER BY nm_pegawai ASC";
 $res = $conn->query($query);
 if ($res) {
     while ($row = $res->fetch_assoc()) {
-        $row['retirement'] = getRetirementDetails($row['tgl_lahir'], $row['jabatan'], $row['status_pegawai']);
+        $row['promotion'] = getPromotionDetails($row['tmt_golongan']);
         $employees[] = $row;
     }
 }
@@ -112,79 +97,38 @@ if ($res) {
     }
 
     @media print {
-        /* Hide UI elements */
         .navbar, #sidebar-wrapper, .btn, .dataTables_filter, .dataTables_info, .dataTables_paginate, .modern-card-header button, .d-print-none {
             display: none !important;
         }
-
-        /* Reset Layout */
         body { background: white !important; padding: 0 !important; margin: 0 !important; }
         #page-content-wrapper { padding: 0 !important; margin: 0 !important; width: 100% !important; }
         .container-fluid { padding: 0 !important; }
         .modern-card { border: none !important; box-shadow: none !important; }
         .modern-card-header { border-bottom: 2px solid #333 !important; padding-left: 0 !important; }
         .modern-card-header h6 { font-size: 18pt !important; color: black !important; }
-
-        /* Expand DataTable for Print */
-        .dataTables_scrollBody {
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
-        }
-        .dataTables_scrollHead {
-            display: block !important;
-        }
-        table.table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            border: 1px solid #dee2e6 !important;
-        }
-        table.table thead th {
-            background-color: #f8f9fa !important;
-            color: black !important;
-            border: 1px solid #dee2e6 !important;
-            -webkit-print-color-adjust: exact;
-        }
-        table.table td {
-            border: 1px solid #dee2e6 !important;
-        }
-        
-        /* Typography */
+        .dataTables_scrollBody { height: auto !important; max-height: none !important; overflow: visible !important; }
+        table.table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #dee2e6 !important; }
+        table.table thead th { background-color: #f8f9fa !important; color: black !important; border: 1px solid #dee2e6 !important; -webkit-print-color-adjust: exact; }
+        table.table td { border: 1px solid #dee2e6 !important; }
         .small, .extra-small { font-size: 9pt !important; }
         .fw-bold { font-weight: bold !important; }
-        
-        /* Progress Bar in Print */
         .progress { border: 1px solid #ccc !important; }
         .progress-bar { -webkit-print-color-adjust: exact; background-color: #4f46e5 !important; }
-        
-        /* Page margins */
-        @page {
-            size: A4 landscape;
-            margin: 1cm;
-        }
+        @page { size: A4 landscape; margin: 1cm; }
     }
 
-    .print-header {
-        display: none;
-    }
-
+    .print-header { display: none; }
     @media print {
-        .print-header {
-            display: block;
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
-        }
+        .print-header { display: block; text-align: center; margin-bottom: 20px; border-bottom: 3px double #000; padding-bottom: 10px; }
         .print-header h4 { margin: 0; font-weight: bold; text-transform: uppercase; }
         .print-header p { margin: 2px 0; font-size: 10pt; }
     }
 </style>
 
 <div class="py-3">
-    <!-- Print Header (Hidden on screen) -->
+    <!-- Print Header -->
     <div class="print-header">
-        <h4>LAPORAN ESTIMASI MASA KERJA & PENSIUN PEGAWAI</h4>
+        <h4>LAPORAN ESTIMASI KENAIKAN PANGKAT PEGAWAI</h4>
         <p>SMP NEGERI 171 JAKARTA</p>
         <p class="small text-muted">Dicetak pada: <?php echo date('d-m-Y H:i'); ?></p>
     </div>
@@ -192,15 +136,15 @@ if ($res) {
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
         <div>
-            <h2 class="fw-bold mb-1">Masa Kerja & Pensiun</h2>
-            <p class="text-muted small mb-0">Estimasi batas usia pensiun pegawai aktif.</p>
+            <h2 class="fw-bold mb-1">Kenaikan Pangkat</h2>
+            <p class="text-muted small mb-0">Estimasi jadwal kenaikan pangkat berkala pegawai.</p>
         </div>
     </div>
 
     <!-- Table Card -->
     <div class="modern-card">
         <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <h6 class="fw-bold mb-0">Laporan Estimasi Pensiun</h6>
+            <h6 class="fw-bold mb-0">Daftar Estimasi Kenaikan Pangkat</h6>
             <button class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-print-none"
                 onclick="window.print()">
                 <i class="las la-print me-2"></i> Cetak Laporan
@@ -213,29 +157,28 @@ if ($res) {
                     <tr class="text-white">
                         <th class="text-center px-3" width="50">#</th>
                         <th>Pegawai</th>
-                        <th>Jabatan / Unit</th>
-                        <th class="text-center">Lahir</th>
-                        <th class="text-center">BUP</th>
-                        <th class="text-center">TMT Pensiun</th>
+                        <th>Pangkat / Golongan</th>
+                        <th class="text-center">TMT Golongan</th>
+                        <th class="text-center">Estimasi Kenaikan</th>
                         <th class="text-center">Sisa Waktu</th>
-                        <th width="160">Lifecycle</th>
+                        <th width="160">Progress Berkala</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php if (empty($employees)): ?>
                         <tr>
-                            <td colspan="8" class="text-center py-5 text-muted">Tidak ada data pegawai ditemukan.</td>
+                            <td colspan="7" class="text-center py-5 text-muted">Tidak ada data pegawai ditemukan.</td>
                         </tr>
                     <?php else: ?>
                         <?php foreach ($employees as $idx => $emp):
-                            $ret = $emp['retirement'];
-                            $hasError = $ret['error'] ?? false;
+                            $promo = $emp['promotion'];
+                            $hasError = $promo['error'] ?? false;
 
-                            $rowClass = $ret['isRetired'] ? 'bg-light opacity-75' : '';
+                            $rowClass = $promo['isDue'] ? 'bg-light-warning' : '';
                             if ($hasError)
                                 $rowClass = 'bg-white';
 
-                            $barClass = $ret['isRetired'] ? 'bg-gradient-x-danger' : ($ret['sisa'] == 'Bulan Ini' ? 'bg-gradient-x-warning' : 'bg-gradient-x-primary');
+                            $barClass = $promo['isDue'] ? 'bg-gradient-x-danger' : ($promo['percent'] > 90 ? 'bg-gradient-x-warning' : 'bg-gradient-x-primary');
                             ?>
                             <tr class="<?php echo $rowClass; ?>">
                                 <td class="text-center text-muted small"><?php echo $idx + 1; ?></td>
@@ -246,27 +189,24 @@ if ($res) {
                                     </div>
                                 </td>
                                 <td>
-                                    <div class="extra-small fw-bold"><?php echo htmlspecialchars($emp['jabatan'] ?: '-'); ?>
+                                    <div class="extra-small fw-bold"><?php echo htmlspecialchars($emp['pangkat'] ?: '-'); ?>
                                     </div>
-                                    <div class="extra-small text-muted text-truncate" style="max-width: 150px;">
-                                        <?php echo htmlspecialchars($emp['unit_kerja'] ?: '-'); ?>
+                                    <div class="extra-small text-muted">
+                                        Golongan: <?php echo htmlspecialchars($emp['golongan'] ?: '-'); ?>
                                     </div>
                                 </td>
                                 <td class="text-center small">
-                                    <?php echo (!empty($emp['tgl_lahir']) && $emp['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($emp['tgl_lahir'])) : '<span class="text-danger small italic">Belum diisi</span>'; ?>
+                                    <?php echo (!empty($emp['tmt_golongan']) && $emp['tmt_golongan'] != '0000-00-00') ? date('d-m-Y', strtotime($emp['tmt_golongan'])) : '<span class="text-danger small italic">Belum diisi</span>'; ?>
                                 </td>
-                                <td class="text-center small fw-bold text-muted"><?php echo $ret['bup']; ?></td>
-                                <td class="text-center small fw-bold text-primary"><?php echo $ret['tmt']; ?></td>
+                                <td class="text-center small fw-bold text-primary"><?php echo $promo['next_promotion']; ?></td>
                                 <td class="text-center">
                                     <?php if ($hasError): ?>
-                                        <span class="badge bg-secondary-soft text-muted rounded-pill px-3 extra-small">Tgl Lahir
-                                            Kosong</span>
-                                    <?php elseif ($ret['isRetired']): ?>
-                                        <span class="badge bg-danger rounded-pill px-3">Pensiun</span>
+                                        <span class="badge bg-secondary-soft text-muted rounded-pill px-3 extra-small">TMT Kosong</span>
+                                    <?php elseif ($promo['isDue']): ?>
+                                        <span class="badge bg-danger rounded-pill px-3">Waktunya Naik</span>
                                     <?php else: ?>
-                                        <span
-                                            class="small fw-bold <?php echo ($ret['sisa'] == 'Bulan Ini') ? 'text-warning' : 'text-dark'; ?>">
-                                            <?php echo $ret['sisa']; ?>
+                                        <span class="small fw-bold <?php echo ($promo['percent'] > 90) ? 'text-warning' : 'text-dark'; ?>">
+                                            <?php echo $promo['sisa']; ?>
                                         </span>
                                     <?php endif; ?>
                                 </td>
@@ -276,9 +216,9 @@ if ($res) {
                                             <div class="progress flex-grow-1"
                                                 style="height: 6px; border-radius: 10px; background-color: #f1f5f9;">
                                                 <div class="progress-bar <?php echo $barClass; ?> rounded-pill shadow-none"
-                                                    style="width: <?php echo $ret['percent']; ?>%"></div>
+                                                    style="width: <?php echo $promo['percent']; ?>%"></div>
                                             </div>
-                                            <span class="extra-small fw-bold text-muted"><?php echo $ret['percent']; ?>%</span>
+                                            <span class="extra-small fw-bold text-muted"><?php echo $promo['percent']; ?>%</span>
                                         </div>
                                     <?php else: ?>
                                         <div class="text-muted extra-small italic text-center">-</div>
@@ -295,7 +235,6 @@ if ($res) {
 
 <script>
     $(document).ready(function () {
-        // DataTable with FixedColumns (Standardized)
         $('.content table.table').DataTable({
             scrollY: 450,
             scrollX: true,

@@ -62,6 +62,9 @@ if (isset($_GET['dashboard'])) {
 } else if (isset($_GET['update'])) {
   $current_page = 'update';
   $page_to_include = 'chckupdate.php';
+} else if (isset($_GET['datasek'])) {
+  $current_page = 'datasek';
+  $page_to_include = 'datasek.php';
 } else if (isset($_GET['pegawai'])) {
   $current_page = 'pegawai';
   $page_to_include = 'kepegawaian/pegawai.php';
@@ -86,7 +89,7 @@ if (isset($_GET['dashboard'])) {
 }
 
 // Helper untuk mengecek menu Arsip (Treeview)
-$menu_arsip = ['surmas', 'surkel', 'sukep', 'sured'];
+$menu_arsip = ['suratmasuk', 'suratkeluar', 'suratkeputusan', 'suratedaran'];
 $is_arsip_active = in_array($current_page, $menu_arsip);
 
 // --- 5. LOGIKA FORCE CHANGE PASSWORD ---
@@ -242,6 +245,12 @@ if ($force_change_pass) {
                     <p>Profil</p>
                   </a>
                 </li>
+                <li class="nav-item">
+                  <a href="?datasek" class="nav-link <?php echo ($current_page == 'datasek') ? 'active' : ''; ?>">
+                    <i class="nav-icon las la-school"></i>
+                    <p>Data Sekolah</p>
+                  </a>
+                </li>
                 <li class="nav-item has-treeview">
                   <a href="#" class="nav-link">
                     <i class="nav-icon las la-server"></i>
@@ -322,6 +331,12 @@ if ($force_change_pass) {
                 class="nav-link <?php echo ($current_page == 'profil' || $current_page == 'profile') ? 'active' : ''; ?>">
                 <i class="nav-icon las la-id-badge"></i>
                 <p>Profil</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="?datasek" class="nav-link <?php echo ($current_page == 'datasek') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-school"></i>
+                <p>Data Sekolah</p>
               </a>
             </li>
             <li class="nav-item has-treeview <?php echo $is_arsip_active ? 'menu-open' : ''; ?>">

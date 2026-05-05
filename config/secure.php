@@ -60,13 +60,17 @@ if (isset($sqlconn) && $sqlconn) {
         $level = ''; $nama = ''; $idu = '';
     }
 
-    // Log User count
-    // Use $idu (User ID) instead of $userc (Username) because users_log stores ID
-    $log4 = mysqli_query($sqlconn, "select COUNT(user) as n1 from users_log where user='$idu' order by waktu desc");
+    // Log User Data & Count
+    if ($level == '1') {
+        // Administrator can see system-wide logs
+        $log4 = mysqli_query($sqlconn, "select COUNT(*) as n1 from users_log");
+        $log1 = mysqli_query($sqlconn, "select * from users_log order by waktu desc limit 25");
+    } else {
+        // Other levels see only their own activity (filtering by username string $userc)
+        $log4 = mysqli_query($sqlconn, "select COUNT(*) as n1 from users_log where user='$userc'");
+        $log1 = mysqli_query($sqlconn, "select * from users_log where user='$userc' order by waktu desc limit 25");
+    }
     $log5 = ($log4) ? mysqli_fetch_array($log4) : ['n1' => 0];
-
-    // Log User Data
-    $log1 = mysqli_query($sqlconn, "select * from users_log where user='$idu' order by waktu desc limit 25");
 }
 // Fungsi Helper
 if (!function_exists('tgl_indo')) {

@@ -161,6 +161,10 @@ if ($res_pensiun) {
     <div
         class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">Dashboard Statistik</h1>
+        <div class="text-end d-none d-md-block">
+            <div class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($GLOBALS['namasek'] ?? 'Unit Kerja'); ?></div>
+            <div class="text-muted small">NPSN: <?php echo htmlspecialchars($GLOBALS['npsn'] ?? '-'); ?></div>
+        </div>
     </div>
 </div>
 

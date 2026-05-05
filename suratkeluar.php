@@ -4,10 +4,32 @@
 
 // Pastikan conn.php sudah di-include dari file induk
 // atau include di sini jika file ini berdiri sendiri.
-// include_once 'conn.php';
+include_once 'dbconn.php';
+
+// --- Inisialisasi Variabel Global (Safety) ---
+if (!isset($lv))
+    $lv = $_SESSION['level'] ?? '3';
+if (!isset($tahunsklh))
+    $tahunsklh = $_SESSION['tahundb'] ?? '2025';
+if (!isset($dataRows))
+    $dataRows = [];
+
+// --- Tentukan Tahun Aktif ---
+if (isset($_GET['tahun'])) {
+    $tahun_aktif = $_GET['tahun'];
+} else {
+    $tahun_aktif = $tahunsklh ?? ($_SESSION['tahundb'] ?? '2025');
+}
+
+// [PERBAIKAN] Normalisasi tahun_aktif (Pastikan format 4 digit angka, e.g. 2024/2025 -> 2024)
+if ($tahun_aktif !== '' && preg_match('/(\d{4})/', $tahun_aktif, $matches)) {
+    $tahun_aktif = $matches[1];
+} elseif ($tahun_aktif !== '') {
+    $tahun_aktif = '2025';
+}
 
 // --- Konstruksi Subfolder Dinamis untuk PDF ---
-$sysTapel = $tahunsklh;
+$sysTapel = $tahun_aktif;
 $sysSmt = '1';
 
 // Normalisasi Semester
@@ -69,35 +91,56 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
 
     // 5. Ambil data tahun dari database (SHOW DATABASES LIKE 'sas_%')
     $tahun_options = "<option value=''>Semua</option>";
-
-    // [MODIFIKASI] Ambil tahun aktif dari GET atau session
-    $tahun_aktif = $_GET['tahun'] ?? (isset($tahunsklh) ? $tahunsklh : ($_SESSION['tahundb'] ?? ''));
+    $years_list = [];
 
     $sql_dbs = mysqli_query($conn, "SHOW DATABASES LIKE 'sas_%'");
     if ($sql_dbs) {
         while ($row = mysqli_fetch_array($sql_dbs)) {
             $dbname = $row[0];
             if (preg_match('/^sas_(\d+)$/', $dbname, $matches)) {
-                $thn = $matches[1];
-                $selected = ($tahun_aktif == $thn) ? 'selected' : '';
-                $tahun_options .= "<option value=\"$thn\" $selected>$thn</option>";
+                $years_list[] = $matches[1];
             }
         }
     }
 
+    // Pastikan 2025 dan 2026 selalu ada dalam daftar pilihan (Tanpa harus ada DB aktif dulu)
+    if (!in_array('2025', $years_list))
+        $years_list[] = '2025';
+    if (!in_array('2026', $years_list))
+        $years_list[] = '2026';
+
+    // Urutkan tahun dari yang terbaru
+    rsort($years_list);
+    $years_list = array_unique($years_list);
+
+    foreach ($years_list as $thn) {
+        $selected = ($tahun_aktif == $thn) ? 'selected' : '';
+        $tahun_options .= "<option value=\"$thn\" $selected>$thn</option>";
+    }
+
     // 6. Ambil Data Surat Keluar secara Statis (Ganti AJAX)
     $dataRows = [];
-    if (!empty($tahun_aktif)) {
+    $fetch_years = ($tahun_aktif !== '') ? [$tahun_aktif] : $years_list;
+
+    foreach ($fetch_years as $thn) {
         try {
-            $conn->select_db("sas_" . $tahun_aktif);
-            $sql_data = mysqli_query($conn, "SELECT * FROM dokumenkeluar ORDER BY id ASC");
-            if ($sql_data) {
-                while ($row = mysqli_fetch_assoc($sql_data)) {
-                    $dataRows[] = $row;
+            // Gunakan @ untuk meredam warning jika database tidak ada
+            if (@mysqli_select_db($conn, "sas_" . $thn)) {
+                $sql_data = mysqli_query($conn, "SELECT * FROM dokumenkeluar ORDER BY id ASC");
+                if ($sql_data) {
+                    while ($row = mysqli_fetch_assoc($sql_data)) {
+                        $row['db_year'] = $thn; // Simpan asal tahun
+                        $dataRows[] = $row;
+                    }
                 }
+            } elseif ($tahun_aktif !== '') {
+                throw new Exception("Database sas_$thn tidak ditemukan.");
             }
         } catch (Exception $e) {
-            // Gagal switch db
+            if ($tahun_aktif !== '') {
+                $error_msg = 'Gagal memuat data tahun ' . $thn . ': ' . $e->getMessage();
+                echo "<div class='alert alert-warning m-3'>$error_msg</div>";
+            }
         }
     }
 } else {
@@ -110,6 +153,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
     echo "<div class='alert alert-danger m-3'>$error_msg</div>";
 }
 ?>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
 
 <!-- Content Wrapper. Contains page content -->
 <div class="content-wrapper">
@@ -145,8 +190,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                 <!-- Tombol Tambah di Kiri -->
                                 <div>
                                     <?php if ($lv == "1" || $lv == "2") { ?>
-                                        <button class="btn btn-primary btn-sm" id="tombol-tambah">
-                                            <i class="las la-plus"></i> Tambah
+                                        <button class="btn btn-outline-primary btn-sm" id="tombol-tambah">
+                                            Tambah Surat
                                         </button>
                                     <?php } ?>
                                 </div>
@@ -219,7 +264,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                                 <?php if ($lv == '1' || $lv == '2' || $lv == '3'): ?>
                                                     <span
                                                         class="btn-view-pdf badge badge-info badge-square <?php echo empty($file) ? 'opacity-50' : ''; ?>"
-                                                        data-id="<?php echo $id; ?>" title="Lihat PDF">
+                                                        data-id="<?php echo $id; ?>" data-tahun="<?php echo $row['db_year']; ?>"
+                                                        title="Lihat PDF">
                                                         <i class="la la-eye"></i>
                                                     </span>
                                                 <?php endif; ?>
@@ -227,7 +273,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                             <td class="text-center">
                                                 <?php if ($lv == '1' || $lv == '2'): ?>
                                                     <span class="btn-edit badge badge-warning badge-square"
-                                                        data-id="<?php echo $id; ?>" title="Edit">
+                                                        data-id="<?php echo $id; ?>" data-tahun="<?php echo $row['db_year']; ?>"
+                                                        title="Edit">
                                                         <i class="la la-edit"></i>
                                                     </span>
                                                 <?php endif; ?>
@@ -235,7 +282,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                             <td class="text-center">
                                                 <?php if ($lv == '1' || $lv == '2'): ?>
                                                     <span class="btn-hapus badge badge-danger badge-square"
-                                                        data-id="<?php echo $id; ?>" data-nama="<?php echo $no_dokumen; ?>">
+                                                        data-id="<?php echo $id; ?>" data-nama="<?php echo $no_dokumen; ?>"
+                                                        data-tahun="<?php echo $row['db_year']; ?>">
                                                         <i class="la la-trash"></i>
                                                     </span>
                                                 <?php endif; ?>
@@ -325,7 +373,9 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                 <label for="tgl_dokumen" class="small fw-bold text-muted text-uppercase mb-1"><i
                                         class="fas fa-calendar"></i> Tgl Surat <span
                                         class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="tgl_dokumen" name="tgl_dokumen" required>
+                                <input type="text" class="form-control datepicker" id="tgl_dokumen" name="tgl_dokumen"
+                                    required>
+
                             </div>
                         </div>
                         <!-- /.col-md-6 -->
@@ -440,6 +490,7 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                     <input type="hidden" id="edit_id" name="id">
                     <input type="hidden" name="action" value="edit">
                     <input type="hidden" id="edit_file_lama" name="file_lama">
+                    <input type="hidden" id="edit_tahun" name="tahun">
 
                     <div class="row">
                         <div class="col-md-6">
@@ -471,8 +522,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                                 <label for="edit_tgl_dokumen" class="small fw-bold text-muted text-uppercase mb-1"><i
                                         class="fas fa-calendar"></i> Tgl Surat <span
                                         class="text-danger">*</span></label>
-                                <input type="date" class="form-control" id="edit_tgl_dokumen" name="tgl_dokumen"
-                                    required>
+                                <input type="text" class="form-control datepicker" id="edit_tgl_dokumen"
+                                    name="tgl_dokumen" required>
                             </div>
                         </div>
                         <div class="col-md-6">
@@ -599,6 +650,13 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                         <tr>
                             <th>Catatan</th>
                             <td id="view_catatan"></td>
+                        </tr>
+                        <tr>
+                            <th>Unit Pengirim</th>
+                            <td>
+                                <strong><?php echo htmlspecialchars($namasek); ?></strong><br>
+                                <small class="text-muted">NPSN: <?php echo htmlspecialchars($npsn); ?></small>
+                            </td>
                         </tr>
                         <tr>
                             <th>File</th>
@@ -910,8 +968,8 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
 
         // Listener untuk 'Year Filter'
         $('#year-filter').on('change', function () {
-            var tahun = $(this).val();
-            window.location.href = 'suratkeluar.php?tahun=' + tahun;
+            var thn = $(this).val();
+            window.location.href = '?suratkeluar&tahun=' + thn;
         });
 
         // Reset state saat modal ditutup
@@ -939,10 +997,11 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
         // Listener Edit
         $('.content table.table').on('click', SELECTOR_EDIT, function () {
             var id = $(this).data('id');
+            var thn_row = $(this).data('tahun');
             $.ajax({
                 url: 'proses_surat_keluar.php',
                 type: 'GET',
-                data: { action: 'ambil', id: id, tahun: $('#year-filter').val() },
+                data: { action: 'ambil', id: id, tahun: thn_row || $('#year-filter').val() },
                 dataType: 'json',
                 success: function (data) {
                     if (data.error) {
@@ -950,14 +1009,18 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                         return;
                     }
                     $('#edit_id').val(data.id);
+                    $('#edit_tahun').val(thn_row); // Set tahun asal untuk edit
                     $('#edit_no_dokumen').val(data.no_dokumen);
                     $('#edit_jns_dokumen').val(data.jns_dokumen);
                     $('#edit_dari').val(data.dari);
                     $('#edit_unit_tujuan').val(data.unit_tujuan);
                     $('#edit_perihal').val(data.perihal);
                     $('#edit_pembuat').val(data.pembuat);
-                    $('#edit_tgl_dokumen').val(data.tgl_dokumen);
+                    if(document.querySelector("#edit_tgl_dokumen")._flatpickr) {
+                        document.querySelector("#edit_tgl_dokumen")._flatpickr.setDate(data.tgl_dokumen_raw);
+                    }
                     $('#edit_kategori').val(data.kategori);
+
                     $('#edit_catatan').val(data.catatan);
                     $('#edit_file_lama').val(data.pdf);
 
@@ -1006,7 +1069,11 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
             var formData = new FormData(this);
             var button = $('#edit_tombol-simpan'),
                 spinner = button.find('.spinner-border');
-            formData.append('tahun', $('#year-filter').val());
+
+            // Gunakan tahun dari hidden input (tahun asal) atau filter sebagai fallback
+            if (!formData.has('tahun')) {
+                formData.append('tahun', $('#edit_tahun').val() || $('#year-filter').val());
+            }
             if (selectedFiles.length > 0) {
                 selectedFiles.forEach((f) => {
                     formData.append('pdf[]', f);
@@ -1082,15 +1149,18 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
         $('.content table.table').on('click', SELECTOR_HAPUS, function () {
             var id = $(this).data('id');
             var nama = $(this).data('nama') || $(this).data('name');
+            var thn = $(this).data('tahun');
 
             $('#detail-hapus').text(nama);
             $('#tombolKonfirmasiHapus').data('id', id);
+            $('#tombolKonfirmasiHapus').data('tahun', thn);
             $('#modalHapus').modal('show');
         });
 
         // Konfirmasi Hapus Data
         $('#tombolKonfirmasiHapus').on('click', function () {
             var id = $(this).data('id');
+            var thn_row = $(this).data('tahun');
             var button = $(this);
             var originalButtonText = button.html();
 
@@ -1102,7 +1172,7 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
                 data: {
                     action: 'hapus',
                     id: id,
-                    tahun: $('#year-filter').val()
+                    tahun: thn_row || $('#year-filter').val()
                 },
                 dataType: 'json',
                 success: function (response) {
@@ -1155,13 +1225,14 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
         // Tombol View Detail
         $('.content table.table').on('click', SELECTOR_VIEW, function () {
             var id = $(this).data('id'),
+                thn_row = $(this).data('tahun'),
                 modal = $('#viewModal'),
                 iframe = modal.find('#pdf_viewer');
 
             $.ajax({
                 url: 'proses_surat_keluar.php',
                 type: 'GET',
-                data: { action: 'ambil', id: id, tahun: $('#year-filter').val() },
+                data: { action: 'ambil', id: id, tahun: thn_row || $('#year-filter').val() },
                 dataType: 'json',
                 success: function (data) {
                     if (data.error) {
@@ -1197,5 +1268,17 @@ if (isset($conn) && $conn instanceof mysqli && !$conn->connect_error) {
             $(this).find('#pdf_viewer').attr('src', '');
         });
 
+    });
+</script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+<script>
+    $(function () {
+        $(".datepicker").flatpickr({
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            locale: "id"
+        });
     });
 </script>

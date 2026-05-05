@@ -79,67 +79,67 @@ if ($result && $result->num_rows > 0) {
                                     <?php
                                     $no = 1;
                                     foreach ($dataRows as $row):
-                                        $levelBadge = '';
+                                        // 1. Data & Badge Preparation
                                         $lvl = (string) $row['level'];
-                                        if ($lvl === '1') $levelBadge = '<span class="badge bg-danger text-white">Admin</span>';
-                                        elseif ($lvl === '2') $levelBadge = '<span class="badge bg-warning text-dark">Staff</span>';
-                                        elseif ($lvl === '3') $levelBadge = '<span class="badge bg-info text-white">User</span>';
-                                        elseif ($lvl === '4') $levelBadge = '<span class="badge bg-success text-white">Guru</span>';
+                                        $levelBadge = '';
+                                        switch($lvl) {
+                                            case '1': $levelBadge = '<span class="badge bg-danger text-white">Admin</span>'; break;
+                                            case '2': $levelBadge = '<span class="badge bg-warning text-dark">Staff</span>'; break;
+                                            case '3': $levelBadge = '<span class="badge bg-info text-white">User</span>'; break;
+                                            case '4': $levelBadge = '<span class="badge bg-success text-white">Guru</span>'; break;
+                                        }
 
                                         $is_active = ($row['status'] == '1' || $row['status'] == 'Aktif');
-                                        $isChecked = $is_active ? 'checked' : '';
-                                        $switchButton = '
-                                                    <div class="custom-control custom-switch d-flex justify-content-center">
-                                                        <input class="custom-control-input status-switch" type="checkbox" 
-                                                            data-id="' . $row['id'] . '" 
-                                                            id="switch' . $row['id'] . '" 
-                                                            ' . $isChecked . '>
-                                                        <label class="custom-control-label" for="switch' . $row['id'] . '"></label>
-                                                    </div>';
                                         
                                         $userData = [
-                                            'id' => $row['id'],
-                                            'nama' => htmlspecialchars($row['nama'] ?? '', ENT_QUOTES, 'UTF-8'),
+                                            'id'     => $row['id'],
+                                            'nama'   => htmlspecialchars($row['nama'] ?? '', ENT_QUOTES, 'UTF-8'),
                                             'userid' => htmlspecialchars($row['userid'] ?? '', ENT_QUOTES, 'UTF-8'),
-                                            'nik' => htmlspecialchars($row['nik'] ?? '', ENT_QUOTES, 'UTF-8'),
-                                            'email' => htmlspecialchars($row['email'] ?? '', ENT_QUOTES, 'UTF-8'),
-                                            'level' => $row['level'],
+                                            'nik'    => htmlspecialchars($row['nik'] ?? '', ENT_QUOTES, 'UTF-8'),
+                                            'email'  => htmlspecialchars($row['email'] ?? '', ENT_QUOTES, 'UTF-8'),
+                                            'level'  => $row['level'],
                                             'status' => $is_active ? '1' : '0',
-                                            'poto' => $row['poto'] ?? ''
+                                            'poto'   => $row['poto'] ?? ''
                                         ];
                                         ?>
-                                            <tr>
-                                                <td class="text-center"><?php echo $no++; ?></td>
-                                                <td class="fw-bold"><?php echo $userData['userid']; ?></td>
-                                                <td><?php echo $userData['nama']; ?></td>
-                                                <td class="text-center"><?php echo $levelBadge; ?></td>
-                                                <td class="text-center small text-muted">
-                                                    <?php echo ($row['last_login'] ?: '-'); ?>
-                                                </td>
-                                                <td class="text-center small"><?php echo ($row['ip'] ?: '-'); ?></td>
-                                                <td class="text-center"><?php echo $switchButton; ?></td>
-                                                <td class="text-center">
-                                                    <span class="badge badge-warning badge-square tombol-edit"
+                                        <tr>
+                                            <td class="text-center"><?php echo $no++; ?></td>
+                                            <td class="fw-bold"><?php echo $userData['userid']; ?></td>
+                                            <td><?php echo $userData['nama']; ?></td>
+                                            <td class="text-center"><?php echo $levelBadge; ?></td>
+                                            <td class="text-center small text-muted">
+                                                <?php echo ($row['last_login'] ?: '-'); ?>
+                                            </td>
+                                            <td class="text-center small"><?php echo ($row['ip'] ?: '-'); ?></td>
+                                            <td class="text-center">
+                                                <div class="custom-control custom-switch">
+                                                    <input class="custom-control-input status-switch" type="checkbox" 
                                                         data-id="<?php echo $userData['id']; ?>" 
-                                                        title="Edit Data">
-                                                        <i class="la la-edit"></i>
-                                                    </span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="badge badge-danger badge-square tombol-hapus"
-                                                        data-id="<?php echo $row['id']; ?>" title="Hapus User">
-                                                        <i class="la la-trash"></i>
-                                                    </span>
-                                                </td>
-                                                <td class="text-center">
-                                                    <span class="badge badge-info text-white badge-square tombol-reset-pass"
-                                                        data-id="<?php echo $row['id']; ?>"
-                                                        data-nama="<?php echo $userData['nama']; ?>"
-                                                        title="Reset Password">
-                                                        <i class="la la-key"></i>
-                                                    </span>
-                                                </td>
-                                            </tr>
+                                                        id="switch<?php echo $userData['id']; ?>" 
+                                                        <?php echo $is_active ? 'checked' : ''; ?>>
+                                                    <label class="custom-control-label" for="switch<?php echo $userData['id']; ?>"></label>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-warning badge-square tombol-edit"
+                                                    data-id="<?php echo $userData['id']; ?>" title="Edit Data">
+                                                    <i class="la la-edit"></i>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-danger badge-square tombol-hapus"
+                                                    data-id="<?php echo $userData['id']; ?>" title="Hapus User">
+                                                    <i class="la la-trash"></i>
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-info text-white badge-square tombol-reset-pass"
+                                                    data-id="<?php echo $userData['id']; ?>"
+                                                    data-nama="<?php echo $userData['nama']; ?>" title="Reset Password">
+                                                    <i class="la la-key"></i>
+                                                </span>
+                                            </td>
+                                        </tr>
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
@@ -596,25 +596,25 @@ if ($result && $result->num_rows > 0) {
                 success: data => {
                     if (!data || data.error) return showInfoModal('Error', 'Data tidak ditemukan', 'error');
 
-            $('#edit_id').val(data.id);
-            $('#edit_nama').val(data.nama);
-            $('#edit_userid').val(data.userid);
-            $('#edit_nik').val(data.nik);
-            $('#edit_email').val(data.email);
-            $('#edit_level').val(data.level);
+                    $('#edit_id').val(data.id);
+                    $('#edit_nama').val(data.nama);
+                    $('#edit_userid').val(data.userid);
+                    $('#edit_nik').val(data.nik);
+                    $('#edit_email').val(data.email);
+                    $('#edit_level').val(data.level);
                     $('#edit_status').val((data.status == '1' || data.status == 'Aktif') ? '1' : '0');
-            $('#edit_poto_lama').val(data.poto);
-            $('#edit_password').val('');
+                    $('#edit_poto_lama').val(data.poto);
+                    $('#edit_password').val('');
 
-            if (data.poto) {
-                $('#preview_edit').attr('src', 'file/profil/' + data.poto).show();
-                $('#no_foto_edit').hide();
-            } else {
-                $('#preview_edit').hide();
-                $('#no_foto_edit').show();
-            }
-            $('#info_foto_edit').text('');
-            $('#modalEdit').modal('show');
+                    if (data.poto) {
+                        $('#preview_edit').attr('src', 'file/profil/' + data.poto).show();
+                        $('#no_foto_edit').hide();
+                    } else {
+                        $('#preview_edit').hide();
+                        $('#no_foto_edit').show();
+                    }
+                    $('#info_foto_edit').text('');
+                    $('#modalEdit').modal('show');
                 },
                 error: () => showInfoModal('Error', 'Gagal mengambil data user.', 'error')
             });

@@ -343,14 +343,19 @@ function simpanData($conn, $action) {
 
     /**
      * DATABASE SWITCHING CONTEXT
+     * Prioritaskan tahun dari input (untuk Edit) atau tentukan dari tanggal (untuk Simpan Baru)
      */
-    if (!empty($tgl_dokumen)) {
+    $dbAsal = $_POST['tahun'] ?? '';
+    if ($action === 'edit' && !empty($dbAsal)) {
+        if (!$conn->select_db("sas_" . $dbAsal)) {
+            throw new Exception("Database sas_$dbAsal tidak ditemukan.");
+        }
+    } elseif (!empty($tgl_dokumen)) {
         $tahunInput = date('Y', strtotime($tgl_dokumen));
         if ($tahunInput) {
              $dbTarget = "sas_" . $tahunInput;
              try { 
-                 $dbExists = $conn->select_db($dbTarget); 
-                 if (!$dbExists) throw new Exception("Database $dbTarget tidak ditemukan.");
+                 if (!$conn->select_db($dbTarget)) throw new Exception("Database $dbTarget tidak ditemukan.");
              } catch (Exception $e) {
                  throw new Exception("Gagal beralih ke database $dbTarget: " . $e->getMessage());
              }

@@ -28,6 +28,8 @@ $pages = [
     'data_pegawai' => 'data_pegawai.php',
     'import_data_pegawai' => 'import_pegawai.php',
     'data_pensiun' => 'datapensiun.php',
+    'data_kenaikan_pangkat' => 'datakenaikanpangkat.php',
+    'data_sekolah' => 'datasekolah.php',
     'riwayat_monitor' => 'riwayat_monitor.php'
 ];
 
@@ -278,11 +280,19 @@ if (!file_exists($page_to_include)) {
             <div class="list-group list-group-flush">
                 <a href="?data_pegawai"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pegawai') ? 'active' : ''; ?>">
-                    <i class="las la-users"></i> Data Pegawai
+                    <i class="las la-users"></i> Manajemen User Pegawai
                 </a>
                 <a href="?data_pensiun"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pensiun') ? 'active' : ''; ?>">
                     <i class="las la-user-clock"></i> Data Pensiun
+                </a>
+                <a href="?data_kenaikan_pangkat"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_kenaikan_pangkat') ? 'active' : ''; ?>">
+                    <i class="las la-level-up-alt"></i> Data Kenaikan Pangkat
+                </a>
+                <a href="?data_sekolah"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_sekolah') ? 'active' : ''; ?>">
+                    <i class="las la-school"></i> Data Sekolah
                 </a>
                 <a href="#" id="menuMonitoring" class="list-group-item list-group-item-action">
                     <i class="las la-file-invoice"></i> Monitoring Data Pegawai
@@ -293,7 +303,7 @@ if (!file_exists($page_to_include)) {
             <div class="list-group list-group-flush">
                 <a href="?import_data_pegawai"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'import_data_pegawai') ? 'active' : ''; ?>">
-                    <i class="las la-upload"></i> Upload Data Pegawai
+                    <i class="las la-cloud-upload-alt"></i> Upload Data Pegawai
                 </a>
             </div>
         </div>
@@ -328,7 +338,7 @@ if (!file_exists($page_to_include)) {
                     </div>
                     <div class="text-end pt-1">
                         <button type="button" id="btnGoToMonitor"
-                            class="btn btn-primary btn-rounded px-4 w-100 py-2 shadow-sm" disabled>
+                            class="btn btn-outline-info btn-rounded px-4 w-100 py-2 shadow-sm" disabled>
                             Buka Monitoring <i class="las la-arrow-right ms-2"></i>
                         </button>
                     </div>
