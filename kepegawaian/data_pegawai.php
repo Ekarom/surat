@@ -181,8 +181,8 @@ if ($lv == '4') {
     </div>
 
     <div class="modern-card">
-        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div class="d-flex align-items-center gap-2">
+        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div class="d-flex align-items-center gap-2" style="position: relative; z-index: 100;">
                 <button type="button" class="btn btn-primary btn-sm btn-rounded px-4 shadow-sm"
                     id="tombolTambahPegawai">
                     <i class="las la-user-plus me-2"></i> Tambah Pegawai
@@ -190,9 +190,9 @@ if ($lv == '4') {
                 <button type="button" class="btn btn-outline-info btn-sm btn-rounded px-4 shadow-sm" id="btnSyncPensiun">
                     <i class="las la-sync me-2"></i> Sinkron Pensiun
                 </button>
-                <button type="button" class="btn btn-outline-success btn-sm btn-rounded px-4 shadow-sm" id="btnShowImport">
+                <a href="?import_data_pegawai" class="btn btn-outline-success btn-sm btn-rounded px-4 shadow-sm" id="btnShowImport">
                     <i class="las la-file-excel me-2"></i> Import Excel
-                </button>
+                </a>
                 <a href="proses_pegawai.php?action=download" class="btn btn-success btn-sm btn-rounded px-4 shadow-sm">
                     <i class="las la-file-excel me-2"></i> Download Data
                 </a>
@@ -382,76 +382,6 @@ if ($lv == '4') {
     </div>
 </div>
 
-<!-- === MODAL: IMPORT EXCEL === -->
-<div class="modal fade" id="modalImport" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-md modal-dialog-centered">
-        <div class="modal-content modern-modal border-0 shadow-lg">
-            <div class="modal-header border-0 pb-0 pt-4 px-4">
-                <h5 class="modal-title fw-bold">Import Data Pegawai</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div id="importArea">
-                    <div class="drop-zone" id="dropZoneImport" onclick="document.getElementById('excelFileImport').click()">
-                        <i class="la la-cloud-upload"></i>
-                        <h6 class="fw-bold">Drag & Drop file Excel di sini</h6>
-                        <p class="text-muted extra-small">Atau klik untuk memilih file (.xlsx, .xls)</p>
-                        <input type="file" id="excelFileImport" class="d-none" accept=".xlsx, .xls">
-                    </div>
-                    
-                    <div id="fileInfoImport" class="d-none mt-3 p-3 rounded-4 bg-light border border-dashed">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <span class="small fw-bold text-dark">
-                                <i class="las la-file-excel me-2 text-success"></i>
-                                <span id="fileNameImport">file.xlsx</span>
-                            </span>
-                            <button type="button" class="btn btn-sm text-danger" onclick="resetFileImport()">
-                                <i class="las la-times"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-2 text-center">
-                        <button type="button" id="btnStartImport" class="btn btn-primary btn-rounded px-5 fw-bold shadow-sm" disabled>
-                            <i class="las la-cloud-upload-alt me-2"></i> Mulai Import
-                        </button>
-                        <div class="mt-2">
-                            <a href="proses_pegawai.php?action=download" class="extra-small text-decoration-none">
-                                <i class="las la-download me-1"></i> Download Template
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Progress Area -->
-                <div id="progressAreaImport" class="d-none mt-3">
-                    <h6 class="fw-bold mb-3 small">Memproses Data... <span id="progressPercentImport" class="float-end text-primary">0%</span></h6>
-                    <div class="progress progress-compact mb-2">
-                        <div id="progressBarImport" class="progress-bar progress-bar-striped progress-bar-animated bg-primary" role="progressbar" style="width: 0%"></div>
-                    </div>
-                    <p class="text-muted extra-small mb-0" id="progressStatusImport">Membaca file...</p>
-                </div>
-
-                <!-- Result Area -->
-                <div id="resultAreaImport" class="d-none mt-3 text-center">
-                    <div class="mb-3">
-                        <i class="las la-check-circle text-success" style="font-size: 3rem;"></i>
-                    </div>
-                    <h6 class="fw-bold">Import Selesai!</h6>
-                    <p class="small text-muted" id="resultMessageImport"></p>
-                    <div class="d-grid gap-2 mt-4">
-                        <button type="button" class="btn btn-primary btn-rounded fw-bold" id="btnImportToSync">
-                            <i class="las la-sync me-2"></i> Sinkron ke Data Pensiun
-                        </button>
-                        <button type="button" class="btn btn-light btn-rounded extra-small" data-bs-dismiss="modal">
-                            Tutup
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- SheetJS Library -->
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -659,7 +589,7 @@ if ($lv == '4') {
 
         // Search
         $('#customSearch').on('keyup', function () {
-            $('#tabelPegawai').DataTable().search($(this).val()).draw();
+            table.search($(this).val()).draw();
         });
 
         // Sync Pensiun Action
@@ -685,130 +615,5 @@ if ($lv == '4') {
             });
         });
 
-        // --- IMPORT LOGIC ---
-        const modalImport = new bootstrap.Modal(document.getElementById('modalImport'));
-        let excelData = [];
-
-        $('#btnShowImport').click(() => {
-            resetFileImport();
-            $('#importArea').removeClass('d-none');
-            $('#progressAreaImport, #resultAreaImport').addClass('d-none');
-            modalImport.show();
-        });
-
-        // Handle direct link from sidebar (?data_pegawai&import)
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('import')) {
-            $('#btnShowImport').trigger('click');
-        }
-
-        $('#excelFileImport').change(function(e) {
-            const file = e.target.files[0];
-            if (file) handleFileImport(file);
-        });
-
-        function handleFileImport(file) {
-            $('#fileNameImport').text(file.name);
-            $('#fileInfoImport').removeClass('d-none');
-            $('#dropZoneImport').addClass('d-none');
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: 'array', cellDates: true, cellNF: false, cellText: false });
-                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                excelData = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
-                excelData.shift(); // Remove header
-
-                if (excelData.length > 0) {
-                    $('#btnStartImport').prop('disabled', false);
-                    toastr.info(`Ditemukan ${excelData.length} baris data.`);
-                } else {
-                    toastr.error('File kosong atau tidak valid.');
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        }
-
-        window.resetFileImport = function() {
-            $('#excelFileImport').val('');
-            $('#fileInfoImport').addClass('d-none');
-            $('#dropZoneImport').removeClass('d-none');
-            $('#btnStartImport').prop('disabled', true);
-            excelData = [];
-        };
-
-        $('#btnStartImport').click(async function() {
-            $(this).prop('disabled', true);
-            $('#importArea').addClass('d-none');
-            $('#progressAreaImport').removeClass('d-none');
-
-            const total = excelData.length;
-            let success = 0, error = 0;
-
-            const cleanVal = (val) => {
-                if (!val) return '';
-                let str = String(val).trim();
-                return str.toUpperCase().includes('E+') ? Number(str).toLocaleString('fullwide', { useGrouping: false }) : str;
-            };
-
-            const formatDate = (val) => {
-                if (!val) return '';
-                if (val instanceof Date) {
-                    const y = val.getFullYear();
-                    const m = String(val.getMonth() + 1).padStart(2, '0');
-                    const d = String(val.getDate()).padStart(2, '0');
-                    return `${y}-${m}-${d}`;
-                }
-                return String(val).trim();
-            };
-
-            for (let i = 0; i < total; i++) {
-                const row = excelData[i];
-                if (!(row[2] || '').toString().trim()) continue;
-
-                const percent = Math.round(((i + 1) / total) * 100);
-                $('#progressBarImport').css('width', percent + '%');
-                $('#progressPercentImport').text(percent + '%');
-                $('#progressStatusImport').text(`Mengirim: ${row[2] || '...'}`);
-
-                try {
-                    const res = await $.post('proses_import_excel.php', {
-                        nip: cleanVal(row[0]) || '0',
-                        nrk: cleanVal(row[1]) || '0',
-                        nama: row[2] || '',
-                        tempat_lahir: row[3] || '',
-                        tgl_lahir: formatDate(row[4]),
-                        jenis_kelamin: row[5] || '',
-                        pendidikan: row[6] || '',
-                        jabatan: row[7] || '',
-                        pangkat: row[8] || '',
-                        golongan: row[9] || '',
-                        unit_kerja: row[10] || '',
-                        status_pegawai: row[11] || '',
-                        nuptk: row[12] || '',
-                        agama: row[13] || '',
-                        alamat: row[14] || '',
-                        rt: row[15] || '',
-                        rw: row[16] || '',
-                        kelurahan: row[17] || '',
-                        kecamatan: row[18] || '',
-                        no_hp: row[19] || '',
-                        email: row[20] || ''
-                    });
-                    if (res.status === 'success') success++; else error++;
-                } catch (e) { error++; }
-                await new Promise(r => setTimeout(r, 50));
-            }
-
-            $('#progressAreaImport').addClass('d-none');
-            $('#resultAreaImport').removeClass('d-none');
-            $('#resultMessageImport').html(`Berhasil: <b>${success}</b>, Gagal: <b>${error}</b>.<br>Data telah masuk ke Manajemen Pegawai.`);
-        });
-
-        $('#btnImportToSync').click(function() {
-            modalImport.hide();
-            $('#btnSyncPensiun').trigger('click');
-        });
     });
 </script>

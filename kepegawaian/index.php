@@ -291,7 +291,7 @@ if (!file_exists($page_to_include)) {
 
             <div class="sidebar-heading">Sistem & Data</div>
             <div class="list-group list-group-flush">
-                <a href="?data_pegawai&import"
+                <a href="?import_data_pegawai"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'import_data_pegawai') ? 'active' : ''; ?>">
                     <i class="las la-upload"></i> Upload Data Pegawai
                 </a>
