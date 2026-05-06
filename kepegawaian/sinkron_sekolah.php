@@ -15,9 +15,10 @@ $res = $conn->query($query);
 $current = ($res && $res->num_rows > 0) ? $res->fetch_assoc() : null;
 
 // 2. Fetch master data for preview
-$db_master_name = "sas_";
+$db_master_name = $db_master ?? "sas_";
 $conn_master = @new mysqli($host, $user, $pass, $db_master_name);
 if ($conn_master->connect_error) {
+    // If master db fails, try db_initial as fallback
     $db_master_name = isset($db_initial) ? $db_initial : $db;
     $conn_master = @new mysqli($host, $user, $pass, $db_master_name);
 }

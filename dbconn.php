@@ -455,4 +455,33 @@ if ($sqlconn && !$sqlconn->connect_error) {
     $ver = $v["ver"] ?? "1.0";
   }
 }
+
+/**
+ * Fungsi untuk mencatat log aktivitas user ke database.
+ * 
+ * @param mysqli $conn Koneksi database.
+ * @param string $info Keterangan aktivitas.
+ * @return bool
+ */
+if (!function_exists('add_activity_log')) {
+    function add_activity_log($conn, $modul, $aksi, $info)
+    {
+        if (!$conn) return false;
+
+        $userid = $_SESSION['userid'] ?? 'System';
+        $nama = $_SESSION['nama'] ?? 'System';
+        $level = $_SESSION['level'] ?? '-';
+        $waktu = date("Y-m-d H:i:s");
+        $ip_address = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        $stmt = $conn->prepare("INSERT INTO tb_activity_log (userid, nama, level, waktu, ip, modul, aksi, info) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        if ($stmt) {
+            $stmt->bind_param("ssssssss", $userid, $nama, $level, $waktu, $ip_address, $modul, $aksi, $info);
+            $result = $stmt->execute();
+            $stmt->close();
+            return $result;
+        }
+        return false;
+    }
+}
 ?>

@@ -35,12 +35,11 @@ function updateData($conn, $fields, $id = 1)
 $cek_awal = $sqlconn->query("SELECT id FROM profils WHERE id = 1");
 if ($cek_awal && $cek_awal->num_rows == 0) {
     $sql_seed = "INSERT INTO profils (
-        id, sudin, kop_dinas, nsekolah, alamat, kecamatan, kelurahan, provinsi, kabupaten, kodepos, no_telp, email, website, youtube, facebook, instagram,
-        nipkasudin, nrkkasudin, kasudin, nipkepsek, nrkkepsek, kepsek, nippengawas, nrpengawas, pengawas, nikipsi, nrkpsi, nampsi, nipkasi, nrkasi, kasi, nipktu, nrktu, ktu, logo_sekolah, background_login, logo_pemda
+        id, sudin, kop_dinas, nsekolah, npsn, alamat, kecamatan, kelurahan, provinsi, kabupaten, kodepos, no_telp, email, website, youtube, facebook, instagram,
+        nipkasudin, nrkkasudin, kasudin, nipkepsek, nrkkepsek, kepsek, nippengawas, nrkpengawas, pengawas, nipkasi, nrkkasi, kasi, nipktu, nrkktu, ktu, logo_sekolah, background_login, logo_pemda
     ) VALUES (
-        1, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
-        '', '', '', '', '', '', '', '', '', '', 
-        '', '', '', '', '', 'logo_default.png', 'bg_default.jpg', ''
+        1, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '',
+        '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'logo_default.png', 'bg_default.jpg', ''
     )";
     $sqlconn->query($sql_seed);
 }
@@ -84,9 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
     $pejabatConfig = [
         'kasudin' => ['nama' => 'kasudin', 'nip' => 'nipkasudin', 'nrk' => 'nrkkasudin'],
         'kepsek' => ['nama' => 'kepsek', 'nip' => 'nipkepsek', 'nrk' => 'nrkkepsek'],
-        'pengawas' => ['nama' => 'pengawas', 'nip' => 'nippengawas', 'nrk' => 'nrpengawas'],
-        'kasi' => ['nama' => 'kasi', 'nip' => 'nipkasi', 'nrk' => 'nrkasi'],
-        'ktu' => ['nama' => 'ktu', 'nip' => 'nipktu', 'nrk' => 'nrktu']
+        'pengawas' => ['nama' => 'pengawas', 'nip' => 'nippengawas', 'nrk' => 'nrkpengawas'],
+        'kasi' => ['nama' => 'kasi', 'nip' => 'nipkasi', 'nrk' => 'nrkkasi'],
+        'ktu' => ['nama' => 'ktu', 'nip' => 'nipktu', 'nrk' => 'nrkktu']
     ];
 
     foreach ($pejabatConfig as $jabatan => $cols) {
@@ -401,9 +400,9 @@ if (!$data) {
                                 $pejabatMap = [
                                     'kasudin' => ['label' => 'Kepala Suku Dinas', 'cols' => ['kasudin', 'nipkasudin', 'nrkkasudin']],
                                     'kepsek' => ['label' => 'Kepala Sekolah', 'cols' => ['kepsek', 'nipkepsek', 'nrkkepsek']],
-                                    'pengawas' => ['label' => 'Pengawas Sekolah', 'cols' => ['pengawas', 'nippengawas', 'nrpengawas']],
-                                    'kasi' => ['label' => 'Kepala Seksi', 'cols' => ['kasi', 'nipkasi', 'nrkasi']],
-                                    'ktu' => ['label' => 'Kepala Tata Usaha', 'cols' => ['ktu', 'nipktu', 'nrktu']]
+                                    'pengawas' => ['label' => 'Pengawas Sekolah', 'cols' => ['pengawas', 'nippengawas', 'nrkpengawas']],
+                                    'kasi' => ['label' => 'Kepala Seksi', 'cols' => ['kasi', 'nipkasi', 'nrkkasi']],
+                                    'ktu' => ['label' => 'Kepala Tata Usaha', 'cols' => ['ktu', 'nipktu', 'nrkktu']]
                                 ];
 
                                 foreach ($pejabatMap as $key => $info) {
@@ -575,8 +574,8 @@ if (!$data) {
             var email = $('input[name="email"]').val() || 'email@sch.id';
             var pos = $('input[name="pos"]').val() || '00000';
 
-            var logoPemda = "<?= !empty($data['logo_pemda']) ? '../images/' . $data['logo_pemda'] : 'images/logo_pemda_default.png' ?>";
-            var logoSekolah = "<?= !empty($data['logo_sekolah']) ? '../images/' . $data['logo_sekolah'] : 'images/logo_sekolah_default.png' ?>";
+            var logoPemda = "<?= !empty($data['logo_pemda']) ? 'images/' . $data['logo_pemda'] : 'images/logo_pemda_default.png' ?>";
+            var logoSekolah = "<?= !empty($data['logo_sekolah']) ? 'images/' . $data['logo_sekolah'] : 'images/logo_sekolah_default.png' ?>";
 
             var template = `
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 5px;">

@@ -139,6 +139,7 @@ if ($action == 'ubah_status') {
     if ($stmt->execute()) {
         // Kembalikan pesan 'Aktif'/'Nonaktif' agar UI tetap user friendly
         $pesanStatus = ($statusDB == '1') ? 'Aktif' : 'Nonaktif';
+        add_activity_log($conn, 'User', 'Ubah Status', "ID: $id menjadi $pesanStatus");
         echo json_encode(['status' => 'success', 'message' => 'Status berhasil diubah menjadi ' . $pesanStatus]);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal mengubah status: ' . $stmt->error]);
@@ -256,6 +257,8 @@ if ($action == 'simpan') {
     }
 
     if ($stmt->execute()) {
+        $aksi = empty($id) ? "Tambah" : "Update";
+        add_activity_log($conn, 'User', $aksi, "User ID: $userid");
         echo json_encode(['status' => 'success', 'message' => 'Data berhasil disimpan!']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Database Error: ' . $stmt->error]);
@@ -285,6 +288,7 @@ if ($action == 'hapus') {
     $stmt->bind_param("i", $id);
 
     if ($stmt->execute()) {
+        add_activity_log($conn, 'User', 'Hapus', "ID: $id");
         echo json_encode(['status' => 'success', 'message' => 'Data berhasil dihapus!']);
     } else {
         echo json_encode(['status' => 'error', 'message' => 'Gagal menghapus data.']);
@@ -320,12 +324,36 @@ if ($action == 'reset_password') {
     $stmt->bind_param("si", $hashed_password, $id);
 
     if ($stmt->execute()) {
+        add_activity_log($conn, 'User', 'Reset Password', "User: " . $user['userid']);
         echo json_encode([
             'status' => 'success',
             'message' => 'Password untuk <strong>' . htmlspecialchars($user['nama']) . '</strong> berhasil direset!<br><small class="text-muted">Password default: <strong>' . htmlspecialchars($default_password) . '</strong></small>'
         ]);
+    }
+    exit;
+}
+
+// =================================================================================
+// ACTION: BERSIHKAN LOG -> Output JSON
+// =================================================================================
+if ($action == 'bersihkan_log') {
+    header('Content-Type: application/json');
+
+    $lv_sess = $_SESSION['level'] ?? '';
+    if ($lv_sess != '1') {
+        echo json_encode(['status' => 'error', 'message' => 'Akses ditolak!']);
+        exit;
+    }
+
+    // Hapus log yang lebih lama dari 30 hari
+    $stmt = $conn->prepare("DELETE FROM tb_activity_log WHERE waktu < DATE_SUB(NOW(), INTERVAL 30 DAY)");
+    
+    if ($stmt->execute()) {
+        $deleted = $stmt->affected_rows;
+        add_activity_log($conn, 'System', 'Bersihkan Log', "Membersihkan log lama ($deleted baris dihapus)");
+        echo json_encode(['status' => 'success', 'message' => "$deleted baris log lama berhasil dibersihkan."]);
     } else {
-        echo json_encode(['status' => 'error', 'message' => 'Gagal mereset password: ' . $stmt->error]);
+        echo json_encode(['status' => 'error', 'message' => 'Gagal membersihkan log: ' . $stmt->error]);
     }
     exit;
 }

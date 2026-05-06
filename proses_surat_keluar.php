@@ -11,6 +11,8 @@ ob_start(); // Buffer output untuk mencegah error JSON
 include "dbconn.php";
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Keep 0 for JSON responses, rely on try-catch
 
 // --- KONFIGURASI ---
 define('UPLOAD_DIR', 'file/berkas-keluar/'); 
@@ -50,7 +52,6 @@ function kirimResponsError($message, $httpStatusCode = 400) {
 function hapusFileLama($filename) {
     if (empty($filename)) return;
     
-    // Support Multiple Files (Split by |)
     $files = explode('|', $filename);
     
     foreach ($files as $f) {
@@ -58,35 +59,58 @@ function hapusFileLama($filename) {
         if (empty($f)) continue;
         if (strpos($f, '..') !== false) continue;
         
-        $filePath = UPLOAD_DIR . $f;
-        if (file_exists($filePath) && is_file($filePath)) {
-            unlink($filePath);
+        $directPath = UPLOAD_DIR . $f;
+        if (file_exists($directPath) && is_file($directPath)) {
+            unlink($directPath);
+            continue;
+        }
+
+        // Fallback logic
+        $sysTahun = $_SESSION['tahundb'] ?? date('Y');
+        $sysSmt = $_SESSION['semester'] ?? '1';
+        $possibleFolders = [
+            $sysTahun . '-' . $sysSmt . '/',
+            (isset($_SESSION['tapel']) ? str_replace(['/', '\\'], '-', $_SESSION['tapel']) : date('Y')) . '-' . $sysSmt . '/'
+        ];
+
+        foreach ($possibleFolders as $folder) {
+            $filePath = UPLOAD_DIR . $folder . $f;
+            if (file_exists($filePath) && is_file($filePath)) {
+                unlink($filePath);
+                break;
+            }
         }
     }
 }
 
 function resolvePdfPath($filename, $baseDir) {
     if (empty($filename)) return '';
-    // Jika sudah ada slash (path lengkap), kembalikan as is
-    if (strpos($filename, '/') !== false) return $filename;
-
-    // Cari file di semua subfolder menggunakan glob
-    // Pattern: UPLOAD_DIR/*/filename.pdf
-    $pattern = $baseDir . '*/' . $filename;
-    $matches = glob($pattern);
     
-    if (!empty($matches)) {
-        // Ambil match pertama
-        $fullPath = $matches[0];
-        // Normalisasi separator ke forward slash
-        $fullPath = str_replace('\\', '/', $fullPath);
-        // Hapus baseDir dari path untuk mendapatkan relative path
-        $baseDirNorm = str_replace('\\', '/', $baseDir);
-        return str_replace($baseDirNorm, '', $fullPath);
+    $files = explode('|', $filename);
+    $resolvedFiles = [];
+
+    foreach ($files as $f) {
+        $f = trim($f);
+        if (empty($f)) continue;
+
+        if (strpos($f, '/') !== false) {
+            $resolvedFiles[] = $f;
+            continue;
+        }
+
+        $pattern = $baseDir . '*/' . $f;
+        $matches = glob($pattern);
+        
+        if (!empty($matches)) {
+            $fullPath = str_replace('\\', '/', $matches[0]);
+            $baseDirNorm = str_replace('\\', '/', $baseDir);
+            $resolvedFiles[] = str_replace($baseDirNorm, '', $fullPath);
+        } else {
+            $resolvedFiles[] = $f;
+        }
     }
     
-    // Jika tidak ketemu, kembalikan filename as is
-    return $filename;
+    return implode('|', $resolvedFiles);
 }
 
 // muatData dihapus karena beralih ke static loading di suratkeluar.php
@@ -103,12 +127,12 @@ function simpanData($conn, $action) {
     $tgl_dokumen = !empty($_POST['tgl_dokumen']) ? $_POST['tgl_dokumen'] : null;
     $kategori = $_POST['kategori'] ?? '';
     $catatan = $_POST['catatan'] ?? '';
-    $lampiran = ''; // Variabel lampiran belum ada di input form, diset kosong default.
-
+    $lampiran = $_POST['lampiran'] ?? ''; 
 
     // Variabel untuk handling file
     $fileDiUpload = false;
     $uploadedFiles = [];
+    $pdf_string = '';
 
     // 1. LOGIKA UPLOAD FILE (MULTIPLE)
     if (isset($_FILES['pdf'])) {
@@ -132,13 +156,13 @@ function simpanData($conn, $action) {
                  if ($files['size'][$i] > MAX_FILE_SIZE) throw new Exception('File melebihi batas 2MB.');
                  
                  $fileExt = strtolower(pathinfo($files['name'][$i], PATHINFO_EXTENSION));
-                 if (!in_array($fileExt, ALLOWED_EXTENSIONS)) throw new Exception('Ekstensi file tidak diizinkan. Hanya PDF.');
+                 if (!in_array($fileExt, ALLOWED_EXTENSIONS)) throw new Exception('Ekstensi file tidak diizinkan (Hanya PDF).');
                  
                  // Unique Name
-                 $cleanNoDokumen = preg_replace("/[^a-zA-Z0-9_-]/", "_", $no_dokumen . '_' . $perihal);
+                 $cleanNoDokumen = preg_replace("/[^a-zA-Z0-9_-]/", "_", $no_dokumen);
                  if(empty($cleanNoDokumen)) $cleanNoDokumen = 'file';
                  
-                 // USE DATE (Same logic)
+                 // USE DATE
                  $docDate = !empty($tgl_dokumen) ? strtotime($tgl_dokumen) : time();
                  $sysTahun = date('Y', $docDate);
                  $month = date('n', $docDate);
@@ -165,29 +189,22 @@ function simpanData($conn, $action) {
         }
     }
 
-    if ($fileDiUpload) {
-        $pdf_string = implode('|', $uploadedFiles);
-    } else {
-        $pdf_string = '';
-    }
+    $pdf_string = implode('|', $uploadedFiles);
 
     /**
      * DATABASE SWITCHING CONTEXT
-     * Prioritaskan tahun dari input (untuk Edit) atau tentukan dari tanggal (untuk Simpan Baru)
      */
     $dbAsal = $_POST['tahun'] ?? '';
     if ($action === 'edit' && !empty($dbAsal)) {
         if (!$conn->select_db("sas_" . $dbAsal)) {
             throw new Exception("Database sas_$dbAsal tidak ditemukan.");
         }
-    } elseif (!empty($tgl_dokumen)) {
-        $tahunInput = date('Y', strtotime($tgl_dokumen));
+    } else {
+        $tahunInput = !empty($tgl_dokumen) ? date('Y', strtotime($tgl_dokumen)) : null;
         if ($tahunInput) {
              $dbTarget = "sas_" . $tahunInput;
-             try { 
-                 if (!$conn->select_db($dbTarget)) throw new Exception("Database $dbTarget tidak ditemukan.");
-             } catch (Exception $e) {
-                 throw new Exception("Gagal beralih ke database $dbTarget: " . $e->getMessage());
+             if (!$conn->select_db($dbTarget)) {
+                 throw new Exception("Database $dbTarget tidak ditemukan.");
              }
         }
     }
@@ -199,27 +216,33 @@ function simpanData($conn, $action) {
         if ($action === 'edit') {
             if ($id === 0) throw new Exception('ID tidak valid.');
 
-            $sqlGetOld = "SELECT pdf FROM dokumenkeluar WHERE id = ?";
-            $stmtGet = $conn->prepare($sqlGetOld);
+            // Ambil info file lama
+            $stmtGet = $conn->prepare("SELECT pdf FROM dokumenkeluar WHERE id = ?");
             $stmtGet->bind_param('i', $id);
             $stmtGet->execute();
-            $stmtGet->bind_result($file_lama_db);
-            $stmtGet->fetch();
+            $resGet = $stmtGet->get_result();
+            $rowGet = $resGet->fetch_assoc();
             $stmtGet->close();
 
-            $file_lama = $file_lama_db; 
+            if (!$rowGet) throw new Exception('Data lama tidak ditemukan di database target.');
+            $file_lama_db = $rowGet['pdf'] ?? '';
 
             if ($fileDiUpload) {
                 $final_pdf = $pdf_string;
+                // Jika upload baru, hapus semua file lama yang digantikan
+                if (!empty($file_lama_db)) {
+                    hapusFileLama($file_lama_db);
+                }
             } else {
-                $posted_files_str = isset($_POST['file_lama']) ? $_POST['file_lama'] : '';
-                
-                $db_files_arr = explode('|', $file_lama_db);
-                $posted_files_arr = explode('|', $posted_files_str);
+                // List file yang tetap dipertahankan (dikirim dari UI)
+                $posted_files_str = $_POST['file_lama'] ?? '';
+                $db_files_arr = !empty($file_lama_db) ? explode('|', $file_lama_db) : [];
+                $posted_files_arr = !empty($posted_files_str) ? explode('|', $posted_files_str) : [];
                 
                 $valid_files_arr = array_intersect($posted_files_arr, $db_files_arr);
                 $final_pdf = implode('|', $valid_files_arr);
                 
+                // Hapus fisik file yang dihapus dari list
                 $deleted_files_arr = array_diff($db_files_arr, $valid_files_arr);
                 if (!empty($deleted_files_arr)) {
                      hapusFileLama(implode('|', $deleted_files_arr));
@@ -243,21 +266,20 @@ function simpanData($conn, $action) {
             if (!$stmt->execute()) throw new Exception("Gagal update database: " . $stmt->error);
             $stmt->close();
 
-            // 3. HAPUS FILE LAMA
-            if ($fileDiUpload && !empty($file_lama)) {
-                hapusFileLama($file_lama);
-            }
-            
-            $message = '<i> ~ Data berhasil diperbarui.</i>';
+            add_activity_log($conn, 'Surat Keluar', 'Edit', "No Dokumen: $no_dokumen");
+            $message = '<i>~ Data berhasil diperbarui.</i>';
         
         } else {
             // Action: Simpan Baru
             $sql = "INSERT INTO dokumenkeluar (no_dokumen, jns_dokumen, dari, unit_tujuan, perihal, lampiran, pembuat, tgl_dokumen, kategori, catatan, pdf) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
             $stmt = $conn->prepare($sql);
+            if (!$stmt) throw new Exception("Prepare failed: " . $conn->error);
             $stmt->bind_param('sssssssssss', $no_dokumen, $jns_dokumen, $dari, $unit_tujuan, $perihal, $lampiran, $pembuat, $tgl_dokumen, $kategori, $catatan, $pdf_string);
-            $stmt->execute();
+            if (!$stmt->execute()) throw new Exception("Gagal simpan database: " . $stmt->error);
             $stmt->close();
-            $message = '<i> ~ Data berhasil disimpan.</i>';
+            
+            add_activity_log($conn, 'Surat Keluar', 'Tambah', "No Dokumen: $no_dokumen");
+            $message = '<i>~ Data berhasil disimpan.</i>';
         }
         $conn->commit();
         kirimResponsSukses(null, $message);
@@ -272,31 +294,29 @@ function simpanData($conn, $action) {
 
 function ambilData($conn) {
     $id = (int)($_GET['id'] ?? 0);
+    $tahun = preg_replace('/[^0-9]/', '', $_GET['tahun'] ?? '');
     
-    // Tambahan: Switch DB jika ada parameter tahun
-    if (isset($_GET['tahun'])) {
-        $tahun = preg_replace('/[^0-9]/', '', $_GET['tahun']);
-        $dbTarget = ($tahun > 0) ? "sas_" . $tahun : "sas";
-        try {
-            $conn->select_db($dbTarget);
-        } catch (Exception $e) { /* Ignore */ }
+    if ($tahun) {
+        $dbTarget = "sas_" . $tahun;
+        if (!$conn->select_db($dbTarget)) {
+            // Silently fail if DB doesn't exist to allow standard fallback if needed
+        }
     }
 
     if ($id === 0) throw new Exception('ID tidak valid.');
-    // Table: dokumenkeluar
-    $stmt = $conn->prepare("SELECT *,  DATE(tgl_dokumen) as tgl_dokumen_raw FROM dokumenkeluar WHERE id = ?");
+    
+    $stmt = $conn->prepare("SELECT *, DATE(tgl_dokumen) as tgl_dokumen_raw FROM dokumenkeluar WHERE id = ?");
     $stmt->bind_param('i', $id);
     $stmt->execute();
     $res = $stmt->get_result();
     $data = $res->fetch_assoc();
     $stmt->close();
 
-    
     if ($data) {
-        // [RESOLVE PDF PATH]
+        header('Content-Type: application/json');
         $data['pdf'] = resolvePdfPath($data['pdf'], UPLOAD_DIR);
 
-        // [TAMBAHAN] Ambil ukuran file fisik untuk sinkronisasi total size di UI
+        // Map ukuran file untuk sinkronisasi di UI
         $file_sizes = [];
         if (!empty($data['pdf'])) {
             $files = explode('|', $data['pdf']);
@@ -311,32 +331,36 @@ function ambilData($conn) {
 
         echo json_encode($data);
         exit;
+    } else {
+        throw new Exception('Data tidak ditemukan.');
     }
-    else throw new Exception('Data tidak ditemukan.');
 }
 
 function hapusData($conn) {
     $id = (int)($_POST['id'] ?? 0);
+    $tahun = preg_replace('/[^0-9]/', '', $_POST['tahun'] ?? '');
     
-    // Switch DB jika ada parameter tahun
-    if (isset($_POST['tahun'])) {
-        $tahun = preg_replace('/[^0-9]/', '', $_POST['tahun']);
-        $dbTarget = ($tahun > 0) ? "sas_" . $tahun : "sas";
-        try {
-            $conn->select_db($dbTarget);
-        } catch (Exception $e) { /* Ignore */ }
+    if ($tahun) {
+        $dbTarget = "sas_" . $tahun;
+        if (!$conn->select_db($dbTarget)) {
+            // Ignore error
+        }
     }
 
     if ($id === 0) throw new Exception('ID tidak valid.');
+    
     $conn->begin_transaction();
     try {
-        // Table: dokumenkeluar
-        $stmtCek = $conn->prepare("SELECT pdf FROM dokumenkeluar WHERE id = ?");
+        $stmtCek = $conn->prepare("SELECT no_dokumen, pdf FROM dokumenkeluar WHERE id = ?");
         $stmtCek->bind_param('i', $id);
         $stmtCek->execute();
-        $stmtCek->bind_result($pdf);
-        $stmtCek->fetch();
+        $resCek = $stmtCek->get_result();
+        $rowCek = $resCek->fetch_assoc();
         $stmtCek->close();
+
+        if (!$rowCek) throw new Exception('Data tidak ditemukan.');
+        $no_dokumen = $rowCek['no_dokumen'];
+        $pdf = $rowCek['pdf'];
 
         $stmtHapus = $conn->prepare("DELETE FROM dokumenkeluar WHERE id = ?");
         $stmtHapus->bind_param('i', $id);
@@ -347,6 +371,7 @@ function hapusData($conn) {
         if (!empty($pdf)) hapusFileLama($pdf);
         
         $conn->commit();
+        add_activity_log($conn, 'Surat Keluar', 'Hapus', "No Dokumen: $no_dokumen");
         kirimResponsSukses(null, 'Data berhasil dihapus.');
     } catch (Throwable $e) {
         $conn->rollback();
@@ -359,10 +384,10 @@ function hapusData($conn) {
 // ==================================================================
 
 try {
-    if (!isset($conn) || $conn->connect_error) throw new Exception("Koneksi DB gagal.");
+    if (!isset($conn) || !$conn || $conn->connect_error) throw new Exception("Koneksi DB gagal.");
 
+    $id_user = $_SESSION['id'] ?? $_SESSION['user_id'] ?? 0;
     $level = ''; 
-    $id_user = $_SESSION['id'] ?? $_SESSION['id_user'] ?? $_SESSION['user_id'] ?? 0;
 
     if (!empty($id_user)) {
         $stmt = $conn->prepare("SELECT level FROM tb_user WHERE id = ?");
@@ -370,8 +395,7 @@ try {
             $stmt->bind_param("i", $id_user);
             $stmt->execute();
             $res = $stmt->get_result();
-            if ($res->num_rows > 0) {
-                $row = $res->fetch_assoc();
+            if ($row = $res->fetch_assoc()) {
                 $level = trim($row['level']); 
             }
             $stmt->close();
@@ -380,10 +404,16 @@ try {
 
     $action = $_REQUEST['action'] ?? ''; 
     switch ($action) {
-        case 'simpan': case 'edit': simpanData($conn, $action); break;
-        case 'ambil': ambilData($conn); break;
+        case 'simpan': 
+        case 'edit': 
+            if ($level != '1' && $level != '2') throw new Exception('Akses ditolak (Hanya Admin/Staff).');
+            simpanData($conn, $action); 
+            break;
+        case 'ambil': 
+            ambilData($conn); 
+            break;
         case 'hapus': 
-            if ($level != '1') throw new Exception('Akses ditolak (Hanya Admin).');
+            if ($level != '1' && $level != '2') throw new Exception('Akses ditolak (Hanya Admin/Staff).');
             hapusData($conn); 
             break;
         default: throw new Exception('Aksi tidak valid.');

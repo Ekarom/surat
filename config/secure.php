@@ -60,15 +60,15 @@ if (isset($sqlconn) && $sqlconn) {
         $level = ''; $nama = ''; $idu = '';
     }
 
-    // Log User Data & Count
+    // Log User Data & Count (Using new tb_activity_log)
     if ($level == '1') {
         // Administrator can see system-wide logs
-        $log4 = mysqli_query($sqlconn, "select COUNT(*) as n1 from users_log");
-        $log1 = mysqli_query($sqlconn, "select * from users_log order by waktu desc limit 25");
+        $log4 = mysqli_query($sqlconn, "select COUNT(*) as n1 from tb_activity_log");
+        $log1 = mysqli_query($sqlconn, "select * from tb_activity_log order by waktu desc limit 25");
     } else {
-        // Other levels see only their own activity (filtering by username string $userc)
-        $log4 = mysqli_query($sqlconn, "select COUNT(*) as n1 from users_log where user='$userc'");
-        $log1 = mysqli_query($sqlconn, "select * from users_log where user='$userc' order by waktu desc limit 25");
+        // Other levels see only their own activity (filtering by userid string $userc)
+        $log4 = mysqli_query($sqlconn, "select COUNT(*) as n1 from tb_activity_log where userid='$userc'");
+        $log1 = mysqli_query($sqlconn, "select * from tb_activity_log where userid='$userc' order by waktu desc limit 25");
     }
     $log5 = ($log4) ? mysqli_fetch_array($log4) : ['n1' => 0];
 }

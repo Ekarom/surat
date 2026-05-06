@@ -122,17 +122,7 @@ function complete_ptk_login($pegawai, $conn, $db) {
     $_SESSION['database_asli'] = $db;
 
     // Log Login
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    $waktu = date("Y-m-d H:i:s");
-    $info_log = "Login Guru (2FA Setup Completed/Skipped)";
-
-    $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-    if ($stmt_log !== false) {
-        $user_log_id = $pegawai['nrk'] ?: $pegawai['nip'];
-        $stmt_log->bind_param("sssss", $user_log_id, $pegawai['nm_pegawai'], $waktu, $ip_address, $info_log);
-        $stmt_log->execute();
-        $stmt_log->close();
-    }
+    add_activity_log($conn, 'Auth', '2FA Setup/Skip Guru', 'Login Guru (2FA Setup Completed/Skipped)');
 
     header("Location: index_ptk.php");
     exit();

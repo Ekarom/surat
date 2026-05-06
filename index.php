@@ -59,6 +59,9 @@ if (isset($_GET['dashboard'])) {
 } else if (isset($_GET['backup_restore'])) {
   $current_page = 'backup_restore';
   $page_to_include = 'backup_restore.php';
+} else if (isset($_GET['log_aktivitas'])) {
+  $current_page = 'log_aktivitas';
+  $page_to_include = 'log_aktivitas.php';
 } else if (isset($_GET['update'])) {
   $current_page = 'update';
   $page_to_include = 'chckupdate.php';
@@ -273,6 +276,12 @@ if ($force_change_pass) {
                         <p>Update</p>
                       </a>
                     </li>
+                    <li class="nav-item">
+                      <a href="?log_aktivitas" class="nav-link <?php echo ($current_page == 'log_aktivitas') ? 'active' : ''; ?>">
+                        <i class="nav-icon las la-history"></i>
+                        <p>Log Aktivitas</p>
+                      </a>
+                    </li>
                   </ul>
                 </li>
 
@@ -377,6 +386,12 @@ if ($force_change_pass) {
                 </li>
               </ul>
             </li>
+            <li class="nav-item">
+              <a href="?log_aktivitas" class="nav-link <?php echo ($current_page == 'log_aktivitas') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-history"></i>
+                <p>Log Saya</p>
+              </a>
+            </li>
             <?php } ?>
 
             <!------------------------------------------ MENU GURU (LEVEL 4) ----------------------------------------->
@@ -399,6 +414,12 @@ if ($force_change_pass) {
               <a href="?profil" class="nav-link <?php echo ($current_page == 'profil') ? 'active' : ''; ?>">
                 <i class="nav-icon las la-id-badge"></i>
                 <p>Profil Akun</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="?log_aktivitas" class="nav-link <?php echo ($current_page == 'log_aktivitas') ? 'active' : ''; ?>">
+                <i class="nav-icon las la-history"></i>
+                <p>Log Saya</p>
               </a>
             </li>
             <?php } ?>

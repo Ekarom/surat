@@ -17,6 +17,14 @@ $school = ($res && $res->num_rows > 0) ? $res->fetch_assoc() : [];
 
 $base_dir = file_exists('dbconn.php') ? '' : '../';
 
+// Calculate absolute web root URL more robustly
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
+$domain = $_SERVER['HTTP_HOST'];
+$script_path = str_replace('\\', '/', $_SERVER['SCRIPT_NAME']);
+$current_dir = dirname($script_path);
+$web_root_path = ($base_dir == '../') ? dirname($current_dir) : $current_dir;
+$web_root = $protocol . $domain . rtrim($web_root_path, '/') . '/';
+
 // [CHECKPOINT] Jika data kosong, tampilkan Halaman Instruksi Sinkronisasi
 if (!$school || empty($school['nsekolah'])) {
     ?>
@@ -44,7 +52,9 @@ if (!$school || empty($school['nsekolah'])) {
 }
 
 $logo_path = $base_dir . "images/" . ($school['logo_sekolah'] ?: 'logo_default.png');
-if (!file_exists($logo_path))
+// Server-side check for existence
+$logo_server_path = $base_dir . "images/" . ($school['logo_sekolah'] ?: 'logo_default.png');
+if (!file_exists($logo_server_path))
     $logo_path = $base_dir . "images/logo_default.png";
 ?>
 
@@ -289,22 +299,75 @@ if (!file_exists($logo_path))
 
     .kop-preview {
         background: #fff;
-        border: 2px dashed var(--school-border);
-        border-radius: 20px;
-        padding: 20px;
-        min-height: 100px;
+        border: 1px solid var(--school-border);
+        border-radius: 12px;
+        padding: 30px 20px;
+        min-height: 120px;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
     }
 
     @media (max-width: 768px) {
         .school-profile-container {
-            padding: 1rem;
+            padding: 0.75rem;
         }
 
         .sidebar-profile {
-            padding: 1.5rem 1rem;
+            padding: 2rem 1rem;
+        }
+
+        .info-card-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-box[style*="grid-column: span 2"] {
+            grid-column: span 1 !important;
+        }
+
+        .pimpinan-item {
+            padding: 1rem;
+            gap: 12px;
+        }
+
+        .pimpinan-avatar {
+            width: 48px;
+            height: 48px;
+            font-size: 1.5rem;
+        }
+
+        .social-link {
+            font-size: 0.85rem;
+            padding: 10px;
+        }
+
+        .section-title {
+            font-size: 1rem;
+        }
+
+        .kop-btn-container {
+            flex-direction: column !important;
+            gap: 12px;
+        }
+
+        .kop-btn-container button {
+            width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .asset-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .asset-item[style*="grid-column: span 2"] {
+            grid-column: span 1 !important;
+        }
+
+        .school-logo-large {
+            width: 120px;
+            height: 120px;
         }
     }
 </style>
@@ -330,48 +393,49 @@ if (!file_exists($logo_path))
                 <div class="npsn-badge">NPSN: <?php echo htmlspecialchars($school['npsn']); ?></div>
 
                 <div class="mt-4 px-2 text-start">
-                    <a href="mailto:<?php echo htmlspecialchars($school['email']); ?>" class="contact-item">
+                    <a href="mailto:<?php echo $school['email']; ?>" class="contact-item">
                         <div class="contact-icon text-danger"><i class="las la-envelope"></i></div>
                         <div class="text-truncate">
                             <div class="extra-small text-muted fw-bold">Email</div>
                             <div class="small fw-bold"><?php echo htmlspecialchars($school['email']); ?></div>
                         </div>
                     </a>
-                    <a href="tel:<?php echo htmlspecialchars($school['no_telp']); ?>" class="contact-item">
+                    <a href="tel:<?php echo $school['no_telp']; ?>" class="contact-item">
                         <div class="contact-icon text-primary"><i class="las la-phone"></i></div>
                         <div>
                             <div class="extra-small text-muted fw-bold">Telepon</div>
                             <div class="small fw-bold"><?php echo htmlspecialchars($school['no_telp']); ?></div>
                         </div>
                     </a>
-                    <?php
-                    $web_url = $school['website'] ?? '';
-                    if ($web_url):
-                        $web_href = (strpos($web_url, 'http') === 0 ? '' : 'https://') . $web_url;
-                        ?>
-                        <a href="<?php echo htmlspecialchars($web_href); ?>" target="_blank" class="contact-item">
-                            <div class="contact-icon text-info"><i class="las la-globe"></i></div>
-                            <div class="text-truncate">
-                                <div class="extra-small text-muted fw-bold">Website</div>
-                                <div class="small fw-bold"><?php echo htmlspecialchars($web_url); ?></div>
-                            </div>
-                        </a>
-                    <?php endif; ?>
+                    <a href="<?php echo (strpos($school['website'], 'http') === 0 ? '' : 'https://') . $school['website']; ?>"
+                        target="_blank" class="contact-item">
+                        <div class="contact-icon text-info"><i class="las la-globe"></i></div>
+                        <div class="text-truncate">
+                            <div class="extra-small text-muted fw-bold">Website</div>
+                            <div class="small fw-bold"><?php echo htmlspecialchars($school['website']); ?></div>
+                        </div>
+                    </a>
                 </div>
             </div>
 
             <div class="premium-card p-4">
                 <div class="section-title"><i class="las la-images"></i> Aset Visual</div>
                 <div class="asset-grid">
-                    <div class="asset-item text-center">
-                        <?php $logo_pemda_path = $base_dir . "images/" . ($school['logo_pemda'] ?: 'logo_default.png'); ?>
-                        <img src="<?php echo $logo_pemda_path; ?>" class="asset-thumb">
+                    <div class="asset-item" style="grid-column: span 2;">
+                        <?php
+                        $lp = $school['logo_pemda'];
+                        $lp_file = ($lp && file_exists($base_dir . "images/" . $lp)) ? $lp : 'logo_jayaraya.png';
+                        ?>
+                        <img src="<?php echo $base_dir . "images/" . $lp_file; ?>" class="asset-thumb">
                         <div class="asset-label">Logo Pemda</div>
                     </div>
                     <div class="asset-item" style="grid-column: span 2;">
-                        <?php $bg_login_path = $base_dir . "images/" . ($school['background_login'] ?: 'bg_default.jpg'); ?>
-                        <img src="<?php echo $bg_login_path; ?>" class="asset-thumb w-100"
-                            style="object-fit: cover; border-radius: 8px; height: 120px;">
+                        <?php
+                        $bg = $school['background_login'];
+                        $bg_file = ($bg && file_exists($base_dir . "images/" . $bg)) ? $bg : 'bg_default.jpg';
+                        ?>
+                        <img src="<?php echo $base_dir . "images/" . $bg_file; ?>" class="asset-thumb w-100"
+                            style="object-fit: cover; border-radius: 8px;">
                         <div class="asset-label mt-1">Background Login</div>
                     </div>
                 </div>
@@ -407,6 +471,31 @@ if (!file_exists($logo_path))
                         <div class="info-box-label">Kode Pos</div>
                         <div class="info-box-value"><?php echo htmlspecialchars($school['kodepos']); ?></div>
                     </div>
+                </div>
+            </div>
+
+            <div class="premium-card p-4">
+                <div class="section-title"><i class="las la-file-alt"></i> Kop Dinas (Header)</div>
+                <div class="alert alert-info border-0 shadow-sm mb-4" style="border-radius: 15px;">
+                    <div class="d-flex align-items-center gap-3">
+                        <i class="las la-info-circle fs-2"></i>
+                        <div class="small">Gunakan template untuk hasil yang presisi dan sesuai standar kedinasan.</div>
+                    </div>
+                </div>
+
+                <div class="editor-wrapper mb-3">
+                    <textarea id="summernote_kop"><?php echo htmlspecialchars($school['kop_dinas']); ?></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center kop-btn-container">
+                    <button type="button" class="btn btn-outline-success rounded-pill px-4" id="btnGunakanTemplate"
+                        disabled>
+                        Gunakan Template Kop
+                    </button>
+                    <button type="button" class="btn btn-primary rounded-pill px-5 shadow-sm" id="btnSimpanKop"
+                        disabled>
+                        <i class="las la-save me-1"></i> Simpan Kop Dinas
+                    </button>
                 </div>
             </div>
 
@@ -456,58 +545,31 @@ if (!file_exists($logo_path))
             </div>
 
             <div class="row g-4">
-                <div class="col-md-6">
+                <div class="col-md-12">
                     <div class="premium-card p-4 h-100">
                         <div class="section-title"><i class="las la-hashtag"></i> Media Sosial</div>
                         <div class="row g-2">
-                            <?php if (!empty($school['youtube'])): ?>
-                                <div class="col-6">
-                                    <a href="<?php echo htmlspecialchars($school['youtube']); ?>" target="_blank"
-                                        class="social-link youtube">
-                                        <i class="lab la-youtube fs-4"></i> YouTube
-                                    </a>
-                                </div>
-                            <?php endif; ?>
-                            <?php if (!empty($school['facebook'])): ?>
-                                <div class="col-6">
-                                    <a href="<?php echo htmlspecialchars($school['facebook']); ?>" target="_blank"
-                                        class="social-link facebook">
-                                        <i class="lab la-facebook fs-4"></i> Facebook
-                                    </a>
-                                </div>
-                            <?php endif; ?>
-                            <?php if (!empty($school['twitter'])): ?>
-                                <div class="col-6">
-                                    <a href="<?php echo htmlspecialchars($school['twitter']); ?>" target="_blank"
-                                        class="social-link twitter">
-                                        <i class="lab la-twitter fs-4"></i> Twitter
-                                    </a>
-                                </div>
-                            <?php endif; ?>
-                            <?php if (!empty($school['instagram'])): ?>
-                                <div class="col-6">
-                                    <a href="<?php echo htmlspecialchars($school['instagram']); ?>" target="_blank"
-                                        class="social-link instagram">
-                                        <i class="lab la-instagram fs-4"></i> Instagram
-                                    </a>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="premium-card p-4 h-100">
-                        <div class="section-title"><i class="las la-file-alt"></i> Kop Dinas (Preview)</div>
-                        <div class="kop-preview overflow-hidden">
-                            <div style="zoom: 0.5; width: 200%;">
-                                <?php
-                                if (!empty($school['kop_dinas'])) {
-                                    // Fix relative image paths in Kop Dinas (images/ -> ../images/)
-                                    echo str_replace('src="images/', 'src="' . $base_dir . 'images/', $school['kop_dinas']);
-                                } else {
-                                    echo '<span class="text-muted italic">Belum diatur</span>';
-                                }
-                                ?>
+                            <div class="col-md-3 col-6">
+                                <a href="<?php echo $school['youtube']; ?>" target="_blank" class="social-link youtube">
+                                    <i class="lab la-youtube fs-4"></i> YouTube
+                                </a>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <a href="<?php echo $school['facebook']; ?>" target="_blank"
+                                    class="social-link facebook">
+                                    <i class="lab la-facebook fs-4"></i> Facebook
+                                </a>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <a href="<?php echo $school['twitter']; ?>" target="_blank" class="social-link twitter">
+                                    <i class="lab la-twitter fs-4"></i> Twitter
+                                </a>
+                            </div>
+                            <div class="col-md-3 col-6">
+                                <a href="<?php echo $school['instagram']; ?>" target="_blank"
+                                    class="social-link instagram">
+                                    <i class="lab la-instagram fs-4"></i> Instagram
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -517,4 +579,159 @@ if (!file_exists($logo_path))
     </div>
 </div>
 
-<!-- Load SweetAlert2 -->
+<!-- Load Summernote & Logic -->
+<script>
+    $(document).ready(function () {
+        let summernoteLoaded = false;
+
+        // Dynamic Loader for Summernote
+        function loadSummernote(callback) {
+            if (summernoteLoaded) {
+                if (callback) callback();
+                return;
+            }
+
+            const cssUrl = '../plugins/summernote/summernote-bs4.min.css';
+            const jsUrl = '../plugins/summernote/summernote-bs4.min.js';
+
+            // Load CSS
+            if (!$('link[href="' + cssUrl + '"]').length) {
+                $('head').append('<link rel="stylesheet" href="' + cssUrl + '">');
+            }
+
+            // Load JS
+            $.getScript(jsUrl, function () {
+                summernoteLoaded = true;
+                if (callback) callback();
+            }).fail(function () {
+                console.warn("Local Summernote failed, falling back to CDN");
+                $.getScript('https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-bs4.min.js', function () {
+                    summernoteLoaded = true;
+                    if (callback) callback();
+                });
+            });
+        }
+
+        // Initialize immediately
+        loadSummernote(function () {
+            $('#summernote_kop').summernote({
+                height: 350,
+                placeholder: 'Tulis kop dinas di sini...',
+                toolbar: [
+                    ['style', ['style']],
+                    ['font', ['bold', 'underline', 'clear']],
+                    ['fontname', ['fontname']],
+                    ['color', ['color']],
+                    ['para', ['ul', 'ol', 'paragraph']],
+                    ['table', ['table']],
+                    ['insert', ['link', 'picture']],
+                    ['view', ['fullscreen', 'codeview']]
+                ]
+            });
+            // Enable buttons after initialization
+            $('#btnGunakanTemplate, #btnSimpanKop').prop('disabled', false);
+        });
+
+        // Template Logic
+        $('#btnGunakanTemplate').click(function () {
+            const nsekolah = <?php echo json_encode($school['nsekolah']); ?>;
+            const alamat = <?php echo json_encode($school['alamat']); ?>;
+            const kelurahan = <?php echo json_encode($school['kelurahan']); ?>;
+            const kecamatan = <?php echo json_encode($school['kecamatan']); ?>;
+            const kabupaten = <?php echo json_encode($school['kabupaten']); ?>;
+            const web = <?php echo json_encode($school['website']); ?>;
+            const email = <?php echo json_encode($school['email']); ?>;
+            const pos = <?php echo json_encode($school['kodepos']); ?>;
+            const logoPemda = <?php
+            $lp = $school['logo_pemda'];
+            $possible_pemda = [$lp, 'logo_jayaraya.png', 'logo_default.png'];
+            $final_pemda_file = 'logo_jayaraya.png';
+            foreach ($possible_pemda as $l) {
+                if ($l && file_exists($base_dir . 'images/' . $l)) {
+                    $final_pemda_file = $l;
+                    break;
+                }
+            }
+            echo json_encode($web_root . 'images/' . $final_pemda_file);
+            ?>;
+
+            const logoSekolah = <?php
+            $ls = $school['logo_sekolah'];
+            $possible_sekolah = [$ls, 'logo_sekolah.png', 'logo_default.png'];
+            $final_sekolah_file = 'logo_default.png';
+            foreach ($possible_sekolah as $l) {
+                if ($l && file_exists($base_dir . 'images/' . $l)) {
+                    $final_sekolah_file = $l;
+                    break;
+                }
+            }
+            echo json_encode($web_root . 'images/' . $final_sekolah_file);
+            ?>;
+
+            const template = `
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 2px; font-family: 'Arial', sans-serif; color: #000; table-layout: fixed;">
+                    <tbody>
+                        <tr>
+                            <td style="width: 15%; text-align: center; vertical-align: middle; padding-bottom: 5px;">
+                                <img src="${logoPemda}" style="width: 90px; height: auto; max-width: 100%;" alt="Logo DKI">
+                            </td>
+                            <td style="width: 70%; text-align: center; vertical-align: middle;">
+                                <div style="margin: 0; font-size: 16px; font-weight: bold; text-transform: uppercase; line-height: 1.2;">PEMERINTAH PROVINSI DAERAH KHUSUS IBUKOTA JAKARTA</div>
+                                <div style="margin: 0; font-size: 16px; font-weight: bold; text-transform: uppercase; line-height: 1.2;">DINAS PENDIDIKAN</div>
+                                <div style="margin: 2px 0; font-size: 24px; font-weight: 800; text-transform: uppercase; line-height: 1.1;">${nsekolah}</div>
+                                <div style="margin: 0; font-size: 12px; line-height: 1.4;">${alamat} Kel. ${kelurahan} Kec. ${kecamatan} ${kabupaten}</div>
+                                <div style="margin: 0; font-size: 12px; line-height: 1.4;">Website: ${web} | Email: ${email}</div>
+                                <div style="margin: 8px 0 0 0; font-size: 20px; font-weight: bold; letter-spacing: 12px; text-transform: uppercase; line-height: 1; padding-left: 12px;">J A K A R T A</div>
+                            </td>
+                            <td style="width: 15%; text-align: center; vertical-align: middle; padding-bottom: 5px;">
+                                <img src="${logoSekolah}" style="width: 90px; height: auto; max-width: 100%;" alt="Logo Sekolah">
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="text-align: right; font-style: italic; font-size: 12px; margin: 0 0 2px 0; font-family: 'Arial', sans-serif;">Kode Pos ${pos}</div>
+                <hr style="border: 0; border-top: 5px solid black; opacity: 1; margin: 0;">
+            `;
+
+            $('#summernote_kop').summernote('code', template);
+        });
+
+        // Save Logic
+        $('#btnSimpanKop').click(function () {
+            const content = $('#summernote_kop').summernote('code');
+            const btn = $(this);
+            const originalHtml = btn.html();
+
+            btn.prop('disabled', true).html('<i class="las la-spinner la-spin me-1"></i> Menyimpan...');
+
+            $.ajax({
+                url: 'proses_profil_sekolah.php',
+                type: 'POST',
+                data: {
+                    kop_dinas: content
+                },
+                success: function (res) {
+                    if (res.status === 'success') {
+                        if (typeof showToast === 'function') {
+                            showToast(res.message, 'success');
+                        } else {
+                            alert(res.message);
+                        }
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        if (typeof showToast === 'function') {
+                            showToast(res.message, 'error');
+                        } else {
+                            alert(res.message);
+                        }
+                        btn.prop('disabled', false).html(originalHtml);
+                    }
+                },
+                error: function () {
+                    alert('Gagal menghubungi server.');
+                    btn.prop('disabled', false).html(originalHtml);
+                }
+            });
+        });
+    });
+</script>

@@ -136,10 +136,7 @@ if (isset($_POST['verify_code'])) {
         $update_stmt->execute();
         
         // Insert Log
-        $log_info = 'Login';
-        $log_stmt = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-        $log_stmt->bind_param("sssss", $user['userid'], $user['nama'], $current_time, $user_ip, $log_info);
-        $log_stmt->execute();
+        add_activity_log($conn, 'Auth', '2FA Verify', 'Verifikasi 2FA Berhasil');
 
         header("Location: index.php");
         exit();

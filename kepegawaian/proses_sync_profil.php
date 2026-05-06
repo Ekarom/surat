@@ -12,12 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // 1. Identifikasi Database Master
-// Secara default kita asumsikan 'sas_' atau database yang ada di db.txt sebagai master
-$db_master_name = "sas_"; 
+$db_master_name = $db_master ?? "sas_";
 $conn_master = @new mysqli($host, $user, $pass, $db_master_name);
 
 if ($conn_master->connect_error) {
-    // Jika sas_ tidak ada, gunakan db_initial (master dari dbconn.php)
     $db_master_name = isset($db_initial) ? $db_initial : $db;
     $conn_master = @new mysqli($host, $user, $pass, $db_master_name);
 }

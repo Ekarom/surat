@@ -198,13 +198,7 @@ if ($is_authenticated) {
     $_SESSION['database_asli'] = $db;
 
     // Log Login
-    $nama = $user['nama'] ?? $userid;
-    $waktu = date("Y-m-d H:i:s");
-    $info_log = "Login";
-    
-    $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-    $stmt_log->bind_param("sssss", $user['userid'], $nama, $waktu, $ip_address, $info_log);
-    $stmt_log->execute();
+    add_activity_log($conn, 'Auth', 'Login', 'Login Berhasil');
 
     if ($user['level'] == '4') {
         header("Location: index.php?kepegawaian_dashboard_guru");

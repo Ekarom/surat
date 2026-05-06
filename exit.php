@@ -18,6 +18,9 @@ if (isset($_SESSION['id']) && isset($_SESSION['level'])) {
     }
 }
 
+// Log Logout
+add_activity_log($conn, 'Auth', 'Logout', 'Logout Berhasil');
+
 session_unset();
 session_destroy();
 

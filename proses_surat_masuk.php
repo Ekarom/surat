@@ -304,6 +304,8 @@ function simpanData($conn, $action)
             if (!$stmt->execute())
                 throw new Exception("Gagal update data: " . $stmt->error);
             $stmt->close();
+
+            add_activity_log($conn, 'Surat Masuk', 'Edit', "No Dokumen: $no_dokumen");
             $message = '<i>~ Data berhasil diperbarui.</i>';
 
         } else {
@@ -315,6 +317,8 @@ function simpanData($conn, $action)
             if (!$stmt->execute())
                 throw new Exception("Gagal simpan data: " . $stmt->error);
             $stmt->close();
+
+            add_activity_log($conn, 'Surat Masuk', 'Tambah', "No Dokumen: $no_dokumen");
             $message = '<i>~ Data berhasil disimpan.</i>';
         }
 
@@ -416,6 +420,7 @@ function hapusData($conn)
         }
 
         $conn->commit();
+        add_activity_log($conn, 'Surat Masuk', 'Hapus', "ID Data: $id");
         kirimResponsSukses(null, 'Data berhasil dihapus.');
     } catch (Throwable $e) {
         $conn->rollback();

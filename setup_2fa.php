@@ -66,15 +66,7 @@ if (isset($_POST['skip_setup'])) {
     }
 
     // Log Login (Info: 2FA Skipped)
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    $waktu = date("Y-m-d H:i:s");
-    $info_log = "Login (2FA Skipped)";
-
-    $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-    if ($stmt_log) {
-        $stmt_log->bind_param("sssss", $d_user['id'], $d_user['nama'], $waktu, $ip_address, $info_log);
-        $stmt_log->execute();
-    }
+    add_activity_log($conn, 'Auth', '2FA Skip', 'Login (2FA Skipped)');
 
     // Bersihkan session 2FA temporary
     unset($_SESSION['new_secret']);

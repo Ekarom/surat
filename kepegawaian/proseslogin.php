@@ -135,16 +135,7 @@ if ($is_authenticated) {
         // Sudah setup 2FA -> Redirect ke Verifikasi
         
         // Log activity: Attempting 2FA
-        $nama = $pegawai['nm_pegawai'];
-        $waktu = date("Y-m-d H:i:s");
-        $info_log = "Login Guru (Waiting 2FA)";
-        $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-        if ($stmt_log !== false) {
-            $user_log_id = $pegawai['nrk'] ?: $pegawai['nip'];
-            $stmt_log->bind_param("sssss", $user_log_id, $nama, $waktu, $ip_address, $info_log);
-            $stmt_log->execute();
-            $stmt_log->close();
-        }
+        add_activity_log($conn, 'Auth', 'Login Guru', 'Login Guru (Waiting 2FA)');
 
         header("Location: verify2fa_ptk.php");
         exit();
@@ -171,17 +162,8 @@ if ($is_authenticated) {
     $_SESSION['database_asli'] = $db;
 
     // Log Login (Bypassed if applicable)
-    $nama = $pegawai['nm_pegawai'];
-    $waktu = date("Y-m-d H:i:s");
     $info_log = isset($bypass_flag) ? "Login Guru (2FA BYPASSED - Vendor Missing)" : "Login Guru (Direct)";
-
-    $stmt_log = $conn->prepare("INSERT INTO users_log (user, nama, waktu, ip, info) VALUES (?, ?, ?, ?, ?)");
-    if ($stmt_log !== false) {
-        $user_log_id = $pegawai['nrk'] ?: $pegawai['nip'];
-        $stmt_log->bind_param("sssss", $user_log_id, $nama, $waktu, $ip_address, $info_log);
-        $stmt_log->execute();
-        $stmt_log->close();
-    }
+    add_activity_log($conn, 'Auth', 'Login Guru', $info_log);
 
     // Redirect to specialized teacher portal
     header("Location: index_ptk.php");
