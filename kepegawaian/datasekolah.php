@@ -5,7 +5,7 @@
  */
 
 if (!isset($conn) || !$conn) {
-    $db_path = file_exists('../dbconn.php') ? '../dbconn.php' : 'dbconn.php';
+    $db_path = file_exists(__DIR__ . '/../dbconn.php') ? __DIR__ . '/../dbconn.php' : __DIR__ . '/dbconn.php';
     include_once $db_path;
 }
 
@@ -15,7 +15,7 @@ $query = "SELECT * FROM profils WHERE id = 1";
 $res = $conn->query($query);
 $school = ($res && $res->num_rows > 0) ? $res->fetch_assoc() : [];
 
-$base_dir = file_exists('dbconn.php') ? '' : '../';
+$base_dir = file_exists(__DIR__ . '/dbconn.php') ? '' : '../';
 
 // Calculate absolute web root URL more robustly
 $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off' || $_SERVER['SERVER_PORT'] == 443) ? "https://" : "http://";
@@ -27,6 +27,18 @@ $web_root = $protocol . $domain . rtrim($web_root_path, '/') . '/';
 
 // [CHECKPOINT] Jika data kosong, tampilkan Halaman Instruksi Sinkronisasi
 if (!$school || empty($school['nsekolah'])) {
+    // Cek apakah ada data di Master untuk memberikan hint
+    $db_master_name = $db_master ?? "sas_";
+    $conn_master = @new mysqli($host, $user, $pass, $db_master_name);
+    $master_exists = false;
+    if (!$conn_master->connect_error) {
+        $res_m = $conn_master->query("SELECT nsekolah FROM profils WHERE id = 1");
+        if ($res_m && $res_m->num_rows > 0) {
+            $m_data = $res_m->fetch_assoc();
+            if (!empty($m_data['nsekolah'])) $master_exists = true;
+        }
+        $conn_master->close();
+    }
     ?>
     <div class="container-fluid py-5">
         <div class="row justify-content-center">
@@ -40,6 +52,17 @@ if (!$school || empty($school['nsekolah'])) {
                     <h3 class="fw-bold text-dark">Data Profil Belum Tersedia</h3>
                     <p class="text-muted mb-4">Profil sekolah di modul Kepegawaian belum diatur atau masih
                         kosong.<br>Silakan lakukan sinkronisasi data dari Profil Utama untuk melanjutkan.</p>
+                    
+                    <?php if ($master_exists): ?>
+                        <div class="alert alert-info border-0 shadow-sm mb-4 mx-auto" style="max-width: 500px; border-radius: 15px;">
+                            <i class="las la-info-circle me-1"></i> Data ditemukan di <b>Profil Utama</b>. Anda dapat menyalinnya sekarang.
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-warning border-0 shadow-sm mb-4 mx-auto" style="max-width: 500px; border-radius: 15px;">
+                            <i class="las la-exclamation-triangle me-1"></i> Data di <b>Profil Utama</b> juga tampak kosong. Pastikan data di Pengaturan Utama sudah diisi.
+                        </div>
+                    <?php endif; ?>
+
                     <a href="?sinkron_sekolah" class="btn btn-primary btn-lg px-5 rounded-pill shadow">
                         <i class="las la-sync-alt me-2"></i> Sinkronkan Sekarang
                     </a>

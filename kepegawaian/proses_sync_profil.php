@@ -33,14 +33,25 @@ if ($res && $res->num_rows > 0) {
     $master_data = $res->fetch_assoc();
     $conn_master->close();
 
-    // 3. Update ke Database Saat Ini ($conn dari dbconn.php)
+    // 3. Persiapkan Kolom - Pastikan tabel lokal memiliki kolom yang sama
+    foreach ($master_data as $key => $val) {
+        if ($key === 'id') continue;
+        // Cek apakah kolom ada di tabel lokal
+        $check_col = $conn->query("SHOW COLUMNS FROM profils LIKE '$key'");
+        if ($check_col && $check_col->num_rows === 0) {
+            // Tambahkan kolom jika belum ada
+            $conn->query("ALTER TABLE profils ADD COLUMN `$key` TEXT NULL");
+        }
+    }
+
+    // 4. Update ke Database Saat Ini ($conn dari dbconn.php)
     $updates = [];
     foreach ($master_data as $key => $val) {
-        if ($key === 'id') continue; // Jangan update ID
+        if ($key === 'id') continue; 
         
         // Escape data
         $clean_val = mysqli_real_escape_string($conn, $val);
-        $updates[] = "$key = '$clean_val'";
+        $updates[] = "`$key` = '$clean_val'";
     }
 
     if (!empty($updates)) {
@@ -49,6 +60,11 @@ if ($res && $res->num_rows > 0) {
         
         $sql_sync = "UPDATE profils SET " . implode(", ", $updates) . " WHERE id = 1";
         if ($conn->query($sql_sync)) {
+            // Log Aktivitas
+            if (function_exists('add_activity_log')) {
+                add_activity_log($conn, 'Profil', 'Sinkronisasi', 'Sinkronisasi data profil dari ' . $db_master_name);
+            }
+
             echo json_encode([
                 'status' => 'success', 
                 'message' => 'Data sekolah berhasil disinkronkan dari profil utama (' . $db_master_name . ').'
@@ -60,6 +76,6 @@ if ($res && $res->num_rows > 0) {
         echo json_encode(['status' => 'info', 'message' => 'Tidak ada data yang perlu disinkronkan.']);
     }
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Data profil tidak ditemukan di database Master.']);
+    echo json_encode(['status' => 'error', 'message' => 'Data profil tidak ditemukan di database Master (' . $db_master_name . ').']);
 }
 ?>

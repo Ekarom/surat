@@ -150,9 +150,14 @@ if (!$conn_master->connect_error) {
                                 </div>
                             </div>
 
-                            <button id="btnStartSync" class="btn btn-tarik">
-                                <i class="las la-sync-alt fs-5"></i> TARIK DATA SEKOLAH
-                            </button>
+                            <div class="d-flex gap-2">
+                                <button id="btnStartSync" class="btn btn-tarik flex-grow-1">
+                                    <i class="las la-sync-alt fs-5"></i> TARIK DATA SEKOLAH
+                                </button>
+                                <a href="reset_profil.php" class="btn btn-outline-danger" title="Kosongkan Data (Testing)">
+                                    <i class="las la-trash-alt"></i>
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -162,8 +167,8 @@ if (!$conn_master->connect_error) {
             <div class="row mt-4 g-4">
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 15px;">
-                        <div class="text-muted small fw-bold text-uppercase mb-3"><i
-                                class="las la-map-pin me-1"></i> Data Lokal Saat Ini</div>
+                        <div class="text-muted small fw-bold text-uppercase mb-3"><i class="las la-map-pin me-1"></i>
+                            Data Lokal Saat Ini</div>
                         <?php if ($current): ?>
                             <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($current['nsekolah']); ?></h5>
                             <div class="small text-muted"><?php echo htmlspecialchars($current['alamat']); ?></div>
@@ -174,8 +179,8 @@ if (!$conn_master->connect_error) {
                 </div>
                 <div class="col-md-6">
                     <div class="card border-0 shadow-sm p-4 h-100" style="border-radius: 15px;">
-                        <div class="text-muted small fw-bold text-uppercase mb-3"><i
-                                class="las la-database me-1"></i> Data Master (Siap Ditarik)</div>
+                        <div class="text-muted small fw-bold text-uppercase mb-3"><i class="las la-database me-1"></i>
+                            Data Master (Siap Ditarik)</div>
                         <?php if ($master): ?>
                             <h5 class="fw-bold text-primary mb-1"><?php echo htmlspecialchars($master['nsekolah']); ?>
                             </h5>
@@ -190,49 +195,85 @@ if (!$conn_master->connect_error) {
     </div>
 </div>
 
+<!-- Modal Konfirmasi Sinkronisasi -->
+<div class="modal fade" id="modalConfirmSync" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 20px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold text-dark"><i class="las la-info-circle text-info me-2"></i> Konfirmasi
+                    Tarik Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-0 text-muted">Seluruh data profil sekolah di modul ini akan diperbarui sesuai database
+                    pusat. Proses ini akan menimpa data yang ada saat ini. <br><br><strong>Lanjutkan
+                        sinkronisasi?</strong></p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Batal</button>
+                <button type="button" id="btnConfirmSyncAction" class="btn btn-tarik rounded-pill px-4"
+                    style="width: auto;">Ya, Sinkronkan Sekarang</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
 <script>
     $(document).ready(function () {
+        const syncModal = new bootstrap.Modal(document.getElementById('modalConfirmSync'));
+        let originalHtml = '';
+        let currentBtn = null;
+
         $('#btnStartSync').on('click', function () {
-            const btn = $(this);
-            const originalHtml = btn.html();
+            currentBtn = $(this);
+            originalHtml = currentBtn.html();
+            syncModal.show();
+        });
 
-            Swal.fire({
-                title: 'Konfirmasi Tarik Data',
-                text: "Seluruh data profil sekolah di modul ini akan diperbarui sesuai database pusat. Lanjutkan?",
-                icon: 'info',
-                showCancelButton: true,
-                confirmButtonColor: '#00bcd4',
-                cancelButtonColor: '#64748b',
-                confirmButtonText: 'Ya, Tarik Sekarang!',
-                cancelButtonText: 'Batal'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    btn.prop('disabled', true).html('<i class="las la-spinner la-spin me-2"></i> SEDANG MENARIK DATA...');
+        $('#btnConfirmSyncAction').on('click', function () {
+            syncModal.hide();
 
-                    $.ajax({
-                        url: 'kepegawaian/proses_sync_profil.php',
-                        type: 'POST',
-                        dataType: 'json',
-                        success: function (res) {
-                            if (res.status === 'success') {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: 'Berhasil!',
-                                    text: res.message,
-                                    confirmButtonColor: '#00bcd4'
-                                }).then(() => {
-                                    window.location.href = '?data_sekolah';
-                                });
-                            } else {
-                                Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
-                                btn.prop('disabled', false).html(originalHtml);
-                            }
-                        },
-                        error: function () {
-                            Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.' });
-                            btn.prop('disabled', false).html(originalHtml);
+            if (!currentBtn) return;
+
+            currentBtn.prop('disabled', true).html('<i class="las la-spinner la-spin me-2"></i> SEDANG MENARIK DATA...');
+
+            $.ajax({
+                url: 'proses_sync_profil.php',
+                type: 'POST',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status === 'success') {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Berhasil!',
+                                text: res.message,
+                                confirmButtonColor: '#00bcd4'
+                            }).then(() => {
+                                window.location.href = '?data_sekolah';
+                            });
+                        } else {
+                            alert(res.message);
+                            window.location.href = '?data_sekolah';
                         }
-                    });
+                    } else {
+                        if (typeof Swal !== 'undefined') {
+                            Swal.fire({ icon: 'error', title: 'Gagal', text: res.message });
+                        } else {
+                            alert('Gagal: ' + res.message);
+                        }
+                        currentBtn.prop('disabled', false).html(originalHtml);
+                    }
+                },
+                error: function (xhr) {
+                    console.error(xhr.responseText);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.' });
+                    } else {
+                        alert('Gagal menghubungi server.');
+                    }
+                    currentBtn.prop('disabled', false).html(originalHtml);
                 }
             });
         });
