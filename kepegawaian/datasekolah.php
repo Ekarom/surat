@@ -330,35 +330,40 @@ if (!file_exists($logo_path))
                 <div class="npsn-badge">NPSN: <?php echo htmlspecialchars($school['npsn']); ?></div>
 
                 <div class="mt-4 px-2 text-start">
-                    <a href="mailto:<?php echo $school['email']; ?>" class="contact-item">
+                    <a href="mailto:<?php echo htmlspecialchars($school['email']); ?>" class="contact-item">
                         <div class="contact-icon text-danger"><i class="las la-envelope"></i></div>
                         <div class="text-truncate">
                             <div class="extra-small text-muted fw-bold">Email</div>
                             <div class="small fw-bold"><?php echo htmlspecialchars($school['email']); ?></div>
                         </div>
                     </a>
-                    <a href="tel:<?php echo $school['no_telp']; ?>" class="contact-item">
+                    <a href="tel:<?php echo htmlspecialchars($school['no_telp']); ?>" class="contact-item">
                         <div class="contact-icon text-primary"><i class="las la-phone"></i></div>
                         <div>
                             <div class="extra-small text-muted fw-bold">Telepon</div>
                             <div class="small fw-bold"><?php echo htmlspecialchars($school['no_telp']); ?></div>
                         </div>
                     </a>
-                    <a href="<?php echo (strpos($school['website'], 'http') === 0 ? '' : 'https://') . $school['website']; ?>"
-                        target="_blank" class="contact-item">
-                        <div class="contact-icon text-info"><i class="las la-globe"></i></div>
-                        <div class="text-truncate">
-                            <div class="extra-small text-muted fw-bold">Website</div>
-                            <div class="small fw-bold"><?php echo htmlspecialchars($school['website']); ?></div>
-                        </div>
-                    </a>
+                    <?php
+                    $web_url = $school['website'] ?? '';
+                    if ($web_url):
+                        $web_href = (strpos($web_url, 'http') === 0 ? '' : 'https://') . $web_url;
+                        ?>
+                        <a href="<?php echo htmlspecialchars($web_href); ?>" target="_blank" class="contact-item">
+                            <div class="contact-icon text-info"><i class="las la-globe"></i></div>
+                            <div class="text-truncate">
+                                <div class="extra-small text-muted fw-bold">Website</div>
+                                <div class="small fw-bold"><?php echo htmlspecialchars($web_url); ?></div>
+                            </div>
+                        </a>
+                    <?php endif; ?>
                 </div>
             </div>
 
             <div class="premium-card p-4">
                 <div class="section-title"><i class="las la-images"></i> Aset Visual</div>
                 <div class="asset-grid">
-                    <div class="asset-item align-center">
+                    <div class="asset-item text-center">
                         <?php $logo_pemda_path = $base_dir . "images/" . ($school['logo_pemda'] ?: 'logo_default.png'); ?>
                         <img src="<?php echo $logo_pemda_path; ?>" class="asset-thumb">
                         <div class="asset-label">Logo Pemda</div>
@@ -366,7 +371,7 @@ if (!file_exists($logo_path))
                     <div class="asset-item" style="grid-column: span 2;">
                         <?php $bg_login_path = $base_dir . "images/" . ($school['background_login'] ?: 'bg_default.jpg'); ?>
                         <img src="<?php echo $bg_login_path; ?>" class="asset-thumb w-100"
-                            style="object-fit: cover; border-radius: 8px;">
+                            style="object-fit: cover; border-radius: 8px; height: 120px;">
                         <div class="asset-label mt-1">Background Login</div>
                     </div>
                 </div>
@@ -455,28 +460,38 @@ if (!file_exists($logo_path))
                     <div class="premium-card p-4 h-100">
                         <div class="section-title"><i class="las la-hashtag"></i> Media Sosial</div>
                         <div class="row g-2">
-                            <div class="col-6">
-                                <a href="<?php echo $school['youtube']; ?>" target="_blank" class="social-link youtube">
-                                    <i class="lab la-youtube fs-4"></i> YouTube
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="<?php echo $school['facebook']; ?>" target="_blank"
-                                    class="social-link facebook">
-                                    <i class="lab la-facebook fs-4"></i> Facebook
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="<?php echo $school['twitter']; ?>" target="_blank" class="social-link twitter">
-                                    <i class="lab la-twitter fs-4"></i> Twitter
-                                </a>
-                            </div>
-                            <div class="col-6">
-                                <a href="<?php echo $school['instagram']; ?>" target="_blank"
-                                    class="social-link instagram">
-                                    <i class="lab la-instagram fs-4"></i> Instagram
-                                </a>
-                            </div>
+                            <?php if (!empty($school['youtube'])): ?>
+                                <div class="col-6">
+                                    <a href="<?php echo htmlspecialchars($school['youtube']); ?>" target="_blank"
+                                        class="social-link youtube">
+                                        <i class="lab la-youtube fs-4"></i> YouTube
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($school['facebook'])): ?>
+                                <div class="col-6">
+                                    <a href="<?php echo htmlspecialchars($school['facebook']); ?>" target="_blank"
+                                        class="social-link facebook">
+                                        <i class="lab la-facebook fs-4"></i> Facebook
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($school['twitter'])): ?>
+                                <div class="col-6">
+                                    <a href="<?php echo htmlspecialchars($school['twitter']); ?>" target="_blank"
+                                        class="social-link twitter">
+                                        <i class="lab la-twitter fs-4"></i> Twitter
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+                            <?php if (!empty($school['instagram'])): ?>
+                                <div class="col-6">
+                                    <a href="<?php echo htmlspecialchars($school['instagram']); ?>" target="_blank"
+                                        class="social-link instagram">
+                                        <i class="lab la-instagram fs-4"></i> Instagram
+                                    </a>
+                                </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -485,7 +500,14 @@ if (!file_exists($logo_path))
                         <div class="section-title"><i class="las la-file-alt"></i> Kop Dinas (Preview)</div>
                         <div class="kop-preview overflow-hidden">
                             <div style="zoom: 0.5; width: 200%;">
-                                <?php echo $school['kop_dinas'] ?: '<span class="text-muted italic">Belum diatur</span>'; ?>
+                                <?php
+                                if (!empty($school['kop_dinas'])) {
+                                    // Fix relative image paths in Kop Dinas (images/ -> ../images/)
+                                    echo str_replace('src="images/', 'src="' . $base_dir . 'images/', $school['kop_dinas']);
+                                } else {
+                                    echo '<span class="text-muted italic">Belum diatur</span>';
+                                }
+                                ?>
                             </div>
                         </div>
                     </div>
@@ -496,4 +518,3 @@ if (!file_exists($logo_path))
 </div>
 
 <!-- Load SweetAlert2 -->
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

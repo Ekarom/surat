@@ -74,9 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
             'instagram' => $_POST['instagram']
         ];
         if (updateData($sqlconn, $fields)) {
-            echo "<script>showToast({ type: 'success', messageUser: 'Data Sekolah Berhasil Disimpan!', position: 'top-right', transitionIn: 'to-bottom', duration: 7000 });</script>";
+            echo "<script>showToast('Data Sekolah Berhasil Disimpan!', 'success', 7000);</script>";
         } else {
-            echo "<script>showToast({ type: 'error', messageUser: 'Gagal Menyimpan Data Sekolah!', position: 'top-right', transitionIn: 'to-bottom', duration: 8000 });</script>";
+            echo "<script>showToast('Gagal Menyimpan Data Sekolah!', 'error', 8000);</script>";
         }
     }
 
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
                 $cols['nrk'] => $_POST['nrk']
             ];
             if (updateData($sqlconn, $fields)) {
-                echo "<script>showToast({ type: 'success', messageUser: 'Data " . ucfirst($jabatan) . " Berhasil Disimpan!', position: 'top-right', transitionIn: 'to-bottom', duration: 7000 });</script>";
+                echo "<script>showToast('Data " . ucfirst($jabatan) . " Berhasil Disimpan!', 'success', 7000);</script>";
             }
         }
     }
@@ -642,7 +642,7 @@ if (!$data) {
     function uploadFile(field) {
         var fileInput = document.getElementById('file_' + field);
         if (fileInput.files.length === 0) {
-            showToast({ type: 'warning', messageUser: "Pilih gambar terlebih dahulu!", position: 'top-right', transitionIn: 'to-bottom', duration: 7000 });
+            showToast("Pilih gambar terlebih dahulu!", 'warning', 7000);
             return;
         }
 
@@ -674,21 +674,21 @@ if (!$data) {
                     try {
                         var resp = JSON.parse(xhr.responseText);
                         if (resp.status === 'success') {
-                            showToast({ type: 'success', messageUser: resp.msg, position: 'top-right', transitionIn: 'to-bottom', duration: 7000 });
+                            showToast(resp.msg, 'success', 7000);
                             setTimeout(function () {
                                 document.getElementById('progress_wrap_' + field).style.display = 'none';
                                 document.getElementById('controls_' + field).style.display = 'none';
                             }, 2000);
                         } else {
-                            showToast({ type: 'error', messageUser: resp.msg, position: 'top-right', transitionIn: 'to-bottom', duration: 8000 });
+                            showToast(resp.msg, 'error', 8000);
                         }
                     } catch (e) {
-                        showToast({ type: 'error', messageUser: "Respon tidak valid (bukan JSON).", position: 'top-right', transitionIn: 'to-bottom', duration: 8000 });
+                        showToast("Respon tidak valid (bukan JSON).", 'error', 8000);
                         console.log("Error Parsing JSON:", e);
                         console.log("Raw Data:", xhr.responseText);
                     }
                 } else {
-                    showToast({ type: 'error', messageUser: "Gagal menghubungi server upload.", position: 'top-right', transitionIn: 'to-bottom', duration: 8000 });
+                    showToast("Gagal menghubungi server upload.", 'error', 8000);
                 }
             }
         };

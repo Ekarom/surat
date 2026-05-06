@@ -509,7 +509,8 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-6">
                                     <label class="modern-label">No. HP / WhatsApp (*)</label>
                                     <input type="text" name="no_hp" class="form-control modern-input" required
-                                        pattern="\d{10,15}" value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
+                                        pattern="\d{10,15}"
+                                        value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
                                     <div class="invalid-feedback">No. HP wajib diisi (10-15 angka).</div>
                                 </div>
                                 <div class="col-md-6">
@@ -566,7 +567,6 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                     <?php
                     $riwayat_cats = [
                         'Pangkat' => 'las la-layer-group',
-                        'Kepangkatan' => 'las la-id-card-clip',
                         'Jabatan' => 'las la-briefcase',
                         'Pendidikan' => 'las la-graduation-cap',
                         'Sertifikasi' => 'las la-certificate',
@@ -619,8 +619,9 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                         <thead>
                                             <tr>
                                                 <th>Deskripsi / Keterangan</th>
-                                                <th width="150">TMT / Tanggal</th>
-                                                <th width="200">No. SK / Dokumen</th>
+                                                <th>Institusi / Tempat</th>
+                                                <th width="120">TMT / Tanggal</th>
+                                                <th width="180">No. SK / Dokumen</th>
                                                 <th width="100" class="text-center">Aksi</th>
                                             </tr>
                                         </thead>
@@ -870,28 +871,34 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                 let html = '';
                 if (res.status === 'success' && res.data && res.data.length > 0) {
                     res.data.forEach(item => {
-                        const fileBtn = item.file_lampiran ? `<a href="../file/datakepegawaian/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded shadow-sm"><i class="las la-file-pdf text-danger me-1"></i> SK</a>` : '<span class="text-muted small italic">Tidak ada file</span>';
+                        const fileBtn = item.file_lampiran ? `<a href="../file/datakepegawaian/${item.file_lampiran}" target="_blank" class="btn btn-xs btn-light border p-1 rounded shadow-sm"><i class="las la-file-pdf text-danger me-1"></i> SK</a>` : '<span class="text-muted small italic" style="font-size: 0.7rem;">No File</span>';
 
-                        let detailDesc = item.deskripsi;
-                        if (item.kategori === 'Pendidikan' && item.institusi) {
-                            detailDesc = `<strong>${item.institusi}</strong><div class="small text-muted">${item.jurusan || ''}</div>`;
+                        let detailDesc = item.deskripsi || '-';
+                        let detailInst = item.institusi || item.tempat || '-';
+
+                        if (item.kategori === 'Pendidikan' && item.jurusan) {
+                            detailInst += ` <br><span class="text-muted" style="font-size: 0.75rem;">Jurusan: ${item.jurusan}</span>`;
                         }
 
                         html += `
                         <tr>
-                            <td><div>${detailDesc}</div></td>
+                            <td><div class="fw-bold">${detailDesc}</div></td>
+                            <td><div class="small">${detailInst}</div></td>
                             <td class="text-muted small">${item.tmt || '-'}</td>
-                            <td><div class="small mb-1">${item.no_sk || '-'}</div>${fileBtn}</td>
+                            <td>
+                                <div class="small mb-1">${item.no_sk || '-'}</div>
+                                ${fileBtn}
+                            </td>
                             <td class="text-center">
                                 <div class="d-flex justify-content-center gap-1">
-                                    <button class="btn btn-sm btn-light border edit-riwayat" data-id="${item.id}"><i class="las la-edit text-warning"></i></button>
-                                    <button class="btn btn-sm btn-light border hapus-riwayat" data-id="${item.id}"><i class="las la-trash text-danger"></i></button>
+                                    <button class="btn btn-sm btn-light border edit-riwayat" data-id="${item.id}" title="Edit"><i class="las la-edit text-warning"></i></button>
+                                    <button class="btn btn-sm btn-light border hapus-riwayat" data-id="${item.id}" title="Hapus"><i class="las la-trash text-danger"></i></button>
                                 </div>
                             </td>
                         </tr>`;
                     });
                 } else {
-                    html = '<tr><td colspan="4" class="text-center text-muted py-5 small">Belum ada data riwayat untuk kategori ini.</td></tr>';
+                    html = '<tr><td colspan="5" class="text-center text-muted py-5 small">Belum ada data riwayat untuk kategori ini.</td></tr>';
                 }
                 target.html(html);
             }, 'json');
@@ -911,6 +918,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
             let html = '';
             if (kat === 'Pendidikan') {
                 html = `
+                <div class="col-12"><label class="modern-label">Jenjang (S1/S2/SMA/dll) (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Nama Sekolah / Univ (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Fakultas / Jurusan</label><input type="text" id="r_jurusan" class="form-control modern-input" value="${data?.jurusan || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Tgl Ijazah (*)</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" required value="${data?.tgl_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
@@ -937,9 +945,11 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
             } else if (kat === 'Anak') {
                 html = `
                 <div class="col-12"><label class="modern-label">Nama Anak (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">NIK Anak (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="16"><div class="invalid-feedback">Wajib diisi (16 digit).</div></div>
+                <div class="col-md-6"><label class="modern-label">No. Akte Kelahiran (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Tempat Lahir</label><input type="text" id="r_tempat" class="form-control modern-input" value="${data?.tempat || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Tanggal Lahir (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
-                <div class="col-12"><label class="modern-label">Jenis Kelamin / Status</label><select id="r_jurusan" class="form-select modern-input"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>`;
+                <div class="col-12"><label class="modern-label">Jenis Kelamin / Status</label><select id="r_jurusan" class="form-select modern-input"><option value="L" ${data?.jurusan === 'L' ? 'selected' : ''}>Laki-laki</option><option value="P" ${data?.jurusan === 'P' ? 'selected' : ''}>Perempuan</option></select></div>`;
             } else if (kat === 'Pengalaman Kerja') {
                 html = `
                 <div class="col-12"><label class="modern-label">Nama Perusahaan / Instansi (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>

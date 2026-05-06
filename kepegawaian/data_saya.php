@@ -8,6 +8,8 @@ if (!isset($conn) || !$conn) {
     include_once "../dbconn.php";
 }
 
+$base_dir = file_exists('dbconn.php') ? '' : '../';
+
 $id_pegawai = $_SESSION['id'] ?? 0;
 $level_user = $_SESSION['level'] ?? '';
 
@@ -272,8 +274,41 @@ while ($row = $history_all->fetch_assoc()) {
             left: 0;
             top: 0;
             width: 100%;
-            padding: 1.5cm !important;
+            padding: 1cm 1.5cm !important;
             background: #fff !important;
+            font-family: "Times New Roman", Times, serif;
+            color: #000 !important;
+            line-height: 1.4;
+        }
+
+        .print-section-header {
+            background: #f3f4f6 !important;
+            padding: 6px 12px;
+            border: 1px solid #000;
+            margin: 20px 0 10px 0;
+            font-weight: bold;
+            font-size: 11pt;
+            text-transform: uppercase;
+        }
+
+        .print-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10.5pt;
+        }
+
+        .print-table td {
+            padding: 4px 0;
+            vertical-align: top;
+        }
+
+        .print-table .label {
+            width: 200px;
+            font-weight: bold;
+        }
+
+        .print-table .colon {
+            width: 20px;
         }
 
         /* Explicitly hide all other major UI components */
@@ -303,19 +338,19 @@ while ($row = $history_all->fetch_assoc()) {
                 <div class="card-body p-4">
                     <div class="form-group-info">
                         <div class="info-label">Nomor Induk Pegawai</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nip'] ?? '') ?: '-'); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Nomor Registrasi (NRK)</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nrk'] ?: '-'); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nrk'] ?? '') ?: '-'); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">NUPTK</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nuptk'] ?: '-'); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nuptk'] ?? '') ?: '-'); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Nama Lengkap</div>
-                        <div class="info-value required"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></div>
+                        <div class="info-value required"><?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Jenis Kelamin</div>
@@ -326,13 +361,13 @@ while ($row = $history_all->fetch_assoc()) {
                     <div class="form-group-info">
                         <div class="info-label">Tempat Lahir</div>
                         <div class="info-value required">
-                            <?php echo htmlspecialchars($pegawai['tempat_lahir'] ?: '-'); ?>
+                            <?php echo htmlspecialchars(($pegawai['tempat_lahir'] ?? '') ?: '-'); ?>
                         </div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Agama</div>
                         <div class="info-value">
-                            <?php echo htmlspecialchars($pegawai['agama'] ?: '-'); ?>
+                            <?php echo htmlspecialchars(($pegawai['agama'] ?? '') ?: '-'); ?>
                         </div>
                     </div>
                     <div class="form-group-info">
@@ -343,23 +378,23 @@ while ($row = $history_all->fetch_assoc()) {
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Pendidikan Terakhir</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['pendidikan']); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Alamat</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['alamat']); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Nama Ibu Kandung</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nama_ibu'] ?: '-'); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nama_ibu'] ?? '') ?: '-'); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">Suami / Istri</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['nama_pasangan'] ?: '-'); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nama_pasangan'] ?? '') ?: '-'); ?></div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label">NPWP</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['npwp'] ?: '-'); ?></div>
+                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['npwp'] ?? '') ?: '-'); ?></div>
                     </div>
 
                     <div class="btn-action-group d-flex gap-2">
@@ -381,14 +416,14 @@ while ($row = $history_all->fetch_assoc()) {
                     <div class="form-group-info">
                         <div class="info-label"><i class="las la-id-badge me-2"></i> Jabatan Saat Ini</div>
                         <div class="info-value fw-bold">
-                            <?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?>
+                            <?php echo htmlspecialchars(($pegawai['jabatan'] ?? '') ?: '-'); ?>
                         </div>
                     </div>
                     <div class="form-group-info">
                         <div class="info-label"><i class="las la-layer-group me-2"></i> Pangkat / Golongan
                         </div>
                         <div class="info-value">
-                            <?php echo htmlspecialchars($pegawai['pangkat'] ?: '-') . " (" . htmlspecialchars($pegawai['golongan'] ?: '-') . ")"; ?>
+                            <?php echo htmlspecialchars(($pegawai['pangkat'] ?? '') ?: '-') . " (" . htmlspecialchars(($pegawai['golongan'] ?? '') ?: '-') . ")"; ?>
                         </div>
                     </div>
                     <div class="form-group-info">
@@ -401,7 +436,7 @@ while ($row = $history_all->fetch_assoc()) {
                     <div class="form-group-info">
                         <div class="info-label"><i class="las la-school me-2"></i> Unit Kerja</div>
                         <div class="info-value">
-                            <?php echo htmlspecialchars($pegawai['unit_kerja'] ?: 'SMP Negeri 171 Jakarta'); ?>
+                            <?php echo htmlspecialchars(($pegawai['unit_kerja'] ?? '') ?: 'SMP Negeri 171 Jakarta'); ?>
                         </div>
                     </div>
                     <div class="form-group-info">
@@ -424,7 +459,7 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="form-group-info border-0 py-1">
                                     <div class="info-label" style="width: 140px;">No. Karpeg</div>
                                     <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars($pegawai['no_karpeg'] ?: '-'); ?>
+                                        <?php echo htmlspecialchars(($pegawai['no_karpeg'] ?? '') ?: '-'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -432,7 +467,7 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="form-group-info border-0 py-1">
                                     <div class="info-label" style="width: 140px;">No. Taspen</div>
                                     <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars($pegawai['no_taspen'] ?: '-'); ?>
+                                        <?php echo htmlspecialchars(($pegawai['no_taspen'] ?? '') ?: '-'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -440,7 +475,7 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="form-group-info border-0 py-1">
                                     <div class="info-label" style="width: 140px;">No. BPJS</div>
                                     <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars($pegawai['no_bpjs'] ?: '-'); ?>
+                                        <?php echo htmlspecialchars(($pegawai['no_bpjs'] ?? '') ?: '-'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -448,7 +483,7 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="form-group-info border-0 py-1">
                                     <div class="info-label" style="width: 140px;">Karis / Karsu</div>
                                     <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars($pegawai['no_karis_karsu'] ?: '-'); ?>
+                                        <?php echo htmlspecialchars(($pegawai['no_karis_karsu'] ?? '') ?: '-'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -523,14 +558,14 @@ while ($row = $history_all->fetch_assoc()) {
                                     <?php foreach ($hist_rows as $h): ?>
                                         <tr>
                                             <td class="ps-4"><span
-                                                    class="badge bg-light text-dark border"><?php echo htmlspecialchars($h['kategori']); ?></span>
+                                                    class="badge bg-light text-dark border"><?php echo htmlspecialchars($h['kategori'] ?? ''); ?></span>
                                             </td>
                                             <td>
-                                                <div class="fw-bold small"><?php echo htmlspecialchars($h['deskripsi']); ?>
+                                                <div class="fw-bold small"><?php echo htmlspecialchars($h['deskripsi'] ?? ''); ?>
                                                 </div>
                                                 <?php if ($h['institusi']): ?>
                                                     <div class="text-muted" style="font-size: 0.75rem;">
-                                                        <?php echo htmlspecialchars($h['institusi']); ?>
+                                                        <?php echo htmlspecialchars($h['institusi'] ?? ''); ?>
                                                     </div><?php endif; ?>
                                             </td>
                                             <td class="small">
@@ -565,29 +600,29 @@ while ($row = $history_all->fetch_assoc()) {
                 <div class="photo-display-container">
                     <img src="<?php echo $src_foto; ?>" class="photo-frame" alt="Foto Profil">
                     <div class="mt-4">
-                        <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></h5>
-                        <p class="text-muted small">NIP. <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></p>
+                        <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?></h5>
+                        <p class="text-muted small">NIP. <?php echo htmlspecialchars(($pegawai['nip'] ?? '') ?: '-'); ?></p>
                         <hr>
                         <div class="text-start">
                             <div class="d-flex align-items-center mb-3">
                                 <i class="las la-phone-alt text-primary me-3"></i>
                                 <div>
                                     <div class="small text-muted">Nomor Telepon</div>
-                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['no_hp']); ?></div>
+                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?></div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center mb-3">
                                 <i class="las la-envelope text-primary me-3"></i>
                                 <div>
                                     <div class="small text-muted">Alamat Email</div>
-                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['email']); ?></div>
+                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['email'] ?? ''); ?></div>
                                 </div>
                             </div>
                             <div class="d-flex align-items-center mb-3">
                                 <i class="las la-map-marker-alt text-primary me-3"></i>
                                 <div>
                                     <div class="small text-muted">Domisili</div>
-                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['alamat'] ?: '-'); ?>
+                                    <div class="fw-bold"><?php echo htmlspecialchars(($pegawai['alamat'] ?? '') ?: '-'); ?>
                                     </div>
                                 </div>
                             </div>
@@ -612,7 +647,7 @@ while ($row = $history_all->fetch_assoc()) {
                     <input type="hidden" name="id" id="edit_id" value="<?php echo $id_pegawai; ?>">
                     <input type="hidden" name="foto_lama" id="edit_foto_lama" value="<?php echo $poto_db; ?>">
                     <input type="hidden" name="nip" id="edit_nip"
-                        value="<?php echo htmlspecialchars($pegawai['nip']); ?>">
+                        value="<?php echo htmlspecialchars($pegawai['nip'] ?? ''); ?>">
 
                     <div class="row g-4">
                         <!-- Photo Section -->
@@ -635,17 +670,17 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="col-12">
                                     <label class="form-label small fw-bold">Nama Lengkap (*)</label>
                                     <input type="text" name="nm_pegawai" id="edit_nm_pegawai" class="form-control"
-                                        required value="<?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>">
+                                        required value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Tempat Lahir (*)</label>
                                     <input type="text" name="tempat_lahir" id="edit_tempat_lahir" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Tanggal Lahir (*)</label>
                                     <input type="date" name="tgl_lahir" id="edit_tgl_lahir" class="form-control"
-                                        value="<?php echo $pegawai['tgl_lahir']; ?>">
+                                        value="<?php echo $pegawai['tgl_lahir'] ?? ''; ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Jenis Kelamin (*)</label>
@@ -657,12 +692,12 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Pendidikan</label>
                                     <input type="text" name="pendidikan" id="edit_pendidikan" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['pendidikan']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">NUPTK</label>
                                     <input type="text" name="nuptk" id="edit_nuptk" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['nuptk']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nuptk'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Agama</label>
@@ -680,38 +715,38 @@ while ($row = $history_all->fetch_assoc()) {
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">NPWP</label>
                                     <input type="text" name="npwp" id="edit_npwp" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['npwp']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['npwp'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Nama Ibu Kandung</label>
                                     <input type="text" name="nama_ibu" id="edit_nama_ibu" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold">Nama Suami/Istri</label>
                                     <input type="text" name="nama_pasangan" id="edit_nama_pasangan" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold">No. Karpeg</label>
                                     <input type="text" name="no_karpeg" id="edit_no_karpeg" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold">No. Taspen</label>
                                     <input type="text" name="no_taspen" id="edit_no_taspen" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_taspen']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_taspen'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold">No. BPJS</label>
                                     <input type="text" name="no_bpjs" id="edit_no_bpjs" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold">No. Karis/Karsu</label>
                                     <input type="text" name="no_karis_karsu" id="edit_no_karis_karsu"
                                         class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_karis_karsu']); ?>">
+                                        value="<?php echo htmlspecialchars($pegawai['no_karis_karsu'] ?? ''); ?>">
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label small fw-bold">Masa Kerja (Thn/Bln)</label>
@@ -739,12 +774,12 @@ while ($row = $history_all->fetch_assoc()) {
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">Email</label>
                                         <input type="email" name="email" id="edit_email" class="form-control"
-                                            value="<?php echo htmlspecialchars($pegawai['email']); ?>">
+                                            value="<?php echo htmlspecialchars($pegawai['email'] ?? ''); ?>">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label small fw-bold">No. HP</label>
                                         <input type="text" name="no_hp" id="edit_no_hp" class="form-control"
-                                            value="<?php echo htmlspecialchars($pegawai['no_hp']); ?>">
+                                            value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label small fw-bold">Alamat</label>
@@ -824,231 +859,204 @@ while ($row = $history_all->fetch_assoc()) {
 
 <!-- === PRINTABLE LAYOUT === -->
 <div id="printableProfile">
-    <div
-        style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 5px;">
+    <?php 
+    if (!empty($g['kop_dinas'])) {
+        // Fix relative image paths in Kop Dinas (images/ -> ../images/)
+        echo str_replace('src="images/', 'src="' . $base_dir . 'images/', $g['kop_dinas']);
+    } else {
+    ?>
+    <div style="display: flex; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 5px;">
         <div style="width: 80px; text-align: center;">
             <img src="../images/logo.png" style="width: 70px;" onerror="this.style.display='none'">
         </div>
         <div style="flex: 1; text-align: center; padding-right: 80px;">
-            <h4 style="margin: 0; text-transform: uppercase; font-weight: bold; font-size: 14pt;">PEMERINTAH PROVINSI
-                DKI JAKARTA</h4>
+            <h4 style="margin: 0; text-transform: uppercase; font-weight: bold; font-size: 14pt;">PEMERINTAH PROVINSI DKI JAKARTA</h4>
             <h4 style="margin: 0; text-transform: uppercase; font-weight: bold; font-size: 14pt;">DINAS PENDIDIKAN</h4>
-            <h3 style="margin: 5px 0; text-transform: uppercase; font-weight: bold; font-size: 16pt;">SMP NEGERI 171
-                JAKARTA</h3>
-            <p style="margin: 0; font-size: 9pt;">Jl. Tipar No. 49, RT.4/RW.7, Pekayon, Kec. Ps. Rebo, Kota Jakarta
-                Timur, 13710</p>
+            <h3 style="margin: 5px 0; text-transform: uppercase; font-weight: bold; font-size: 16pt;">SMP NEGERI 171 JAKARTA</h3>
+            <p style="margin: 0; font-size: 9pt;">Jl. Tipar No. 49, RT.4/RW.7, Pekayon, Kec. Ps. Rebo, Kota Jakarta Timur, 13710</p>
         </div>
     </div>
     <div style="border-top: 1px solid #000; margin-top: 2px; margin-bottom: 20px;"></div>
+    <?php } ?>
 
-    <div style="text-align: center; margin-bottom: 20px;">
-        <h4 style="text-decoration: underline; text-transform: uppercase; font-weight: bold; margin: 0;">BIO DATA
-            PEGAWAI</h4>
+    <div style="text-align: center; margin: 25px 0;">
+        <h3 style="text-decoration: underline; text-transform: uppercase; font-weight: bold; margin: 0; font-size: 16pt;">BIO DATA PEGAWAI</h3>
     </div>
 
-    <div style="display: flex; gap: 30px; margin-bottom: 25px;">
-        <div style="width: 150px;">
-            <img src="<?php echo $src_foto; ?>" style="width: 150px; border: 1px solid #000; padding: 2px;">
+    <div style="display: flex; gap: 40px; margin-bottom: 30px;">
+        <div style="width: 140px; text-align: center;">
+            <div style="border: 1px solid #000; padding: 3px; background: #fff;">
+                <img src="<?php echo $src_foto; ?>" style="width: 130px; height: 170px; object-fit: cover;">
+            </div>
+            <div style="margin-top: 10px; font-size: 8pt; color: #666; font-style: italic;">Pas Foto 3x4</div>
         </div>
         <div style="flex: 1;">
-            <table style="width: 100%; border-collapse: collapse; font-size: 10pt;">
+            <table class="print-table">
                 <tr>
-                    <td style="width: 180px; padding: 3px 0; font-weight: bold;">NAMA LENGKAP</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['nm_pegawai']); ?></td>
+                    <td class="label">NAMA LENGKAP</td>
+                    <td class="colon">:</td>
+                    <td><strong><?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?></strong></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">NIP</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></td>
+                    <td class="label">NIP / NRK</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['nip'] ?? '') ?: '-'); ?> / <?php echo htmlspecialchars(($pegawai['nrk'] ?? '') ?: '-'); ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">NRK</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['nrk'] ?: '-'); ?></td>
+                    <td class="label">NUPTK</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['nuptk'] ?? '') ?: '-'); ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">NUPTK</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['nuptk'] ?: '-'); ?></td>
+                    <td class="label">TEMPAT, TGL LAHIR</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['tempat_lahir'] ?? '') ?: '-'); ?>, <?php echo (!empty($pegawai['tgl_lahir']) && $pegawai['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tgl_lahir'])) : '-'; ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">AGAMA</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['agama'] ?: '-'); ?></td>
+                    <td class="label">JENIS KELAMIN</td>
+                    <td class="colon">:</td>
+                    <td><?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan'; ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">TEMPAT, TGL LAHIR</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['tempat_lahir'] ?: '-'); ?>,
-                        <?php echo (!empty($pegawai['tgl_lahir']) && $pegawai['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tgl_lahir'])) : '-'; ?>
-                    </td>
+                    <td class="label">AGAMA</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['agama'] ?? '') ?: '-'); ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">JENIS KELAMIN</td>
-                    <td style="padding: 3px 0;">:
-                        <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan'; ?>
-                    </td>
+                    <td class="label">PENDIDIKAN TERAKHIR</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['pendidikan'] ?? '') ?: '-'); ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">ALAMAT</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['alamat'] ?: '-'); ?></td>
+                    <td class="label">ALAMAT TINGGAL</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['alamat'] ?? '') ?: '-'); ?></td>
                 </tr>
                 <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">IBU KANDUNG</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['nama_ibu'] ?: '-'); ?></td>
-                </tr>
-                <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">SUAMI / ISTRI</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['nama_pasangan'] ?: '-'); ?></td>
-                </tr>
-                <tr>
-                    <td style="padding: 3px 0; font-weight: bold;">NPWP</td>
-                    <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['npwp'] ?: '-'); ?></td>
+                    <td class="label">NPWP</td>
+                    <td class="colon">:</td>
+                    <td><?php echo htmlspecialchars(($pegawai['npwp'] ?? '') ?: '-'); ?></td>
                 </tr>
             </table>
         </div>
     </div>
 
-    <div style="margin-bottom: 20px;">
-        <h5
-            style="background: #f0f0f0; padding: 5px 10px; border: 1px solid #ccc; margin: 0 0 10px 0; font-weight: bold; font-size: 11pt;">
-            I. DATA KEPEGAWAIAN SAAT INI</h5>
-        <table style="width: 100%; border-collapse: collapse; font-size: 10pt; margin-left: 10px;">
-            <tr>
-                <td style="width: 180px; padding: 3px 0; font-weight: bold;">JABATAN</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['jabatan'] ?: '-'); ?></td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">PANGKAT / GOLONGAN</td>
-                <td style="padding: 3px 0;">:
-                    <?php echo htmlspecialchars($pegawai['pangkat'] ?: '-') . " (" . htmlspecialchars($pegawai['golongan'] ?: '-') . ")"; ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">TMT GOLONGAN</td>
-                <td style="padding: 3px 0;">:
-                    <?php echo (!empty($pegawai['tmt_golongan']) && $pegawai['tmt_golongan'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tmt_golongan'])) : '-'; ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">STATUS PEGAWAI</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?></td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">NO. KARPEG / TASPEN</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['no_karpeg'] ?: '-'); ?> /
-                    <?php echo htmlspecialchars($pegawai['no_taspen'] ?: '-'); ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">NO. BPJS / KARIS-SU</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['no_bpjs'] ?: '-'); ?> /
-                    <?php echo htmlspecialchars($pegawai['no_karis_karsu'] ?: '-'); ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">MASA KERJA</td>
-                <td style="padding: 3px 0;">:
-                    <?php echo ($pegawai['masa_kerja_thn'] ?: '0') . ' Tahun ' . ($pegawai['masa_kerja_bln'] ?: '0') . ' Bulan'; ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">GAJI POKOK</td>
-                <td style="padding: 3px 0;">: Rp. <?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">PENDIDIKAN TERAKHIR</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['pendidikan'] ?: '-'); ?></td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">EMAIL / NO. HP</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars($pegawai['email'] ?: '-'); ?> /
-                    <?php echo htmlspecialchars($pegawai['no_hp'] ?: '-'); ?>
-                </td>
-            </tr>
-        </table>
-    </div>
+    <div class="print-section-header">I. DATA KEPEGAWAIAN SAAT INI</div>
+    <table class="print-table" style="margin-left: 10px;">
+        <tr>
+            <td class="label">JABATAN</td>
+            <td class="colon">:</td>
+            <td><strong><?php echo htmlspecialchars(($pegawai['jabatan'] ?? '') ?: '-'); ?></strong></td>
+        </tr>
+        <tr>
+            <td class="label">PANGKAT / GOLONGAN</td>
+            <td class="colon">:</td>
+            <td><?php echo htmlspecialchars(($pegawai['pangkat'] ?? '') ?: '-') . " (" . htmlspecialchars(($pegawai['golongan'] ?? '') ?: '-') . ")"; ?></td>
+        </tr>
+        <tr>
+            <td class="label">TMT GOLONGAN</td>
+            <td class="colon">:</td>
+            <td><?php echo (!empty($pegawai['tmt_golongan']) && $pegawai['tmt_golongan'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tmt_golongan'])) : '-'; ?></td>
+        </tr>
+        <tr>
+            <td class="label">STATUS PEGAWAI</td>
+            <td class="colon">:</td>
+            <td><?php echo htmlspecialchars(($pegawai['status_pegawai'] ?? '') ?: '-'); ?></td>
+        </tr>
+        <tr>
+            <td class="label">MASA KERJA</td>
+            <td class="colon">:</td>
+            <td><?php echo ($pegawai['masa_kerja_thn'] ?: '0') . ' Tahun ' . ($pegawai['masa_kerja_bln'] ?: '0') . ' Bulan'; ?></td>
+        </tr>
+        <tr>
+            <td class="label">UNIT KERJA</td>
+            <td class="colon">:</td>
+            <td><?php echo htmlspecialchars(($pegawai['unit_kerja'] ?? '') ?: 'SMP Negeri 171 Jakarta'); ?></td>
+        </tr>
+        <tr>
+            <td class="label">GAJI POKOK</td>
+            <td class="colon">:</td>
+            <td>Rp. <?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?></td>
+        </tr>
+    </table>
 
-    <div style="margin-bottom: 20px;">
-        <h5
-            style="background: #f0f0f0; padding: 5px 10px; border: 1px solid #ccc; margin: 0 0 10px 0; font-weight: bold; font-size: 11pt;">
-            II. DATA PENGANGKATAN & ESTIMASI PENSIUN</h5>
-        <table style="width: 100%; border-collapse: collapse; font-size: 10pt; margin-left: 10px;">
-            <tr>
-                <td style="width: 180px; padding: 3px 0; font-weight: bold;">SK PENGANGKATAN PERTAMA</td>
-                <td style="padding: 3px 0;">: <?php echo htmlspecialchars(($appointment['no_sk'] ?? '-')); ?></td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">TMT PENGANGKATAN</td>
-                <td style="padding: 3px 0;">:
-                    <?php echo (!empty($appointment['tmt'] ?? '') && $appointment['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($appointment['tmt'])) : '-'; ?>
-                </td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">BATAS USIA PENSIUN (BUP)</td>
-                <td style="padding: 3px 0;">: <?php echo $retirement ? $retirement['bup'] . " Tahun" : "-"; ?></td>
-            </tr>
-            <tr>
-                <td style="padding: 3px 0; font-weight: bold;">TMT PENSIUN</td>
-                <td style="padding: 3px 0; font-weight: bold; color: red;">:
-                    <?php echo $retirement ? $retirement['tmt'] : "-"; ?>
-                </td>
-            </tr>
-        </table>
-    </div>
+    <div class="print-section-header">II. RIWAYAT PENGANGKATAN & PENSIUN</div>
+    <table class="print-table" style="margin-left: 10px;">
+        <tr>
+            <td class="label">SK PENGANGKATAN PERTAMA</td>
+            <td class="colon">:</td>
+            <td><?php echo htmlspecialchars(($appointment['no_sk'] ?? '-')); ?></td>
+        </tr>
+        <tr>
+            <td class="label">TMT PENGANGKATAN</td>
+            <td class="colon">:</td>
+            <td><?php echo (!empty($appointment['tmt'] ?? '') && $appointment['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($appointment['tmt'])) : '-'; ?></td>
+        </tr>
+        <tr>
+            <td class="label">ESTIMASI TMT PENSIUN</td>
+            <td class="colon">:</td>
+            <td><strong style="color: #000;"><?php echo $retirement ? $retirement['tmt'] : "-"; ?></strong> (BUP <?php echo $retirement ? $retirement['bup'] : "-"; ?> Tahun)</td>
+        </tr>
+    </table>
 
-    <div style="margin-bottom: 20px; page-break-before: auto;">
-        <h5
-            style="background: #f0f0f0; padding: 5px 10px; border: 1px solid #ccc; margin: 0 0 10px 0; font-weight: bold; font-size: 11pt;">
-            III. RIWAYAT KEPEGAWAIAN (GOLONGAN/JABATAN/PENDIDIKAN)</h5>
-        <table style="width: 100%; border-collapse: collapse; font-size: 9pt; border: 1px solid #000;">
-            <thead>
-                <tr style="background: #eee;">
-                    <th style="border: 1px solid #000; padding: 5px; width: 100px;">KATEGORI</th>
-                    <th style="border: 1px solid #000; padding: 5px;">DESKRIPSI / KETERANGAN</th>
-                    <th style="border: 1px solid #000; padding: 5px; width: 80px;">TMT</th>
-                    <th style="border: 1px solid #000; padding: 5px; width: 150px;">NO. SK / IJAZAH</th>
+    <div class="print-section-header" style="page-break-before: auto;">III. RIWAYAT KEPEGAWAIAN TERAKHIR</div>
+    <table style="width: 100%; border-collapse: collapse; font-size: 10pt; border: 1px solid #000;">
+        <thead>
+            <tr style="background: #f3f4f6;">
+                <th style="border: 1px solid #000; padding: 8px; width: 120px; text-align: center;">KATEGORI</th>
+                <th style="border: 1px solid #000; padding: 8px;">URAIAN / KETERANGAN</th>
+                <th style="border: 1px solid #000; padding: 8px; width: 100px; text-align: center;">TMT</th>
+                <th style="border: 1px solid #000; padding: 8px; width: 180px;">NOMOR SK / IJAZAH</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php if (empty($hist_rows)): ?>
+                <tr>
+                    <td colspan="4" style="border: 1px solid #000; padding: 15px; text-align: center; font-style: italic;">Data riwayat tidak ditemukan.</td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php if (empty($hist_rows)): ?>
+            <?php else: ?>
+                <?php foreach (array_slice($hist_rows, 0, 10) as $h): ?>
                     <tr>
-                        <td colspan="4" style="border: 1px solid #000; padding: 10px; text-align: center;">Tidak ada data
-                            riwayat.</td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center;"><?php echo htmlspecialchars($h['kategori'] ?? ''); ?></td>
+                        <td style="border: 1px solid #000; padding: 6px;">
+                            <strong><?php echo htmlspecialchars($h['deskripsi'] ?? ''); ?></strong>
+                            <?php if ($h['institusi']): ?>
+                                <div style="font-size: 9pt; color: #444;"><?php echo htmlspecialchars($h['institusi'] ?? ''); ?></div>
+                            <?php endif; ?>
+                        </td>
+                        <td style="border: 1px solid #000; padding: 6px; text-align: center;">
+                            <?php echo (!empty($h['tmt']) && $h['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($h['tmt'])) : '-'; ?>
+                        </td>
+                        <td style="border: 1px solid #000; padding: 6px;">
+                            <?php echo htmlspecialchars($h['no_sk'] ?: $h['no_ijazah'] ?: '-'); ?>
+                        </td>
                     </tr>
-                <?php else: ?>
-                    <?php foreach ($hist_rows as $h): ?>
-                        <tr>
-                            <td style="border: 1px solid #000; padding: 5px; text-align: center;">
-                                <?php echo htmlspecialchars($h['kategori']); ?>
-                            </td>
-                            <td style="border: 1px solid #000; padding: 5px;">
-                                <?php echo htmlspecialchars($h['deskripsi']); ?>
-                                <?php if ($h['kategori'] == 'Pendidikan' && $h['institusi']): ?>
-                                    <br><small><i><?php echo htmlspecialchars($h['institusi']); ?>
-                                            (<?php echo htmlspecialchars($h['jurusan']); ?>)</i></small>
-                                <?php endif; ?>
-                            </td>
-                            <td style="border: 1px solid #000; padding: 5px; text-align: center;">
-                                <?php echo (!empty($h['tmt']) && $h['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($h['tmt'])) : '-'; ?>
-                            </td>
-                            <td style="border: 1px solid #000; padding: 5px;">
-                                <?php echo htmlspecialchars($h['no_sk'] ?: $h['no_ijazah'] ?: '-'); ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </tbody>
-        </table>
-    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </tbody>
+    </table>
 
-    <div style="margin-top: 40px; width: 100%;">
+    <div style="margin-top: 50px; width: 100%;">
         <table style="width: 100%; border-collapse: collapse;">
             <tr>
                 <td style="width: 60%;"></td>
-                <td style="width: 40%; text-align: center; font-size: 10pt;">
-                    <p>Jakarta, <?php echo date('d F Y'); ?></p>
-                    <p style="margin-bottom: 80px;">Pegawai Yang Bersangkutan,</p>
-                    <p style="font-weight: bold; text-decoration: underline; margin: 0;">
-                        <?php echo htmlspecialchars($pegawai['nm_pegawai']); ?>
+                <td style="width: 40%; text-align: center; font-size: 11pt;">
+                    <p>Jakarta, <?php 
+                        $months = [
+                            'January' => 'Januari', 'February' => 'Februari', 'March' => 'Maret', 
+                            'April' => 'April', 'May' => 'Mei', 'June' => 'Juni', 
+                            'July' => 'Juli', 'August' => 'Agustus', 'September' => 'September', 
+                            'October' => 'Oktober', 'November' => 'November', 'December' => 'Desember'
+                        ];
+                        $date = date('d F Y');
+                        foreach($months as $en => $id) $date = str_replace($en, $id, $date);
+                        echo $date; 
+                    ?></p>
+                    <p style="margin-bottom: 90px;">Pegawai Yang Bersangkutan,</p>
+                    <p style="font-weight: bold; text-decoration: underline; margin: 0; font-size: 12pt;">
+                        <?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>
                     </p>
-                    <p style="margin: 0;">NIP. <?php echo htmlspecialchars($pegawai['nip'] ?: '-'); ?></p>
+                    <p style="margin: 0;">NIP. <?php echo htmlspecialchars(($pegawai['nip'] ?? '') ?: '-'); ?></p>
                 </td>
             </tr>
         </table>
