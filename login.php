@@ -12,68 +12,6 @@ if (isset($_SESSION['error_message'])) {
     unset($_SESSION['error_message']); // Hapus setelah diambil
 }
 ?>
-<style>
-    /* Animated gradient border for error messages */
-    .error-gradient-border {
-        position: relative;
-        background-color: transparent;
-        padding: 17px;
-        border-radius: 10px;
-        margin-top: 10px;
-        color: #fc0505ff;
-        font-size: 14px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .error-gradient-border strong {
-        color: #ff0000;
-        font-weight: bold;
-    }
-
-    .error-gradient-border::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: linear-gradient(45deg, #ff0000, #ff6600, #000000ff, #ff0000, #ff6600);
-        background-size: 400% 400%;
-        border-radius: 10px;
-        z-index: -2;
-        animation: gradientMove 5s ease infinite;
-    }
-
-    .error-gradient-border::after {
-        content: '';
-        position: absolute;
-        top: 2px;
-        left: 2px;
-        right: 2px;
-        bottom: 2px;
-        background-color: rgba(0, 0, 0, 0.9);
-        border-radius: 8px;
-        z-index: -1;
-    }
-
-    .error-gradient-border {
-        z-index: 1;
-    }
-
-    @keyframes gradientMove {
-        0% {
-            background-position: 0% 50%;
-        }
-
-        50% {
-            background-position: 100% 50%;
-        }
-
-        100% {
-            background-position: 0% 50%;
-        }
-    }
-</style>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -85,6 +23,7 @@ if (isset($_SESSION['error_message'])) {
     <!-- Icons -->
     <link rel="icon" type="image/png" href="images/logodik.png">
     <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
+    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="plugins/iconic/css/material-design-iconic-font.min.css">
 
     <!-- Styles -->
@@ -235,16 +174,14 @@ if (isset($_SESSION['error_message'])) {
                 <div class="wrap-input100 validate-input" data-validate="Enter password">
                     <input class="input100" type="password" id="password" name="password" placeholder="Password">
                     <span class="focus-input100" data-placeholder="&#xf191;"></span>
-                    <i class="fa fa-eye-slash eye-icon" id="toggle-password"></i>
+                    <i class="las la-eye-slash eye-icon" id="toggle-password"></i>
                 </div>
 
                 <div class="wrap-input100 validate-input" data-validate="Masukkan Jawaban Captcha"
                     style="display: flex; align-items: center; justify-content: space-between;">
                     <img src="captcha_img.php" alt="CAPTCHA" id="captcha-img" style="border-radius: 5px; height: 40px;">
-                    <span style="cursor: pointer; padding: 0 10px; color: #999;"
-                        onclick="document.getElementById('captcha-img').src='captcha_img.php?'+Math.random();"
-                        title="Refresh Captcha">
-                        <i class="fas fa-sync-alt" style="transition: 0.3s;" onmouseover="this.style.color='#0010ff'"
+                    <span style="cursor: pointer; padding: 0 10px; color: #999;" id="reload-captcha" title="Refresh Captcha">
+                        <i class="las la-sync" style="transition: 0.3s;" onmouseover="this.style.color='#0010ff'"
                             onmouseout="this.style.color=''"></i>
                     </span>
                     <input class="input100" type="text" id="captcha" name="captcha" placeholder="Jawaban Penjumlahan"
@@ -372,11 +309,11 @@ if (isset($_SESSION['error_message'])) {
                     passwordField.setAttribute('type', type);
 
                     if (type === 'text') {
-                        this.classList.remove('fa-eye-slash');
-                        this.classList.add('fa-eye');
+                        this.classList.remove('la-eye-slash');
+                        this.classList.add('la-eye');
                     } else {
-                        this.classList.remove('fa-eye');
-                        this.classList.add('fa-eye-slash');
+                        this.classList.remove('la-eye');
+                        this.classList.add('la-eye-slash');
                     }
                 });
             }

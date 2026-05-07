@@ -60,45 +60,49 @@ try {
 
     // Get and Clean Basic Data
     $nip = clean_numeric($_POST['nip'] ?? '');
-    if (empty($nip)) $nip = '0'; // Default to 0 if empty
-    
-    $nrk = clean_numeric($_POST['nrk'] ?? '');
-    if (empty($nrk)) $nrk = '0'; // Default to 0 if empty
+    if (empty($nip))
+        $nip = '0'; // Default to 0 if empty
 
-    $nama = trim(mysqli_real_escape_string($conn, $_POST['nama'] ?? ''));
-    $tempat_lahir = mysqli_real_escape_string($conn, $_POST['tempat_lahir'] ?? '');
+    $nrk = clean_numeric($_POST['nrk'] ?? '');
+    if (empty($nrk))
+        $nrk = '0'; // Default to 0 if empty
+
+    $nama = trim($_POST['nama'] ?? '');
+    $tempat_lahir = $_POST['tempat_lahir'] ?? '';
 
     // Format Dates
     $tgl_lahir = format_date_to_db($_POST['tgl_lahir'] ?? '');
     $tgl_lulus = format_date_to_db($_POST['tgl_lulus'] ?? '');
     $tmt_golongan = format_date_to_db($_POST['tmt_golongan'] ?? '');
+    $tmt_pangkat = format_date_to_db($_POST['tmt_pangkat'] ?? '');
 
-    $jenis_kelamin = mysqli_real_escape_string($conn, $_POST['jenis_kelamin'] ?? '');
+    $jenis_kelamin = $_POST['jenis_kelamin'] ?? '';
     // Normalisasi Jenis Kelamin (Laki-laki -> L, Perempuan -> P)
     $jk_upper = strtoupper(trim($jenis_kelamin));
     if (strpos($jk_upper, 'LAKI') !== false || $jk_upper == 'L') {
-        $jenis_kelamin = 'L';
+        $jk_val = 'L';
     } elseif (strpos($jk_upper, 'PEREMPUAN') !== false || $jk_upper == 'P') {
-        $jenis_kelamin = 'P';
+        $jk_val = 'P';
     } else {
-        $jenis_kelamin = 'L'; // Default L
+        $jk_val = 'L'; // Default L
     }
 
-    $pendidikan = mysqli_real_escape_string($conn, $_POST['pendidikan'] ?? '');
-    $jabatan = mysqli_real_escape_string($conn, $_POST['jabatan'] ?? '');
-    $pangkat = mysqli_real_escape_string($conn, $_POST['pangkat'] ?? '');
-    $golongan = mysqli_real_escape_string($conn, $_POST['golongan'] ?? '');
-    $unit_kerja = mysqli_real_escape_string($conn, $_POST['unit_kerja'] ?? '');
-    $status_pegawai = mysqli_real_escape_string($conn, $_POST['status_pegawai'] ?? '');
-    $no_hp = mysqli_real_escape_string($conn, $_POST['no_hp'] ?? '');
-    $email = mysqli_real_escape_string($conn, $_POST['email'] ?? '');
-    $rt = mysqli_real_escape_string($conn, $_POST['rt'] ?? '');
-    $rw = mysqli_real_escape_string($conn, $_POST['rw'] ?? '');
-    $kelurahan = mysqli_real_escape_string($conn, $_POST['kelurahan'] ?? '');
-    $kecamatan = mysqli_real_escape_string($conn, $_POST['kecamatan'] ?? '');
-    $nuptk = mysqli_real_escape_string($conn, $_POST['nuptk'] ?? '');
-    $agama = mysqli_real_escape_string($conn, $_POST['agama'] ?? '');
-    $alamat = mysqli_real_escape_string($conn, $_POST['alamat'] ?? '');
+    $pendidikan = $_POST['pendidikan'] ?? '';
+    $jabatan = $_POST['jabatan'] ?? '';
+    $pangkat = $_POST['pangkat'] ?? '';
+    $golongan = $_POST['golongan'] ?? '';
+    $unit_kerja = $_POST['unit_kerja'] ?? '';
+    $status_pegawai = $_POST['status_pegawai'] ?? '';
+    $no_hp = $_POST['no_hp'] ?? '';
+    $email = $_POST['email'] ?? '';
+    $rt = $_POST['rt'] ?? '';
+    $rw = $_POST['rw'] ?? '';
+    $kelurahan = $_POST['kelurahan'] ?? '';
+    $kecamatan = $_POST['kecamatan'] ?? '';
+    $nuptk = $_POST['nuptk'] ?? '';
+    $agama = $_POST['agama'] ?? '';
+    $alamat = $_POST['alamat'] ?? '';
+    $status_active = '1';
 
     if (empty($nama)) {
         ob_clean();
@@ -109,50 +113,114 @@ try {
         exit;
     }
 
-    // Check if NIP exists
-    $check = $conn->query("SELECT id FROM pegawai WHERE nip = '$nip'");
+    // Check if NIP exists using prepared statement
+    $stmt_check = $conn->prepare("SELECT id FROM pegawai WHERE nip = ?");
+    $stmt_check->bind_param("s", $nip);
+    $stmt_check->execute();
+    $check = $stmt_check->get_result();
+    $stmt_check->close();
 
     if ($check->num_rows > 0) {
         // UPDATE existing record
-        $conn->query("UPDATE pegawai SET 
-                                    nrk = '$nrk', 
-                                    nm_pegawai = '$nama', 
-                                    tempat_lahir = '$tempat_lahir', 
-                                    tgl_lahir = " . ($tgl_lahir ? "'$tgl_lahir'" : "NULL") . ", 
-                                    jenis_kelamin = '$jenis_kelamin', 
-                                    pendidikan = '$pendidikan', 
-                                    tgl_lulus = " . ($tgl_lulus ? "'$tgl_lulus'" : "NULL") . ", 
-                                    jabatan = '$jabatan', 
-                                    pangkat = '$pangkat', 
-                                    golongan = '$golongan', 
-                                    tmt_golongan = " . ($tmt_golongan ? "'$tmt_golongan'" : "NULL") . ",
-                                    unit_kerja = '$unit_kerja', 
-                                    status_pegawai = '$status_pegawai', 
-                                    no_hp = '$no_hp', 
-                                    email = '$email', 
-                                    rt = '$rt', 
-                                    rw = '$rw', 
-                                    kelurahan = '$kelurahan', 
-                                    kecamatan = '$kecamatan',
-                                    nuptk = '$nuptk',
-                                    agama = '$agama',
-                                    alamat = '$alamat'
-                                WHERE nip = '$nip'");
+        $stmt = $conn->prepare("UPDATE pegawai SET 
+                                    nrk = ?, 
+                                    nm_pegawai = ?, 
+                                    tempat_lahir = ?, 
+                                    tgl_lahir = ?, 
+                                    jenis_kelamin = ?, 
+                                    pendidikan = ?, 
+                                    tgl_lulus = ?, 
+                                    jabatan = ?, 
+                                    pangkat = ?, 
+                                    golongan = ?, 
+                                    tmt_golongan = ?,
+                                    tmt_pangkat = ?,
+                                    unit_kerja = ?, 
+                                    status_pegawai = ?, 
+                                    no_hp = ?, 
+                                    email = ?, 
+                                    rt = ?, 
+                                    rw = ?, 
+                                    kelurahan = ?, 
+                                    kecamatan = ?,
+                                    status = ?,
+                                    nuptk = ?,
+                                    agama = ?,
+                                    alamat = ?
+                                WHERE nip = ?");
+
+        $stmt->bind_param(
+            "sssssssssssssssssssssssss",
+            $nrk,
+            $nama,
+            $tempat_lahir,
+            $tgl_lahir,
+            $jk_val,
+            $pendidikan,
+            $tgl_lulus,
+            $jabatan,
+            $pangkat,
+            $golongan,
+            $tmt_golongan,
+            $tmt_pangkat,
+            $unit_kerja,
+            $status_pegawai,
+            $no_hp,
+            $email,
+            $rt,
+            $rw,
+            $kelurahan,
+            $kecamatan,
+            $status_active,
+            $nuptk,
+            $agama,
+            $alamat,
+            $nip
+        );
+        $stmt->execute();
+        $stmt->close();
 
         ob_clean();
         echo json_encode(['status' => 'success', 'mode' => 'update']);
         exit;
     } else {
         // INSERT new record
-        $conn->query("INSERT INTO pegawai (
+        $stmt = $conn->prepare("INSERT INTO pegawai (
                                     nip, nrk, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, 
-                                    pendidikan, tgl_lulus, jabatan, pangkat, golongan, tmt_golongan,
+                                    pendidikan, tgl_lulus, jabatan, pangkat, golongan, tmt_golongan, tmt_pangkat,
                                     unit_kerja, status_pegawai, no_hp, email, rt, rw, kelurahan, kecamatan, status, nuptk, agama, alamat
-                               ) VALUES (
-                                    '$nip', '$nrk', '$nama', '$tempat_lahir', " . ($tgl_lahir ? "'$tgl_lahir'" : "NULL") . ", '$jenis_kelamin', 
-                                    '$pendidikan', " . ($tgl_lulus ? "'$tgl_lulus'" : "NULL") . ", '$jabatan', '$pangkat', '$golongan', " . ($tmt_golongan ? "'$tmt_golongan'" : "NULL") . ", 
-                                    '$unit_kerja', '$status_pegawai', '$no_hp', '$email', '$rt', '$rw', '$kelurahan', '$kecamatan', '1', '$nuptk', '$agama', '$alamat'
-                               )");
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+
+        $stmt->bind_param(
+            "sssssssssssssssssssssssss",
+            $nip,
+            $nrk,
+            $nama,
+            $tempat_lahir,
+            $tgl_lahir,
+            $jk_val,
+            $pendidikan,
+            $tgl_lulus,
+            $jabatan,
+            $pangkat,
+            $golongan,
+            $tmt_golongan,
+            $tmt_pangkat,
+            $unit_kerja,
+            $status_pegawai,
+            $no_hp,
+            $email,
+            $rt,
+            $rw,
+            $kelurahan,
+            $kecamatan,
+            $status_active,
+            $nuptk,
+            $agama,
+            $alamat
+        );
+        $stmt->execute();
+        $stmt->close();
 
         ob_clean();
         echo json_encode(['status' => 'success', 'mode' => 'insert']);

@@ -105,6 +105,12 @@ if ($conn && !$conn->connect_error) {
   if ($col_check4 && $col_check4->num_rows === 0) {
     @$conn->query("ALTER TABLE pegawai ADD COLUMN last_logout DATETIME NULL DEFAULT NULL");
   }
+
+  // Tambahkan tmt_pangkat jika belum ada
+  $col_check5 = @$conn->query("SHOW COLUMNS FROM pegawai LIKE 'tmt_pangkat'");
+  if ($col_check5 && $col_check5->num_rows === 0) {
+    @$conn->query("ALTER TABLE pegawai ADD COLUMN tmt_pangkat DATE NULL DEFAULT NULL AFTER tmt_golongan");
+  }
 }
 
 // Update last_activity secara otomatis jika session aktif

@@ -68,7 +68,7 @@ function getPromotionDetails($tmtGolongan)
 
 // Fetch all active employees
 $employees = [];
-$query = "SELECT id, nm_pegawai, nip, pangkat, golongan, tmt_golongan, status_pegawai, jabatan, unit_kerja FROM pegawai WHERE status = '1' ORDER BY nm_pegawai ASC";
+$query = "SELECT id, nm_pegawai, nip, pangkat, golongan, tmt_golongan, status_pegawai, jabatan, unit_kerja, gelar_depan, gelar_belakang FROM pegawai WHERE status = '1' ORDER BY nm_pegawai ASC";
 $res = $conn->query($query);
 if ($res) {
     while ($row = $res->fetch_assoc()) {
@@ -183,10 +183,13 @@ if ($res) {
                             <tr class="<?php echo $rowClass; ?>">
                                 <td class="text-center text-muted small"><?php echo $idx + 1; ?></td>
                                 <td>
-                                    <div class="fw-bold text-dark"><?php echo htmlspecialchars($emp['nm_pegawai']); ?></div>
-                                    <div class="text-muted extra-small"><?php echo $emp['nip'] ?: '-'; ?> |
-                                        <?php echo $emp['status_pegawai']; ?>
+                                    <div class="fw-bold text-dark">
+                                        <?php 
+                                        $full_name = (!empty($emp['gelar_depan']) ? $emp['gelar_depan'] . ' ' : '') . $emp['nm_pegawai'] . (!empty($emp['gelar_belakang']) ? ', ' . $emp['gelar_belakang'] : '');
+                                        echo htmlspecialchars($full_name); 
+                                        ?>
                                     </div>
+                                    <div class="small text-muted"><?php echo $emp['nip'] ?: '-'; ?> | <?php echo $emp['status_pegawai']; ?></div>
                                 </td>
                                 <td>
                                     <div class="extra-small fw-bold"><?php echo htmlspecialchars($emp['pangkat'] ?: '-'); ?>

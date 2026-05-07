@@ -185,7 +185,7 @@ if (!isset($conn)) {
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">G</td>
-                                <td>Pendidikan</td>
+                                <td>Pendidikan Terakhir</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
@@ -255,7 +255,17 @@ if (!isset($conn)) {
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">U</td>
+                                <td>TMT Golongan</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">V</td>
                                 <td>Email</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">W</td>
+                                <td>TMT Pangkat</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                         </tbody>
@@ -362,7 +372,7 @@ if (!isset($conn)) {
 
             // Default missing NIP/NRK to '0' if requested, but NIP should ideally be unique
             const rawNip = cleanValue(row[0]) || '0';
-            const rawNama = (row[2] || '').toString().trim();
+            const rawNama = (row[2] || '').toString().trim(); // Column C
 
             if (!rawNama) {
                 continue; // Still skip if Nama is missing as it's a minimum requirement
@@ -389,6 +399,7 @@ if (!isset($conn)) {
                         tgl_lahir: formatDate(row[4]),
                         jenis_kelamin: row[5] || '',
                         pendidikan: row[6] || '',
+                        tgl_lulus: '', // Not in primary Excel structure
                         jabatan: row[7] || '',
                         pangkat: row[8] || '',
                         golongan: row[9] || '',
@@ -402,7 +413,9 @@ if (!isset($conn)) {
                         kelurahan: row[17] || '',
                         kecamatan: row[18] || '',
                         no_hp: row[19] || '',
-                        email: row[20] || ''
+                        tmt_golongan: formatDate(row[20]),
+                        email: row[21] || '',
+                        tmt_pangkat: formatDate(row[22])
                     })
                 });
 
@@ -454,7 +467,7 @@ if (!isset($conn)) {
     }
 
     function downloadTemplate() {
-        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "Alamat", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "Email"]];
+        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "Alamat", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "TMT Golongan", "Email", "TMT Pangkat"]];
         const worksheet = XLSX.utils.aoa_to_sheet(header);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template");

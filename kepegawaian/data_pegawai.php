@@ -299,7 +299,10 @@ if ($lv == '4') {
                                         style="width: 38px; height: 38px; object-fit: cover;"></td>
                                 <td>
                                     <div class="fw-bold text-dark mb-0">
-                                        <?php echo $row['nm_pegawai']; ?>
+                                        <?php 
+                                        $full_name = (!empty($row['gelar_depan']) ? $row['gelar_depan'] . ' ' : '') . $row['nm_pegawai'] . (!empty($row['gelar_belakang']) ? ', ' . $row['gelar_belakang'] : '');
+                                        echo $full_name; 
+                                        ?>
                                         <?php if (($row['is_pensiun_synced'] ?? 1) == 0): ?>
                                             <span class="sync-indicator sync-pending"
                                                 title="Belum disinkronkan ke modul pensiun"></span>
@@ -402,10 +405,20 @@ if ($lv == '4') {
                             <input type="text" name="nrk" id="nrk" class="form-control modern-input"
                                 placeholder="Nomor Registrasi">
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-4">
+                            <label class="modern-label">Gelar Depan</label>
+                            <input type="text" name="gelar_depan" id="gelar_depan" class="form-control modern-input"
+                                placeholder="Drs. / H.">
+                        </div>
+                        <div class="col-md-8">
                             <label class="modern-label">Nama Lengkap <span class="text-danger">*</span></label>
                             <input type="text" name="nm_pegawai" id="nm_pegawai" class="form-control modern-input"
-                                required placeholder="Nama Lengkap Tanpa Gelar">
+                                required placeholder="Nama Tanpa Gelar">
+                        </div>
+                        <div class="col-12">
+                            <label class="modern-label">Gelar Belakang</label>
+                            <input type="text" name="gelar_belakang" id="gelar_belakang" class="form-control modern-input"
+                                placeholder="S.Pd. / M.Si.">
                         </div>
                         <div class="col-md-6">
                             <label class="modern-label">Jabatan</label>
@@ -557,6 +570,8 @@ if ($lv == '4') {
                     $('#nip').val(d.nip);
                     $('#nrk').val(d.nrk);
                     $('#nm_pegawai').val(d.nm_pegawai);
+                    $('#gelar_depan').val(d.gelar_depan);
+                    $('#gelar_belakang').val(d.gelar_belakang);
                     $('#jabatan').val(d.jabatan);
                     $('#unit_kerja').val(d.unit_kerja);
                     $('#status_pegawai').val(d.status_pegawai);
