@@ -250,9 +250,6 @@ if ($lv == '4') {
                 <button type="button" class="btn btn-outline-primary btn-sm" id="tombolTambahPegawai">
                     <i class="las la-user-plus me-2"></i> Tambah Pegawai
                 </button>
-                <button type="button" class="btn btn-outline-warning btn-sm" id="btnSyncPensiun">
-                    <i class="las la-sync me-2"></i> Sinkron Pensiun
-                </button>
                 <a href="?import_data_pegawai" class="btn btn-outline-success btn-sm" id="btnShowImport">
                     <i class="las la-file-excel me-2"></i> Import Excel
                 </a>
@@ -522,6 +519,9 @@ if ($lv == '4') {
             scrollX: true,
             scrollCollapse: true,
             paging: false,
+            fixedColumns: {
+                leftColumns: 3
+            },
             columnDefs: [
                 { orderable: false, targets: [0, 1, 5, 6] } // Disable sorting for No, Foto, Aktif, Aksi
             ]
@@ -621,28 +621,7 @@ if ($lv == '4') {
         });
 
 
-        // Sync Pensiun Action
-        $('#btnSyncPensiun').click(function () {
-            const btn = $(this);
-            const originalHtml = btn.html();
-
-            btn.prop('disabled', true).html('<i class="las la-sync la-spin me-2"></i> Syncing...');
-
-            $.post(ajaxUrl, { action: 'syncPensiun' }, function (res) {
-                if (res.status === 'success') {
-                    toastr.success(res.message);
-                    setTimeout(() => {
-                        window.location.href = '?data_pensiun&sync=' + new Date().getTime();
-                    }, 1500);
-                } else {
-                    toastr.error(res.message);
-                    btn.prop('disabled', false).html(originalHtml);
-                }
-            }, 'json').fail(function () {
-                toastr.error('Gagal menghubungi server.');
-                btn.prop('disabled', false).html(originalHtml);
-            });
-        });
+        // Delete logic
 
     });
 </script>

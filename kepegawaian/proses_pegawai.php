@@ -256,30 +256,87 @@ try {
         exit;
     }
 
-    // --- SYNC PENSIUN ---
+    // --- SYNC PENSIUN (UPSERT from Master DB) ---
     if ($action == 'syncPensiun') {
         header('Content-Type: application/json');
         
-        // Actually perform the sync: Set all active employees to synced
+        $db_source = "sas_2026"; // User specified source
+        $conn_source = @new mysqli($host, $user, $pass, $db_source);
+        
+        if ($conn_source->connect_error) {
+            ob_clean();
+            echo json_encode(['status' => 'error', 'message' => "Gagal terhubung ke database sumber ($db_source): " . $conn_source->connect_error]);
+            exit;
+        }
+        
+        // 1. Fetch all records from source
+        $res_source = $conn_source->query("SELECT * FROM pegawai");
+        if (!$res_source) {
+            $conn_source->close();
+            ob_clean();
+            echo json_encode(['status' => 'error', 'message' => "Gagal mengambil data dari $db_source. Tabel pegawai mungkin tidak ada."]);
+            exit;
+        }
+
+        $success_count = 0;
+        $error_count = 0;
+        $processed = 0;
+
+        while ($row = $res_source->fetch_assoc()) {
+            $processed++;
+            $nip = $row['nip'];
+            $nrk = $row['nrk'];
+            
+            // We use NIP or NRK as identity
+            $identity_col = !empty($nip) ? "nip" : "nrk";
+            $identity_val = !empty($nip) ? $nip : $nrk;
+
+            if (empty($identity_val)) continue;
+
+            // Prepare columns for insert/update
+            $cols = [];
+            $vals = [];
+            $updates = [];
+            
+            foreach ($row as $key => $val) {
+                if ($key == 'id') continue;
+                
+                $clean_val = $conn->real_escape_string($val ?? '');
+                $cols[] = "`$key`";
+                $vals[] = "'$clean_val'";
+                $updates[] = "`$key` = '$clean_val'";
+            }
+
+            // UPSERT logic
+            $check = $conn->query("SELECT id FROM pegawai WHERE $identity_col = '$identity_val'");
+            if ($check && $check->num_rows > 0) {
+                // Update
+                $sql = "UPDATE pegawai SET " . implode(", ", $updates) . " WHERE $identity_col = '$identity_val'";
+            } else {
+                // Insert
+                $sql = "INSERT INTO pegawai (" . implode(", ", $cols) . ") VALUES (" . implode(", ", $vals) . ")";
+            }
+
+            if ($conn->query($sql)) {
+                $success_count++;
+            } else {
+                $error_count++;
+            }
+        }
+        
+        $conn_source->close();
+
+        // Final touch: set sync flag
         $conn->query("UPDATE pegawai SET is_pensiun_synced = 1 WHERE status = '1'");
-        
-        // Audit data: check employees with missing birth dates
-        $q_missing = $conn->query("SELECT COUNT(*) FROM pegawai WHERE (tgl_lahir IS NULL OR tgl_lahir = '0000-00-00') AND status = '1'");
-        $missing_count = $q_missing->fetch_row()[0];
-        
-        $q_total = $conn->query("SELECT COUNT(*) FROM pegawai WHERE status = '1'");
-        $total_count = $q_total->fetch_row()[0];
-        
-        $valid_count = $total_count - $missing_count;
-        
+
         ob_clean();
         echo json_encode([
             'status' => 'success', 
-            'message' => "Sinkronisasi berhasil! $total_count data pegawai telah disinkronkan ke modul pensiun.",
+            'message' => "Sinkronisasi dari $db_source selesai! Berhasil: $success_count, Gagal: $error_count.",
             'stats' => [
-                'total' => $total_count,
-                'valid' => $valid_count,
-                'missing' => $missing_count
+                'total' => $processed,
+                'success' => $success_count,
+                'error' => $error_count
             ]
         ]);
         exit;
@@ -486,12 +543,12 @@ try {
             $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, tmt_pangkat, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, nik, no_kk, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok, rt, rw, kelurahan, kecamatan, hobby, pengalaman_kerja, gelar_depan, gelar_belakang) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssssssssssssssiidsssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang);
+            $stmt->bind_param("sssssssssssssssssssssssssssssssiidssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang);
         } else {
             // Update - Added missing fields
             $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, tmt_pangkat=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, nik=?, no_kk=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=?, rt=?, rw=?, kelurahan=?, kecamatan=?, hobby=?, pengalaman_kerja=?, gelar_depan=?, gelar_belakang=? WHERE id=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssssssssssssssssssssssssssssssiidsssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang, $id);
+            $stmt->bind_param("sssssssssssssssssssssssssssssssiidssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang, $id);
         }
 
         if ($stmt->execute()) {

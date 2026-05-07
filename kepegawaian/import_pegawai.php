@@ -132,6 +132,17 @@ if (!isset($conn)) {
                 </div>
                 <p class="text-muted extra-small mb-0" id="progressStatus">Membaca file excel...</p>
             </div>
+
+            <!-- Log Card -->
+            <div id="logCard" class="modern-card mt-4 p-4 d-none">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <h6 class="fw-bold mb-0 small uppercase text-muted">Log Aktivitas Import</h6>
+                    <span class="badge rounded-pill bg-light text-primary border" id="logCounter" style="font-size: 0.65rem;">0 Entri</span>
+                </div>
+                <div id="logList" class="overflow-auto pe-2" style="max-height: 400px; scroll-behavior: smooth;">
+                    <div class="text-center py-4 text-muted extra-small">Belum ada aktivitas</div>
+                </div>
+            </div>
         </div>
 
         <div class="col-lg-6">
@@ -230,32 +241,32 @@ if (!isset($conn)) {
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">P</td>
-                                <td>RT</td>
+                                <td>TMT Golongan</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">Q</td>
-                                <td>RW</td>
+                                <td>RT</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">R</td>
-                                <td>Kelurahan</td>
+                                <td>RW</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">S</td>
-                                <td>Kecamatan</td>
+                                <td>Kelurahan</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">T</td>
-                                <td>No. HP</td>
+                                <td>Kecamatan</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
                                 <td class="fw-bold text-primary">U</td>
-                                <td>TMT Golongan</td>
+                                <td>No. HP</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                             <tr>
@@ -266,6 +277,16 @@ if (!isset($conn)) {
                             <tr>
                                 <td class="fw-bold text-primary">W</td>
                                 <td>TMT Pangkat</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">X</td>
+                                <td>No. Karis/Karsu</td>
+                                <td class="text-center text-muted">Tidak</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold text-primary">Y</td>
+                                <td>No. Karpeg</td>
                                 <td class="text-center text-muted">Tidak</td>
                             </tr>
                         </tbody>
@@ -340,11 +361,36 @@ if (!isset($conn)) {
     async function startImport() {
         document.getElementById('btnImport').disabled = true;
         document.getElementById('progressCard').classList.remove('d-none');
+        document.getElementById('logCard').classList.remove('d-none');
+        document.getElementById('logList').innerHTML = '';
 
         const total = excelData.length;
         let success = 0;
         let error = 0;
         let errorLog = [];
+        let logCount = 0;
+
+        const addLog = (type, message, rowIdx) => {
+            logCount++;
+            const logList = document.getElementById('logList');
+            const item = document.createElement('div');
+            item.className = `p-2 mb-2 rounded-3 extra-small d-flex align-items-center gap-2 border-start border-3 transition-all ${type === 'success' ? 'bg-soft-success border-success' : type === 'update' ? 'bg-soft-primary border-primary' : 'bg-soft-danger border-danger'}`;
+            
+            const icon = type === 'success' ? 'la-check-circle text-success' : type === 'update' ? 'la-sync text-primary' : 'la-exclamation-circle text-danger';
+            
+            item.innerHTML = `
+                <i class="las ${icon} fs-5"></i>
+                <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="text-dark">Baris ${rowIdx + 2}</strong>
+                        <span class="text-muted" style="font-size: 0.6rem;">${new Date().toLocaleTimeString()}</span>
+                    </div>
+                    <div class="text-muted text-truncate" style="max-width: 250px;">${message}</div>
+                </div>
+            `;
+            logList.prepend(item);
+            document.getElementById('logCounter').textContent = `${logCount} Entri`;
+        };
 
         // Helper functions
         const cleanValue = (val) => {
@@ -407,15 +453,17 @@ if (!isset($conn)) {
                         status_pegawai: row[11] || '',
                         nuptk: row[12] || '',
                         agama: row[13] || '',
-                        alamat: row[14] || '',
-                        rt: row[15] || '',
-                        rw: row[16] || '',
-                        kelurahan: row[17] || '',
-                        kecamatan: row[18] || '',
-                        no_hp: row[19] || '',
-                        tmt_golongan: formatDate(row[20]),
-                        email: row[21] || '',
-                        tmt_pangkat: formatDate(row[22])
+                        alamat: cleanValue(row[14]) || '',
+                        tmt_golongan: formatDate(row[15]),
+                        rt: cleanValue(row[16]) || '',
+                        rw: cleanValue(row[17]) || '',
+                        kelurahan: cleanValue(row[18]) || '',
+                        kecamatan: cleanValue(row[19]) || '',
+                        no_hp: cleanValue(row[20]) || '',
+                        email: cleanValue(row[21]) || '',
+                        tmt_pangkat: formatDate(row[22]),
+                        no_karis_karsu: cleanValue(row[23]) || '',
+                        no_karpeg: cleanValue(row[24]) || ''
                     })
                 });
 
@@ -429,13 +477,16 @@ if (!isset($conn)) {
 
                 if (res.status === 'success') {
                     success++;
+                    addLog(res.mode === 'update' ? 'update' : 'success', `${rawNama} (${res.mode === 'update' ? 'Diperbarui' : 'Ditambah'})`, i);
                 } else {
                     error++;
                     errorLog.push(`Baris ${i + 2} (${row[0] || 'NIP Kosong'}): ${res.message}`);
+                    addLog('error', `${rawNama || rawNip}: ${res.message}`, i);
                 }
             } catch (err) {
                 error++;
                 errorLog.push(`Baris ${i + 2}: ${err.message || 'Kesalahan Koneksi'}`);
+                addLog('error', `Error: ${err.message || 'Kesalahan Koneksi'}`, i);
             }
         }
 
@@ -467,7 +518,7 @@ if (!isset($conn)) {
     }
 
     function downloadTemplate() {
-        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "Alamat", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "TMT Golongan", "Email", "TMT Pangkat"]];
+        const header = [["NIP", "NRK", "Nama Pegawai", "Tempat Lahir", "Tanggal Lahir", "Jenis Kelamin", "Pendidikan Terakhir", "Jabatan", "Pangkat", "Golongan", "Unit Kerja", "Status Pegawai", "NUPTK", "Agama", "Alamat", "TMT Golongan", "RT", "RW", "Kelurahan", "Kecamatan", "No hp", "Email", "TMT Pangkat", "No. Karis/Karsu", "No. Karpeg"]];
         const worksheet = XLSX.utils.aoa_to_sheet(header);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
@@ -491,6 +542,20 @@ if (!isset($conn)) {
     .bg-soft-primary {
         background-color: var(--sap-primary-light);
         color: var(--sap-primary);
+    }
+
+    .bg-soft-success {
+        background-color: rgba(16, 185, 129, 0.1);
+        color: #10b981;
+    }
+
+    .bg-soft-danger {
+        background-color: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .transition-all {
+        transition: all 0.3s ease;
     }
 
     .border-dashed {

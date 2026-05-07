@@ -25,13 +25,14 @@ $nuser = $_SESSION['nama'] ?? 'Admin';
 // Determine current page
 $pages = [
     'dashboard' => 'dashboard.php',
-    'data_pegawai' => 'data_pegawai.php',
+    'user_pegawai' => 'user_pegawai.php',
     'import_data_pegawai' => 'import_pegawai.php',
     'data_pensiun' => 'datapensiun.php',
     'data_kenaikan_pangkat' => 'datakenaikanpangkat.php',
     'data_sekolah' => 'datasekolah.php',
     'sinkron_sekolah' => 'sinkron_sekolah.php',
-    'riwayat_monitor' => 'riwayat_monitor.php'
+    'sinkron_pensiun' => 'sinkron_pensiun.php',
+    'data_kepegawaian' => 'data_kepegawaian.php'
 ];
 
 $current_page = 'dashboard';
@@ -279,8 +280,8 @@ if (!file_exists($page_to_include)) {
 
             <div class="sidebar-heading">Manajemen Pegawai</div>
             <div class="list-group list-group-flush">
-                <a href="?data_pegawai"
-                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_pegawai') ? 'active' : ''; ?>">
+                <a href="?user_pegawai"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'user_pegawai') ? 'active' : ''; ?>">
                     <i class="las la-users"></i> Manajemen User Pegawai
                 </a>
                 <a href="?data_pensiun"
@@ -295,8 +296,9 @@ if (!file_exists($page_to_include)) {
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_sekolah') ? 'active' : ''; ?>">
                     <i class="las la-school"></i> Data Sekolah
                 </a>
-                <a href="#" id="menuMonitoring" class="list-group-item list-group-item-action">
-                    <i class="las la-file-invoice"></i> Monitoring Data Pegawai
+                <a href="?data_kepegawaian"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'data_kepegawaian') ? 'active' : ''; ?>">
+                    <i class="las la-file-invoice"></i> Data Kepegawaian
                 </a>
             </div>
 
@@ -308,7 +310,11 @@ if (!file_exists($page_to_include)) {
                 </a>
                 <a href="?sinkron_sekolah"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'sinkron_sekolah') ? 'active' : ''; ?>">
-                    <i class="las la-sync-alt"></i> Sinkronisasi Data Sekolah
+                    <i class="las la-sync-alt"></i> Sinkron Data Sekolah
+                </a>
+                <a href="?sinkron_pensiun"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'sinkron_pensiun') ? 'active' : ''; ?>">
+                    <i class="las la-sync-alt"></i> Sinkron Data Pensiun
                 </a>
             </div>
         </div>
@@ -404,6 +410,31 @@ if (!file_exists($page_to_include)) {
             const id = $('#selectMonitorPegawai').val();
             if (id) {
                 window.location.href = `?riwayat_monitor&id=${id}`;
+            }
+        });
+
+        // Sync Pensiun logic moved from data_pegawai.php
+        $('#btnSyncPensiun').click(function (e) {
+            e.preventDefault();
+            const btn = $(this);
+            const originalHtml = btn.html();
+
+            if (confirm('Lakukan sinkronisasi data pensiun sekarang?')) {
+                btn.addClass('disabled').html('<i class="las la-sync la-spin me-2"></i> Syncing...');
+
+                $.post('proses_pegawai.php', { action: 'syncPensiun' }, function (res) {
+                    if (res.status === 'success') {
+                        // Using alert as fallback if toastin/toastr not globally defined here
+                        alert(res.message);
+                        window.location.href = '?data_pensiun&sync=' + new Date().getTime();
+                    } else {
+                        alert(res.message);
+                        btn.removeClass('disabled').html(originalHtml);
+                    }
+                }, 'json').fail(function () {
+                    alert('Gagal menghubungi server.');
+                    btn.removeClass('disabled').html(originalHtml);
+                });
             }
         });
     </script>

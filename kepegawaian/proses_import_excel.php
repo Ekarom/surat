@@ -102,6 +102,8 @@ try {
     $nuptk = $_POST['nuptk'] ?? '';
     $agama = $_POST['agama'] ?? '';
     $alamat = $_POST['alamat'] ?? '';
+    $no_karis_karsu = $_POST['no_karis_karsu'] ?? '';
+    $no_karpeg = $_POST['no_karpeg'] ?? '';
     $status_active = '1';
 
     if (empty($nama)) {
@@ -146,11 +148,13 @@ try {
                                     status = ?,
                                     nuptk = ?,
                                     agama = ?,
-                                    alamat = ?
+                                    alamat = ?,
+                                    no_karis_karsu = ?,
+                                    no_karpeg = ?
                                 WHERE nip = ?");
 
         $stmt->bind_param(
-            "sssssssssssssssssssssssss",
+            "sssssssssssssssssssssssssss",
             $nrk,
             $nama,
             $tempat_lahir,
@@ -175,6 +179,8 @@ try {
             $nuptk,
             $agama,
             $alamat,
+            $no_karis_karsu,
+            $no_karpeg,
             $nip
         );
         $stmt->execute();
@@ -188,11 +194,11 @@ try {
         $stmt = $conn->prepare("INSERT INTO pegawai (
                                     nip, nrk, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, 
                                     pendidikan, tgl_lulus, jabatan, pangkat, golongan, tmt_golongan, tmt_pangkat,
-                                    unit_kerja, status_pegawai, no_hp, email, rt, rw, kelurahan, kecamatan, status, nuptk, agama, alamat
-                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                                    unit_kerja, status_pegawai, no_hp, email, rt, rw, kelurahan, kecamatan, status, nuptk, agama, alamat, no_karis_karsu, no_karpeg
+                                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
         $stmt->bind_param(
-            "sssssssssssssssssssssssss",
+            "sssssssssssssssssssssssssss",
             $nip,
             $nrk,
             $nama,
@@ -217,7 +223,9 @@ try {
             $status_active,
             $nuptk,
             $agama,
-            $alamat
+            $alamat,
+            $no_karis_karsu,
+            $no_karpeg
         );
         $stmt->execute();
         $stmt->close();
