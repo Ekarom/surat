@@ -27,7 +27,7 @@ $nik = $_SESSION['nik'] ?? '';
 // Determine current page
 $pages = [
     'dashboard' => 'dashboard_ptk.php',
-    'profil' => 'profil_saya.php',
+    'profil' => 'profil.php',
     'isi_data' => 'pengisian_data.php',
     'data_saya' => 'data_saya.php'
 ];
@@ -40,11 +40,11 @@ foreach ($pages as $key => $file) {
     }
 }
 
-$page_to_include = $pages[$current_page] ?? 'dashboard_guru.php';
+$page_to_include = $pages[$current_page] ?? 'dashboard_ptk.php';
 
 // Fallback
 if (!file_exists($page_to_include)) {
-    $page_to_include = 'dashboard_guru.php';
+    $page_to_include = 'dashboard_ptk.php';
 }
 ?>
 <!DOCTYPE html>
@@ -278,7 +278,7 @@ if (!file_exists($page_to_include)) {
                 </a>
                 <a href="?profil"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'profil') ? 'active' : ''; ?>">
-                    <i class="las la-id-badge"></i> Profil Saya
+                    <i class="las la-id-badge"></i> Profil
                 </a>
                 <a href="?isi_data"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'isi_data') ? 'active' : ''; ?>">

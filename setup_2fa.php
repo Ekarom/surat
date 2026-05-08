@@ -57,6 +57,7 @@ if (isset($_POST['skip_setup'])) {
     $_SESSION['level'] = $d_user['level'];
     $_SESSION['status'] = $d_user['status'];
     $_SESSION['poto'] = $d_user['poto'];
+    $_SESSION['nik'] = $d_user['nik']; // Sync with login_proses.php
     $_SESSION['last_activity'] = time();
     $_SESSION['skradm'] = $d_user['userid'];
 
@@ -72,8 +73,12 @@ if (isset($_POST['skip_setup'])) {
     unset($_SESSION['new_secret']);
     unset($_SESSION['2fa_user_id']);
 
-    // Redirect ke Dashboard
-    header("Location: dashboard.php");
+    // Redirect ke Dashboard via index.php
+    if ($d_user['level'] == '4') {
+        header("Location: index.php?kepegawaian_dashboard_guru");
+    } else {
+        header("Location: index.php");
+    }
     exit();
 }
 

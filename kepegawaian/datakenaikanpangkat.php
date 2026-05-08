@@ -44,7 +44,7 @@ function getPromotionDetails($tmtGolongan)
             $sisa .= $interval->m . " Bln ";
         if ($interval->d > 0 && $interval->y == 0)
             $sisa .= $interval->d . " Hari";
-            
+
         if (trim($sisa) == "")
             $sisa = "Bulan Ini";
     }
@@ -53,8 +53,9 @@ function getPromotionDetails($tmtGolongan)
     $totalDays = 4 * 365.25;
     $passedInterval = $tmtDate->diff($today);
     $passedDays = $passedInterval->days;
-    if ($passedInterval->invert) $passedDays = 0;
-    
+    if ($passedInterval->invert)
+        $passedDays = 0;
+
     $percent = min(max(round(($passedDays / $totalDays) * 100), 0), 100);
 
     return [
@@ -76,6 +77,11 @@ if ($res) {
         $employees[] = $row;
     }
 }
+
+// Fetch School Profile for Letterhead
+$res_g = $conn->query("SELECT * FROM profils LIMIT 1");
+$g = ($res_g && $res_g->num_rows > 0) ? $res_g->fetch_assoc() : [];
+$base_dir = file_exists('../dbconn.php') ? '../' : '';
 ?>
 
 <link rel="stylesheet" href="../plugins/css/palette-gradient.min.css">
@@ -97,41 +103,113 @@ if ($res) {
     }
 
     @media print {
-        .navbar, #sidebar-wrapper, .btn, .dataTables_filter, .dataTables_info, .dataTables_paginate, .modern-card-header button, .d-print-none {
+
+        .navbar,
+        #sidebar-wrapper,
+        .btn,
+        .dataTables_filter,
+        .dataTables_info,
+        .dataTables_paginate,
+        .modern-card-header button,
+        .d-print-none {
             display: none !important;
         }
-        body { background: white !important; padding: 0 !important; margin: 0 !important; }
-        #page-content-wrapper { padding: 0 !important; margin: 0 !important; width: 100% !important; }
-        .container-fluid { padding: 0 !important; }
-        .modern-card { border: none !important; box-shadow: none !important; }
-        .modern-card-header { border-bottom: 2px solid #333 !important; padding-left: 0 !important; }
-        .modern-card-header h6 { font-size: 18pt !important; color: black !important; }
-        .dataTables_scrollBody { height: auto !important; max-height: none !important; overflow: visible !important; }
-        table.table { width: 100% !important; border-collapse: collapse !important; border: 1px solid #dee2e6 !important; }
-        table.table thead th { background-color: #f8f9fa !important; color: black !important; border: 1px solid #dee2e6 !important; -webkit-print-color-adjust: exact; }
-        table.table td { border: 1px solid #dee2e6 !important; }
-        .small, .extra-small { font-size: 9pt !important; }
-        .fw-bold { font-weight: bold !important; }
-        .progress { border: 1px solid #ccc !important; }
-        .progress-bar { -webkit-print-color-adjust: exact; background-color: #4f46e5 !important; }
-        @page { size: A4 landscape; margin: 1cm; }
+
+        body {
+            background: white !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        #page-content-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .container-fluid {
+            padding: 0 !important;
+        }
+
+        .modern-card {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        .modern-card-header {
+            border-bottom: 2px solid #333 !important;
+            padding-left: 0 !important;
+        }
+
+        .modern-card-header h6 {
+            font-size: 18pt !important;
+            color: black !important;
+        }
+
+        .dataTables_scrollBody {
+            height: auto !important;
+            max-height: none !important;
+            overflow: visible !important;
+        }
+
+        table.table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            border: 1px solid #dee2e6 !important;
+        }
+
+        table.table thead th {
+            background-color: #f8f9fa !important;
+            color: black !important;
+            border: 1px solid #dee2e6 !important;
+            -webkit-print-color-adjust: exact;
+        }
+
+        table.table td {
+            border: 1px solid #dee2e6 !important;
+        }
+
+        .small,
+        .extra-small {
+            font-size: 9pt !important;
+        }
+
+        .fw-bold {
+            font-weight: bold !important;
+        }
+
+        .progress {
+            border: 1px solid #ccc !important;
+        }
+
+        .progress-bar {
+            -webkit-print-color-adjust: exact;
+            background-color: #4f46e5 !important;
+        }
+
+        @page {
+            size: A4 landscape;
+            margin: 1cm;
+        }
     }
 
-    .print-header { display: none; }
     @media print {
-        .print-header { display: block; text-align: center; margin-bottom: 20px; border-bottom: 3px double #000; padding-bottom: 10px; }
-        .print-header h4 { margin: 0; font-weight: bold; text-transform: uppercase; }
-        .print-header p { margin: 2px 0; font-size: 10pt; }
+        .print-header {
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .print-header h4 {
+            margin: 10px 0;
+            font-weight: bold;
+            text-transform: uppercase;
+            text-align: center;
+        }
     }
 </style>
 
 <div class="py-3">
-    <!-- Print Header -->
-    <div class="print-header">
-        <h4>LAPORAN ESTIMASI KENAIKAN PANGKAT PEGAWAI</h4>
-        <p>SMP NEGERI 171 JAKARTA</p>
-        <p class="small text-muted">Dicetak pada: <?php echo date('d-m-Y H:i'); ?></p>
-    </div>
+    <!-- Header Title (For Print) -->
 
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
@@ -145,10 +223,9 @@ if ($res) {
     <div class="modern-card">
         <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
             <h6 class="fw-bold mb-0">Daftar Estimasi Kenaikan Pangkat</h6>
-            <button class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-print-none"
-                onclick="window.print()">
+            <a href="print_kenaikan.php" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-print-none">
                 <i class="las la-print me-2"></i> Cetak Laporan
-            </button>
+            </a>
         </div>
 
         <div class="card-body p-0 p-md-3">
@@ -184,12 +261,14 @@ if ($res) {
                                 <td class="text-center text-muted small"><?php echo $idx + 1; ?></td>
                                 <td>
                                     <div class="fw-bold text-dark">
-                                        <?php 
+                                        <?php
                                         $full_name = (!empty($emp['gelar_depan']) ? $emp['gelar_depan'] . ' ' : '') . $emp['nm_pegawai'] . (!empty($emp['gelar_belakang']) ? ', ' . $emp['gelar_belakang'] : '');
-                                        echo htmlspecialchars($full_name); 
+                                        echo htmlspecialchars($full_name);
                                         ?>
                                     </div>
-                                    <div class="small text-muted"><?php echo $emp['nip'] ?: '-'; ?> | <?php echo $emp['status_pegawai']; ?></div>
+                                    <div class="small text-muted"><?php echo $emp['nip'] ?: '-'; ?> |
+                                        <?php echo $emp['status_pegawai']; ?>
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="extra-small fw-bold"><?php echo htmlspecialchars($emp['pangkat'] ?: '-'); ?>
@@ -204,11 +283,13 @@ if ($res) {
                                 <td class="text-center small fw-bold text-primary"><?php echo $promo['next_promotion']; ?></td>
                                 <td class="text-center">
                                     <?php if ($hasError): ?>
-                                        <span class="badge bg-secondary-soft text-muted rounded-pill px-3 extra-small">TMT Kosong</span>
+                                        <span class="badge bg-secondary-soft text-muted rounded-pill px-3 extra-small">TMT
+                                            Kosong</span>
                                     <?php elseif ($promo['isDue']): ?>
                                         <span class="badge bg-danger rounded-pill px-3">Waktunya Naik</span>
                                     <?php else: ?>
-                                        <span class="small fw-bold <?php echo ($promo['percent'] > 90) ? 'text-warning' : 'text-dark'; ?>">
+                                        <span
+                                            class="small fw-bold <?php echo ($promo['percent'] > 90) ? 'text-warning' : 'text-dark'; ?>">
                                             <?php echo $promo['sisa']; ?>
                                         </span>
                                     <?php endif; ?>

@@ -416,26 +416,26 @@ if (!file_exists($logo_server_path))
                 <div class="npsn-badge">NPSN: <?php echo htmlspecialchars($school['npsn']); ?></div>
 
                 <div class="mt-4 px-2 text-start">
-                    <a href="mailto:<?php echo $school['email']; ?>" class="contact-item">
+                    <a href="mailto:<?php echo $school['email'] ?? ''; ?>" class="contact-item">
                         <div class="contact-icon text-danger"><i class="las la-envelope"></i></div>
                         <div class="text-truncate">
                             <div class="extra-small text-muted fw-bold">Email</div>
-                            <div class="small fw-bold"><?php echo htmlspecialchars($school['email']); ?></div>
+                            <div class="small fw-bold"><?php echo htmlspecialchars($school['email'] ?? ''); ?></div>
                         </div>
                     </a>
-                    <a href="tel:<?php echo $school['no_telp']; ?>" class="contact-item">
+                    <a href="tel:<?php echo $school['no_telp'] ?? ''; ?>" class="contact-item">
                         <div class="contact-icon text-primary"><i class="las la-phone"></i></div>
                         <div>
                             <div class="extra-small text-muted fw-bold">Telepon</div>
-                            <div class="small fw-bold"><?php echo htmlspecialchars($school['no_telp']); ?></div>
+                            <div class="small fw-bold"><?php echo htmlspecialchars($school['no_telp'] ?? ''); ?></div>
                         </div>
                     </a>
-                    <a href="<?php echo (strpos($school['website'], 'http') === 0 ? '' : 'https://') . $school['website']; ?>"
+                    <a href="<?php echo (strpos($school['website'] ?? '', 'http') === 0 ? '' : 'https://') . ($school['website'] ?? '#'); ?>"
                         target="_blank" class="contact-item">
                         <div class="contact-icon text-info"><i class="las la-globe"></i></div>
                         <div class="text-truncate">
                             <div class="extra-small text-muted fw-bold">Website</div>
-                            <div class="small fw-bold"><?php echo htmlspecialchars($school['website']); ?></div>
+                            <div class="small fw-bold"><?php echo htmlspecialchars($school['website'] ?? ''); ?></div>
                         </div>
                     </a>
                 </div>
@@ -446,7 +446,7 @@ if (!file_exists($logo_server_path))
                 <div class="asset-grid">
                     <div class="asset-item" style="grid-column: span 2;">
                         <?php
-                        $lp = $school['logo_pemda'];
+                        $lp = $school['logo_pemda'] ?? '';
                         $lp_file = ($lp && file_exists($base_dir . "images/" . $lp)) ? $lp : 'logo_jayaraya.png';
                         ?>
                         <img src="<?php echo $base_dir . "images/" . $lp_file; ?>" class="asset-thumb">
@@ -454,7 +454,7 @@ if (!file_exists($logo_server_path))
                     </div>
                     <div class="asset-item" style="grid-column: span 2;">
                         <?php
-                        $bg = $school['background_login'];
+                        $bg = $school['background_login'] ?? '';
                         $bg_file = ($bg && file_exists($base_dir . "images/" . $bg)) ? $bg : 'bg_default.jpg';
                         ?>
                         <img src="<?php echo $base_dir . "images/" . $bg_file; ?>" class="asset-thumb w-100"
@@ -472,27 +472,27 @@ if (!file_exists($logo_server_path))
                 <div class="info-card-grid">
                     <div class="info-box" style="grid-column: span 2;">
                         <div class="info-box-label"><i class="las la-map-marker-alt"></i> Alamat Jalan</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['alamat']); ?></div>
+                        <div class="info-box-value"><?php echo htmlspecialchars($school['alamat'] ?? ''); ?></div>
                     </div>
                     <div class="info-box">
                         <div class="info-box-label">Kelurahan</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['kelurahan']); ?></div>
+                        <div class="info-box-value"><?php echo htmlspecialchars($school['kelurahan'] ?? ''); ?></div>
                     </div>
                     <div class="info-box">
                         <div class="info-box-label">Kecamatan</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['kecamatan']); ?></div>
+                        <div class="info-box-value"><?php echo htmlspecialchars($school['kecamatan'] ?? ''); ?></div>
                     </div>
                     <div class="info-box">
                         <div class="info-box-label">Kota / Kabupaten</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['kabupaten']); ?></div>
+                        <div class="info-box-value"><?php echo htmlspecialchars($school['kabupaten'] ?? ''); ?></div>
                     </div>
                     <div class="info-box">
                         <div class="info-box-label">Provinsi</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['provinsi']); ?></div>
+                        <div class="info-box-value"><?php echo htmlspecialchars($school['provinsi'] ?? ''); ?></div>
                     </div>
                     <div class="info-box">
                         <div class="info-box-label">Kode Pos</div>
-                        <div class="info-box-value"><?php echo htmlspecialchars($school['kodepos']); ?></div>
+                        <div class="info-box-value"><?php echo htmlspecialchars($school['kodepos'] ?? ''); ?></div>
                     </div>
                 </div>
             </div>
@@ -507,7 +507,7 @@ if (!file_exists($logo_server_path))
                 </div>
 
                 <div class="editor-wrapper mb-3">
-                    <textarea id="summernote_kop"><?php echo htmlspecialchars($school['kop_dinas']); ?></textarea>
+                    <textarea id="summernote_kop"><?php echo htmlspecialchars($school['kop_dinas'] ?? ''); ?></textarea>
                 </div>
 
                 <div class="d-flex justify-content-between align-items-center kop-btn-container">
@@ -530,9 +530,12 @@ if (!file_exists($logo_server_path))
                             <div class="pimpinan-avatar"><i class="las la-user-tie"></i></div>
                             <div>
                                 <div class="extra-small text-muted fw-bold text-uppercase">Kepala Sekolah</div>
-                                <div class="fw-bold text-dark"><?php echo htmlspecialchars($school['kepsek']); ?></div>
+                                <div class="fw-bold text-dark"><?php echo htmlspecialchars($school['kepsek'] ?? '-'); ?></div>
                                 <div class="extra-small text-muted">NIP.
-                                    <?php echo htmlspecialchars($school['nipkepsek']); ?>
+                                    <?php echo htmlspecialchars($school['nipkepsek'] ?? '-'); ?>
+                                </div>
+                                <div class="extra-small text-muted">NRK.
+                                    <?php echo htmlspecialchars($school['nrkkepsek'] ?? '-'); ?>
                                 </div>
                             </div>
                         </div>
@@ -542,10 +545,13 @@ if (!file_exists($logo_server_path))
                             <div class="pimpinan-avatar"><i class="las la-user-shield"></i></div>
                             <div>
                                 <div class="extra-small text-muted fw-bold text-uppercase">Kepala TU</div>
-                                <div class="fw-bold text-dark"><?php echo htmlspecialchars($school['ktu'] ?: '-'); ?>
+                                <div class="fw-bold text-dark"><?php echo htmlspecialchars(($school['ktu'] ?? '') ?: '-'); ?>
                                 </div>
                                 <div class="extra-small text-muted">NIP.
-                                    <?php echo htmlspecialchars($school['nipktu'] ?: '-'); ?>
+                                    <?php echo htmlspecialchars(($school['nipktu'] ?? '') ?: '-'); ?>
+                                </div>
+                                <div class="extra-small text-muted">NRK.
+                                    <?php echo htmlspecialchars(($school['nrkktu'] ?? '') ?: '-'); ?>
                                 </div>
                             </div>
                         </div>
@@ -556,10 +562,13 @@ if (!file_exists($logo_server_path))
                             <div>
                                 <div class="extra-small text-muted fw-bold text-uppercase">Pengawas Sekolah</div>
                                 <div class="fw-bold text-dark">
-                                    <?php echo htmlspecialchars($school['pengawas'] ?: '-'); ?>
+                                    <?php echo htmlspecialchars(($school['pengawas'] ?? '') ?: '-'); ?>
                                 </div>
                                 <div class="extra-small text-muted">NIP.
-                                    <?php echo htmlspecialchars($school['nippengawas'] ?: '-'); ?>
+                                    <?php echo htmlspecialchars(($school['nippengawas'] ?? '') ?: '-'); ?>
+                                </div>
+                                <div class="extra-small text-muted">NRK.
+                                    <?php echo htmlspecialchars(($school['nrkpengawas'] ?? '') ?: '-'); ?>
                                 </div>
                             </div>
                         </div>
@@ -573,23 +582,23 @@ if (!file_exists($logo_server_path))
                         <div class="section-title"><i class="las la-hashtag"></i> Media Sosial</div>
                         <div class="row g-2">
                             <div class="col-md-3 col-6">
-                                <a href="<?php echo $school['youtube']; ?>" target="_blank" class="social-link youtube">
+                                <a href="<?php echo $school['youtube'] ?? '#'; ?>" target="_blank" class="social-link youtube">
                                     <i class="lab la-youtube fs-4"></i> YouTube
                                 </a>
                             </div>
                             <div class="col-md-3 col-6">
-                                <a href="<?php echo $school['facebook']; ?>" target="_blank"
+                                <a href="<?php echo $school['facebook'] ?? '#'; ?>" target="_blank"
                                     class="social-link facebook">
                                     <i class="lab la-facebook fs-4"></i> Facebook
                                 </a>
                             </div>
                             <div class="col-md-3 col-6">
-                                <a href="<?php echo $school['twitter']; ?>" target="_blank" class="social-link twitter">
+                                <a href="<?php echo $school['twitter'] ?? '#'; ?>" target="_blank" class="social-link twitter">
                                     <i class="lab la-twitter fs-4"></i> Twitter
                                 </a>
                             </div>
                             <div class="col-md-3 col-6">
-                                <a href="<?php echo $school['instagram']; ?>" target="_blank"
+                                <a href="<?php echo $school['instagram'] ?? '#'; ?>" target="_blank"
                                     class="social-link instagram">
                                     <i class="lab la-instagram fs-4"></i> Instagram
                                 </a>

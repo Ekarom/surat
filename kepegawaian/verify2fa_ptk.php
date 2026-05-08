@@ -48,19 +48,27 @@ if (!$pegawai) {
 $google_secret = $pegawai['google_auth_secret'];
 
 // --- VERIFIKASI KODE ---
-if (isset($_POST['verify_code'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['code'])) {
     $code = trim($_POST['code'] ?? '');
     $is_valid = false;
 
     if (!empty($google_secret) && !empty($code)) {
         $google2fa = new Google2FA();
-        if ($google2fa->verifyKey($google_secret, $code, 4)) {
-             $is_valid = true;
+        try {
+            if ($google2fa->verifyKey($google_secret, $code, 4)) {
+                $is_valid = true;
+            }
+        } catch (Exception $e) {
+            $error_message = "Terjadi kesalahan pada sistem 2FA.";
         }
     }
 
     if ($is_valid) {
         // --- LOGIN BERHASIL ---
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         session_regenerate_id(true);
         unset($_SESSION['2fa_ptk_user_id']);
 
@@ -114,7 +122,8 @@ if (isset($_POST['verify_code'])) {
             --input-bg: rgba(255, 255, 255, 0.03);
         }
 
-        body, html {
+        body,
+        html {
             height: 100%;
             font-family: 'Outfit', sans-serif !important;
             margin: 0;
@@ -142,13 +151,27 @@ if (isset($_POST['verify_code'])) {
             opacity: 0.4;
         }
 
-        .orb-1 { width: 400px; height: 400px; background: #4f46e5; top: -100px; right: -100px; }
-        .orb-2 { width: 300px; height: 300px; background: #7c3aed; bottom: -50px; left: -50px; }
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: #4f46e5;
+            top: -100px;
+            right: -100px;
+        }
+
+        .orb-2 {
+            width: 300px;
+            height: 300px;
+            background: #7c3aed;
+            bottom: -50px;
+            left: -50px;
+        }
 
         .wrap-login100 {
             width: 420px;
             background: var(--glass-bg) !important;
             backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
             border: 1px solid var(--glass-border) !important;
             border-radius: 24px !important;
             padding: 50px 40px !important;
@@ -159,12 +182,20 @@ if (isset($_POST['verify_code'])) {
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .login100-form-logo {
-            width: 80px; height: 80px;
+            width: 80px;
+            height: 80px;
             background: #fff !important;
             border-radius: 20px !important;
             display: flex;
@@ -197,6 +228,12 @@ if (isset($_POST['verify_code'])) {
             border: 1px solid var(--glass-border) !important;
             border-radius: 12px !important;
             margin-bottom: 25px !important;
+            transition: all 0.3s;
+        }
+
+        .wrap-input100:focus-within {
+            border-color: #6366f1 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
         }
 
         .input100 {
@@ -217,7 +254,7 @@ if (isset($_POST['verify_code'])) {
             font-family: 'Outfit', sans-serif !important;
             font-size: 16px !important;
             font-weight: 600 !important;
-            color: #000 !important;
+            color: #000000ff !important;
             text-transform: uppercase;
             width: 100% !important;
             height: 52px !important;
@@ -226,22 +263,40 @@ if (isset($_POST['verify_code'])) {
             border: none !important;
             cursor: pointer;
             transition: all 0.4s;
+            box-shadow: 0 10px 20px -10px #94a3b8 !important;
         }
 
         .login100-form-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5) !important;
+            box-shadow: 0 15px 25px -10px #94a3b8 !important;
         }
 
         .error-container {
             margin-bottom: 20px;
-            padding: 12px;
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 15px;
+            background: rgba(239, 68, 68, 0.12) !important;
+            border: 1px solid rgba(239, 68, 68, 0.2) !important;
             border-radius: 12px;
-            color: #f87171;
+            color: #fca5a5;
             font-size: 13px;
             text-align: center;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
         }
 
         .back-link {
@@ -254,7 +309,9 @@ if (isset($_POST['verify_code'])) {
             transition: color 0.3s;
         }
 
-        .back-link:hover { color: #fff; }
+        .back-link:hover {
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -264,49 +321,63 @@ if (isset($_POST['verify_code'])) {
         <div class="orb orb-2"></div>
 
         <div class="wrap-login100">
-            <form class="login100-form validate-form" method="post">
+            <form class="login100-form validate-form" method="post" id="form2fa">
                 <div class="login100-form-logo">
                     <img src="../images/logodik.png" width="55" alt="Logo">
                 </div>
 
                 <span class="login100-form-title">
                     Verifikasi 2FA
-                    <small>Buka aplikasi Google Authenticator Anda dan masukkan kode 6-digit.</small>
+                    <small>Masukkan 6 digit kode dari aplikasi Google Authenticator Anda.</small>
                 </span>
 
                 <?php if ($error_message): ?>
                     <div class="error-container">
-                        <?php echo htmlspecialchars($error_message); ?>
+                        <i class="fas fa-exclamation-circle me-1"></i> <?php echo htmlspecialchars($error_message); ?>
                     </div>
                 <?php endif; ?>
 
                 <div class="wrap-input100 validate-input" data-validate="Masukkan Kode">
-                    <input class="input100" type="text" name="code" autocomplete="off" autofocus maxlength="6" placeholder="000000">
+                    <input class="input100" type="text" name="code" id="code-input" autocomplete="off" autofocus
+                        maxlength="6" required>
                 </div>
 
                 <div class="container-login100-form-btn">
-                    <button class="login100-form-btn" name="verify_code">
+                    <button class="login100-form-btn" type="submit">
                         Verifikasi
                     </button>
                 </div>
 
-                <a href="login_ptk.php" class="back-link">
-                    <i class="fas fa-arrow-left"></i> Kembali ke Login
-                </a>
+
             </form>
         </div>
     </div>
 
     <script src="../plugins/jquery/jquery.min.js"></script>
     <script>
-        $(document).ready(function() {
-            // Auto-submit when 6 digits are entered
-            $('.input100').on('input', function() {
-                if ($(this).val().length === 6) {
-                    $('.login100-form').submit();
+        $(document).ready(function () {
+            const $input = $('#code-input');
+            const $form = $('#form2fa');
+            const $btn = $('.login100-form-btn');
+
+            // Sanitize input: only numbers
+            $input.on('input', function () {
+                const val = $(this).val().replace(/[^0-9]/g, '');
+                $(this).val(val);
+            });
+
+            $form.on('submit', function () {
+                if ($input.val().length === 6) {
+                    $btn.html('<i class="fas fa-circle-notch fa-spin me-2"></i> Memverifikasi...');
+                    $btn.css('pointer-events', 'none');
+                    $btn.css('opacity', '0.8');
+                } else {
+                    alert('Silakan masukkan 6 digit kode verifikasi.');
+                    return false;
                 }
             });
         });
     </script>
 </body>
+
 </html>

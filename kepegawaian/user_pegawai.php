@@ -250,12 +250,6 @@ if ($lv == '4') {
                 <button type="button" class="btn btn-outline-primary btn-sm" id="tombolTambahPegawai">
                     <i class="las la-user-plus me-2"></i> Tambah Pegawai
                 </button>
-                <a href="?import_data_pegawai" class="btn btn-outline-success btn-sm" id="btnShowImport">
-                    <i class="las la-file-excel me-2"></i> Import Excel
-                </a>
-                <a href="proses_pegawai.php?action=download" class="btn btn-outline-info btn-sm px-4 shadow-sm">
-                    <i class="las la-file-excel me-2"></i> Download Data
-                </a>
             </div>
 
         </div>
@@ -296,9 +290,9 @@ if ($lv == '4') {
                                         style="width: 38px; height: 38px; object-fit: cover;"></td>
                                 <td>
                                     <div class="fw-bold text-dark mb-0">
-                                        <?php 
+                                        <?php
                                         $full_name = (!empty($row['gelar_depan']) ? $row['gelar_depan'] . ' ' : '') . $row['nm_pegawai'] . (!empty($row['gelar_belakang']) ? ', ' . $row['gelar_belakang'] : '');
-                                        echo $full_name; 
+                                        echo $full_name;
                                         ?>
                                         <?php if (($row['is_pensiun_synced'] ?? 1) == 0): ?>
                                             <span class="sync-indicator sync-pending"
@@ -327,6 +321,10 @@ if ($lv == '4') {
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
+                                        <button class="btn btn-sm btn-outline-info border shadow-sm tombol-reset-2fa" 
+                                            data-id="<?php echo $row['id']; ?>" 
+                                            data-nama="<?php echo htmlspecialchars($row['nm_pegawai']); ?>" 
+                                            title="Reset 2FA"><i class="las la-shield-alt text-info"></i></button>
                                         <button class="btn btn-sm btn-outline-primary border shadow-sm tombol-edit"
                                             data-id="<?php echo $row['id']; ?>" title="Edit Cepat"><i
                                                 class="las la-edit text-warning"></i></button>
@@ -414,8 +412,8 @@ if ($lv == '4') {
                         </div>
                         <div class="col-12">
                             <label class="modern-label">Gelar Belakang</label>
-                            <input type="text" name="gelar_belakang" id="gelar_belakang" class="form-control modern-input"
-                                placeholder="S.Pd. / M.Si.">
+                            <input type="text" name="gelar_belakang" id="gelar_belakang"
+                                class="form-control modern-input" placeholder="S.Pd. / M.Si.">
                         </div>
                         <div class="col-md-6">
                             <label class="modern-label">Jabatan</label>
@@ -519,12 +517,7 @@ if ($lv == '4') {
             scrollX: true,
             scrollCollapse: true,
             paging: false,
-            fixedColumns: {
-                leftColumns: 3
-            },
-            columnDefs: [
-                { orderable: false, targets: [0, 1, 5, 6] } // Disable sorting for No, Foto, Aktif, Aksi
-            ]
+
         });
 
         // Add
@@ -620,8 +613,20 @@ if ($lv == '4') {
             }
         });
 
-
-        // Delete logic
+        // Reset 2FA
+        $(document).on('click', '.tombol-reset-2fa', function () {
+            const id = $(this).data('id');
+            const nama = $(this).data('nama');
+            if (confirm(`Apakah Anda yakin ingin mereset Google Authenticator untuk ${nama}? \n\nHal ini akan menghapus pengaturan 2FA lama dan pegawai harus menscan QR code baru saat login.`)) {
+                $.post(ajaxUrl, { action: 'reset_2fa', id: id }, (res) => {
+                    if (res.status === 'success') {
+                        toastr.success(res.message);
+                    } else {
+                        toastr.error(res.message);
+                    }
+                }, 'json');
+            }
+        });
 
     });
 </script>

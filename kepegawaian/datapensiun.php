@@ -91,6 +91,11 @@ if ($res) {
         $employees[] = $row;
     }
 }
+
+// Fetch School Profile for Letterhead
+$res_g = $conn->query("SELECT * FROM profils LIMIT 1");
+$g = ($res_g && $res_g->num_rows > 0) ? $res_g->fetch_assoc() : [];
+$base_dir = file_exists('../dbconn.php') ? '../' : '';
 ?>
 
 <link rel="stylesheet" href="../plugins/css/palette-gradient.min.css">
@@ -171,22 +176,30 @@ if ($res) {
     @media print {
         .print-header {
             display: block;
-            text-align: center;
             margin-bottom: 20px;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
         }
-        .print-header h4 { margin: 0; font-weight: bold; text-transform: uppercase; }
-        .print-header p { margin: 2px 0; font-size: 10pt; }
+        .print-header h4 { margin: 10px 0; font-weight: bold; text-transform: uppercase; text-align: center; }
     }
 </style>
 
 <div class="py-3">
-    <!-- Print Header (Hidden on screen) -->
+    <!-- Print Header (Dynamic from Profile) -->
     <div class="print-header">
-        <h4>LAPORAN ESTIMASI MASA KERJA & PENSIUN PEGAWAI</h4>
-        <p>SMP NEGERI 171 JAKARTA</p>
-        <p class="small text-muted">Dicetak pada: <?php echo date('d-m-Y H:i'); ?></p>
+        <?php
+        if (!empty($g['kop_dinas'])) {
+            echo str_replace('src="images/', 'src="' . $base_dir . 'images/', $g['kop_dinas']);
+        } else {
+            ?>
+            <div style="text-align: center; border-bottom: 3px double #000; padding-bottom: 10px;">
+                <h4 style="margin:0;">PEMERINTAH PROVINSI DKI JAKARTA</h4>
+                <h4 style="margin:0;">DINAS PENDIDIKAN</h4>
+                <h3 style="margin:5px 0;"><?php echo htmlspecialchars($g['nsekolah'] ?? 'SMP NEGERI 171 JAKARTA'); ?></h3>
+                <p style="margin:0; font-size: 10pt;"><?php echo htmlspecialchars($g['alamat'] ?? ''); ?></p>
+            </div>
+        <?php } ?>
+
+        <h4 class="mt-4">LAPORAN ESTIMASI MASA KERJA & PENSIUN PEGAWAI</h4>
+        <p class="text-center small text-muted">Dicetak pada: <?php echo date('d-m-Y H:i'); ?></p>
     </div>
 
     <!-- Header -->
@@ -201,10 +214,9 @@ if ($res) {
     <div class="modern-card">
         <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
             <h6 class="fw-bold mb-0">Laporan Estimasi Pensiun</h6>
-            <button class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-print-none"
-                onclick="window.print()">
+            <a href="print_pensiun.php" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-print-none">
                 <i class="las la-print me-2"></i> Cetak Laporan
-            </button>
+            </a>
         </div>
 
         <div class="card-body p-0 p-md-3">

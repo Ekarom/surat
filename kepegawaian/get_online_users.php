@@ -1,83 +1,106 @@
 <?php
 /**
- * AJAX Handler for Online Users
- * Returns JSON data for real-time dashboard updates
+ * AJAX Handler for fetching online users
+ * Optimized for Dashboard Kepegawaian
+ * Managed by Antigravity AI
  */
-
-$db_path = file_exists('../dbconn.php') ? '../dbconn.php' : 'dbconn.php';
-include_once $db_path;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+header('Content-Type: application/json');
 
 if (!isset($conn) || !$conn) {
-    header('Content-Type: application/json');
-    echo json_encode(['error' => 'Database connection failed']);
+    $db_path = file_exists('../dbconn.php') ? '../dbconn.php' : 'dbconn.php';
+    include_once $db_path;
+}
+
+if (!isset($conn) || !$conn) {
+    echo json_encode(['error' => 'Koneksi database tidak tersedia.']);
     exit;
 }
 
+// Configuration
+$online_limit_minutes = 15; // Consider users active in the last 15 mins as "online"
 $limit = 5;
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $offset = ($page - 1) * $limit;
 
-$online_users = [];
+/**
+ * 1. Build Query
+ * We UNION users from tb_user and pegawai (PTK) who have recent activity
+ */
 
-// 1. Fetch from tb_user (Admin/Staff)
-$res_admin = $conn->query(
-    "SELECT nama as nm_user, last_activity, level
-     FROM tb_user
-     WHERE last_activity > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
-     AND (status = '1' OR status = 'Aktif')
-     ORDER BY last_activity DESC"
-);
+// User Admin / Staff
+$sql_users = "SELECT 
+    nama, 
+    level, 
+    last_activity,
+    'admin' as source
+FROM tb_user 
+WHERE last_activity > (NOW() - INTERVAL $online_limit_minutes MINUTE)";
 
-$level_map = [
-    '1' => ['label' => 'ADMIN', 'color' => 'bg-success'],
-    '2' => ['label' => 'STAFF', 'color' => 'bg-success'],
-    '4' => ['label' => 'GURU', 'color' => 'bg-success'],
-];
+// PTK / Employee
+$sql_pegawai = "SELECT 
+    nm_pegawai as nama, 
+    '4' as level, 
+    last_activity,
+    'pegawai' as source
+FROM pegawai 
+WHERE last_activity > (NOW() - INTERVAL $online_limit_minutes MINUTE)";
 
-if ($res_admin) {
-    while ($row = $res_admin->fetch_assoc()) {
-        $lvl = $level_map[$row['level']] ?? ['label' => 'USER', 'color' => 'bg-secondary'];
-        $online_users[] = [
-            'nama' => $row['nm_user'],
-            'last_time' => date('H:i', strtotime($row['last_activity'])),
-            'role_label' => $lvl['label'],
-            'badge_color' => $lvl['color'],
-            'timestamp' => strtotime($row['last_activity'])
+$combined_sql = "($sql_users) UNION ($sql_pegawai) ORDER BY last_activity DESC";
+
+// Get Total for Pagination
+$count_res = $conn->query("SELECT COUNT(*) FROM ($combined_sql) as total_tbl");
+$total_online = $count_res ? $count_res->fetch_row()[0] : 0;
+$total_pages = max(1, ceil($total_online / $limit));
+
+// Fetch Paginated Data
+$final_sql = "$combined_sql LIMIT $limit OFFSET $offset";
+$res = $conn->query($final_sql);
+
+$users = [];
+if ($res) {
+    while ($row = $res->fetch_assoc()) {
+        $role_label = 'User';
+        $badge_color = 'bg-secondary';
+
+        if ($row['source'] === 'admin') {
+            if ($row['level'] == '1') {
+                $role_label = 'Administrator';
+                $badge_color = 'bg-danger';
+            } elseif ($row['level'] == '2') {
+                $role_label = 'Staff Admin';
+                $badge_color = 'bg-warning';
+            } else {
+                $role_label = 'Staff';
+                $badge_color = 'bg-info';
+            }
+        } else {
+            $role_label = 'Guru / PTK';
+            $badge_color = 'bg-success';
+        }
+
+        // Format relative time or simple time
+        $last_time = "Baru saja";
+        if ($row['last_activity']) {
+            $last_time = date('H:i', strtotime($row['last_activity']));
+        }
+
+        $users[] = [
+            'nama' => htmlspecialchars($row['nama']),
+            'role_label' => $role_label,
+            'badge_color' => $badge_color,
+            'last_time' => $last_time
         ];
     }
 }
 
-// 2. Fetch from pegawai (Guru)
-$res_guru = $conn->query(
-    "SELECT nm_pegawai, last_activity
-     FROM pegawai
-     WHERE last_activity > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
-     AND (status = '1' OR status = 'Aktif')
-     ORDER BY last_activity DESC"
-);
-
-if ($res_guru) {
-    while ($row = $res_guru->fetch_assoc()) {
-        $online_users[] = [
-            'nama' => $row['nm_pegawai'],
-            'last_time' => date('H:i', strtotime($row['last_activity'])),
-            'role_label' => 'GURU',
-            'badge_color' => 'bg-success',
-            'timestamp' => strtotime($row['last_activity'])
-        ];
-    }
-}
-
-// Sort and Paginate
-usort($online_users, fn($a, $b) => $b['timestamp'] - $a['timestamp']);
-$total_count = count($online_users);
-$total_pages = max(1, ceil($total_count / $limit));
-$paginated_users = array_slice($online_users, $offset, $limit);
-
-header('Content-Type: application/json');
+// Response
 echo json_encode([
-    'total' => $total_count,
-    'users' => $paginated_users,
+    'total' => $total_online,
+    'users' => $users,
     'pages' => $total_pages,
-    'current' => (int)$page
+    'current' => $page,
+    'status' => 'success'
 ]);

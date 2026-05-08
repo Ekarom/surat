@@ -1,21 +1,15 @@
-    <?php
-
-// --- 1. KONEKSI DATABASE ---
-// Sesuaikan path ini
+<?php
 if (file_exists("dbconn.php")) {
-    include "dbconn.php";
-} elseif (file_exists("dbconn.php")) {
-    include "dbconn.php";
+    include_once "dbconn.php";
 } else {
-    // Fallback koneksi manual (sesuaikan dengan upload.php)
     $conn = mysqli_connect("localhost", "root", "", "surat");
 }
 
-// --- 2. AMBIL ID USER ---
-// Prioritas: Session -> Default ID (untuk testing/debug)
-$id_user = 0;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
-// Cek session key yang mungkin dipakai
+$id_user = 0;
 $possible_keys = ['id', 'user_id', 'id_user', 'admin_id'];
 foreach ($possible_keys as $key) {
     if (isset($_SESSION[$key])) {
@@ -24,429 +18,372 @@ foreach ($possible_keys as $key) {
     }
 }
 
-// JIKA MASIH KOSONG, PAKAI ID 4 (User Admin di database Anda) UNTUK TESTING
 if ($id_user == 0) {
-    $id_user = 4; 
+    $id_user = 4;
 }
 
-// --- 3. QUERY DATA USER ---
+if (!isset($_SESSION['user_id'])) {
+    $_SESSION['user_id'] = $id_user;
+}
+
 $query = mysqli_query($conn, "SELECT * FROM tb_user WHERE id = '$id_user'");
-$data  = mysqli_fetch_array($query);
+$data = mysqli_fetch_array($query);
 
-// Data untuk ditampilkan
-$nama_user  = $data['nama'] ?? "User Tidak Ditemukan";
-$level_user = ($data['level'] ?? 0) == 1 ? "Administrator" : "Staff";
-$status_user= ($data['status'] ?? 0) == 1 ? "Aktif" : "Non-Aktif";
-$foto_db    = $data['poto'] ?? ""; // Nama file dari database (misal: user_123.jpg)
-$email    = $data['email'] ?? ""; // Nama file dari database (misal: user_123.jpg)
-$ip    = $data['ip'] ?? ""; // Nama file dari database (misal: user_123.jpg)
-$log    = $data['last_login'] ?? ""; // Nama file dari database (misal: user_123.jpg)
-
-
-// --- 4. LOGIKA URL FOTO ---
-// Cek apakah ada foto di DB dan filenya benar-benar ada di folder
-$path_folder = "file/profil/";
-$path_file   = $path_folder . $foto_db;
-$foto_url    = "";
-
-if (!empty($foto_db) && file_exists($path_file)) {
-    // Jika foto ada di folder file/profil/
-    $foto_url = $path_file; 
-} else {
-    // Jika tidak ada, pakai avatar default online
-    $foto_url = "images/male.png";
-}
+$nama = $data['nama'] ?? "";
+$poto = $data['poto'] ?? "";
+$lv = $data['level'] ?? "";
+$userid = $data['userid'] ?? "";
+$log = $data['last_login'] ?? "-";
 ?>
 
-    <style>
-.profile-card {
-            background-color: #FFFFFF;
-            border: 1px solid #495057;
-            border-radius: 0.75rem;
-            transition: all 0.3s ease-in-out;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
+<style>
+    .profile-img-container {
+        position: relative;
+        width: 130px;
+        height: 130px;
+        margin: 0 auto 15px;
+        cursor: pointer;
+        overflow: hidden;
+        border-radius: 50%;
+        border: 4px solid #fff;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
 
-        .profile-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
-        }
+    .profile-img-container:hover {
+        border-color: #007bff;
+        transform: scale(1.02);
+        box-shadow: 0 6px 20px rgba(0, 123, 255, 0.2);
+    }
 
-        /* Gambar Profil */
-        .profile-img-container {
-            position: relative;
-            width: 150px;
-            height: 150px;
-            margin: 0 auto 1rem;
-        }
+    .profile-img-container .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        color: #fff;
+    }
 
-        .profile-img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border: 4px solid #495057;
-        }
+    .profile-img-container:hover .overlay {
+        opacity: 1;
+    }
 
-        .upload-btn-wrapper {
-            margin-top: 10px;
-        }
+    .profile-img-container .overlay i {
+        font-size: 32px;
+        margin-bottom: 5px;
+    }
 
-        /* Garis pemisah horizontal */
-        .hr-custom {
-            border-top: 1px solid #6c757d;
-            opacity: 0.5;
-            margin: 1.5rem 0;
-        }
+    .profile-img-container .overlay span {
+        font-size: 10px;
+        text-transform: uppercase;
+        font-weight: bold;
+    }
 
-        /* Tombol dengan gaya modern */
-        .btn-custom {
-            border-radius: 0.5rem;
-            transition: all 0.2s;
-            font-weight: 500;
-        }
-        
-        .btn-custom:hover {
-            transform: scale(1.02);
-        }
+    .profile-img-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+</style>
 
-        /* Styling untuk progress bar upload */
-        .progress {
-            background-color: #495057;
-            height: 10px;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-
-        /* Toastr notification style override */
-        .toast-top-center {
-            top: 20px;
-        }
-        
-        .text-label {
-            color: #adb5bd;
-            font-weight: 500;
-        }
-    </style>
-
-
- <div class="content-wrapper">
-    <!-- Content Header (Page header) -->
+<div class="content-wrapper">
     <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            <h1>Profil</h1>
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Profil</li>
-            </ol>
-          </div>
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1 class="m-0">Profil Saya</h1>
+                </div>
+                <div class="col-sm-6">
+                    <ol class="breadcrumb float-sm-right">
+                        <li class="breadcrumb-item"><a href="index.php">Home</a></li>
+                        <li class="breadcrumb-item active">User Profile</li>
+                    </ol>
+                </div>
+            </div>
         </div>
-      </div><!-- /.container-fluid -->
-    </section>    
+    </section>
 
-<div class="container pb-5">
-        <div class="row">
-            <div class="col-lg-4 mb-4">
-                <div class="card profile-card p-3 text-center h-100">
-                    <div class="card-body">
-                        <div class="profile-img-container">
-                            <!-- BAGIAN PENTING: Menampilkan variabel PHP $foto_url -->
-                            <img src="<?php echo $foto_url; ?>" class="rounded-circle img-fluid" alt="profileImage" id="profileImage">
-                        </div>
-                        
-                        <!-- Menampilkan Nama dari PHP -->
-                        <h4 class="mt-3 mb-1 fw-bold text-dark"><?php echo $nama_user; ?></h4> 
-                        <p class="badge bg-menu-gradient"><?php echo $level_user; ?></p>
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
 
-                        <div class="upload-section mt-4">
-                            <label for="photo1" class="btn btn-primary btn-custom w-100 mb-2">
-                                <i class="fas fa-camera mr-2"></i>Ubah Foto
-                            </label>
-                            
-                             <!-- Tombol Modal Ganti Password -->
-                             <button type="button" class="btn btn-danger w-100 mb-2" data-toggle="modal" data-target="#gantiPass">
-                                <i class="fas fa-lock mr-2"></i>Ganti Password
-                            </button>
-                            
-                            <!-- Input File -->
-                            <input type="file" id="photo1" class="d-none" accept="image/*" onchange="uploadFile()">                    
-                            
-                            <div id="progressContainer" style="display:none;">
-                                <div class="progress mt-2" style="height: 10px;">
-                                    <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%"></div>
+                <!-- KOLOM KIRI -->
+                <div class="col-md-4 col-lg-3">
+                    <!-- Profile Card -->
+                    <div class="card card navy card-outline card-sm">
+                        <div class="card-body box-profile">
+                            <div class="text-center mb-3">
+                                <div class="position-relative d-inline-block">
+                                    <label for="photoInput" class="btn btn-sm btn-info position-absolute shadow-sm"
+                                        style="bottom: 0; right: 0; border-radius: 50%; width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; z-index: 10;"
+                                        title="Ubah Foto">
+                                        <i class="la la-camera"></i>
+                                    </label>
+                                    <input type="file" id="photoInput" style="display: none;" accept="image/*"
+                                        onchange="uploadFile()">
+                                    <button type="button" class="btn btn-link p-0"
+                                        onclick="document.getElementById('photoInput').click()">
+                                        <div id="exisImage">
+                                            <?php
+                                            $path_folder = "file/profil/";
+                                            if (!empty($poto) && file_exists($path_folder . $poto)) {
+                                                echo "<img src='$path_folder$poto' class='profile-user-img img-fluid img-circle shadow-sm border-0' style='width: 120px; height: 120px; object-fit: cover;' alt='User profile picture'>";
+                                            } else {
+                                                echo "<img src='images/male.png' class='profile-user-img img-fluid img-circle shadow-sm border-0' style='width: 120px; height: 120px; object-fit: cover;' alt='Default profile picture'>";
+                                            }
+                                            ?>
+                                        </div>
+                                    </button>
                                 </div>
-                                <small id="status" class="d-block mt-2 text-muted">Menunggu...</small>
+                                <h3 id="status" class="mt-2"></h3>
+                            </div>
+
+                            <div class="text-center">
+                                <h3 class='profile-username font-weight-bold'>
+                                    <?php echo !empty($nama) ? $nama : 'User'; ?>
+                                </h3>
+                                <p class="text-muted small">
+                                    <i class="las la-user-tag"></i>
+                                    <?php
+                                    if (isset($lv)) {
+                                        if ($lv == "1")
+                                            echo "Administrator";
+                                        elseif ($lv == "2")
+                                            echo "Staff";
+                                        elseif ($lv == "3")
+                                            echo "User";
+                                    }
+                                    ?>
+                                </p>
+                            </div>
+
+                            <!-- Upload Progress -->
+                            <div class="upload-feedback mb-2 text-center">
+                                <div class="progress mb-1" id="progress_wrapper"
+                                    style="height: 6px; display: none; border-radius: 10px;">
+                                    <div id="progressBar"
+                                        class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+                                        role="progressbar" style="width: 0%"></div>
+                                </div>
+                            </div>
+
+                            <button type="button" class="btn btn-secondary btn-block py-2 fw-bold shadow-sm"
+                                data-toggle="modal" data-target="#gantiPass"
+                                style="border-radius: 10px; background-color: #6c757d;">
+                                Ganti Password
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header box-shadow-0 bg-gradient-x-info">
+                            <h5 class="card-title text-white mb-0">About Me</h5>
+                        </div>
+                        <div class="card-body">
+                            <strong><i class="fas fa-book mr-1"></i> Nama</strong>
+                            <p class="text-muted"><?php echo !empty($nama) ? $nama : '-'; ?></p>
+                            <hr>
+
+                            <strong><i class="fas fa-file-alt mr-1"></i> User Id</strong>
+                            <p class="text-muted"><?php echo !empty($userid) ? $userid : '-'; ?></p>
+                            <hr>
+
+                            <strong><i class="fas fa-pencil-alt mr-1"></i> Level</strong>
+                            <p class="text-muted">
+                                <?php
+                                if (isset($lv)) {
+                                    if ($lv == "1") {
+                                        echo "<label>Admin</label>";
+                                    } elseif ($lv == "2") {
+                                        echo "<label>User</label>";
+                                    } elseif ($lv == "3") {
+                                        echo "<label>Staff</label>";
+                                    }
+                                }
+                                ?>
+                            </p>
+                            <hr>
+
+                            <strong><i class="far fa-file-alt mr-1"></i> Log</strong>
+                            <p class="text-muted mb-0"><?php echo !empty($log) ? $log : '-'; ?></p>
+                        </div>
+                    </div>
+
+
+                </div>
+                <!-- END LEFT COLUMN -->
+
+                <!-- ==============================
+                 RIGHT COLUMN
+                 ============================== -->
+                <div class="col-md-9">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header box-shadow-0 bg-gradient-x-info p-2">
+                            <ul class="nav nav-pills">
+                                <li class="nav-item">
+                                    <a class="nav-link active" href="#activity" data-toggle="tab">Staff LV</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="card-body">
+                            <div class="tab-content">
+                                <div class="tab-pane active" id="activity">
+                                    <div class="post">
+                                        <div class="user-block">
+                                            <?php if (isset($lv)) {
+                                                if ($lv == "1") { ?>
+                                                    <span class="username">Administrator</span><br>
+                                                    <span class="description">Super Admin</span>
+                                                <?php } elseif ($lv == "2") { ?>
+                                                    <span class="username">Staff</span><br>
+                                                    <span class="description">Staff User</span>
+                                                <?php }
+                                            } ?>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
+                <!-- END RIGHT COLUMN -->
+
+            </div><!-- /.row -->
+        </div><!-- /.container-fluid -->
+    </section>
+</div>
+
+<!-- Modal Ganti Password -->
+<div class="modal fade" id="gantiPass" tabindex="-1" role="dialog" aria-labelledby="gantiPassLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header box-shadow-0 bg-gradient-x-info text-white">
+                <b id="gantiPassLabel">Ganti Password</b>
             </div>
-
-            <div class="col-lg-8">
-                <div class="card profile-card h-100">
-                    <div class="card-header pt-4 px-4">
-                        <h5 class="mb-0 text-dark"><i class="fas fa-user-circle mr-2 text-primary"></i>Informasi Pribadi</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="row align-items-center">
-                            <div class="col-sm-4"><p class="mb-0 text-label">Nama Lengkap</p></div>
-                            <div class="col-sm-8"><p class="mb-0 fw-bold text-dark"><?php echo $nama_user; ?></p></div>
-                        </div>
-                        <hr class="hr-custom">
-                        <div class="row align-items-center">
-                            <div class="col-sm-4"><p class="mb-0 text-label">Level</p></div>
-                            <div class="col-sm-8"><p class="mb-0 text-dark"><?php echo $level_user; ?></p></div>
-                        </div>
-                        <hr class="hr-custom">
-                        <div class="row align-items-center">
-                            <div class="col-sm-4"><p class="mb-0 text-label">Status</p></div>
-                            <div class="col-sm-8"><span class="badge bg-success"><?php echo $status_user; ?></span></div>
-                        </div>
-                        <hr class="hr-custom">
-                        <div class="row align-items-center">
-                            <div class="col-sm-4"><p class="mb-0 text-label">Email</p></div>
-                            <div class="col-sm-8"><p class="mb-0 text-dark"><?php echo $email; ?></span></div>
-                        </div>
-                        <hr class="hr-custom">
-                        <div class="row align-items-center">
-                            <div class="col-sm-4"><p class="mb-0 text-label">Log</p></div>
-                            <div class="col-sm-8"><p class="mb-0 text-dark"><?php echo $log; ?></span></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-                
-
-
-            </div>
-        </div>
-    </div>
-
-
-
-    <div class="modal fade" id="gantiPass" tabindex="-1" aria-labelledby="modalGantiPasswordLabel" aria-hidden="true" data-backdrop="static">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <b class="modal-title" id="modalGantiPasswordLabel"><i class="fas fa-lock mr-2"></i>Ganti Password</b>
-                    <?php if (!isset($_GET['changepass'])): ?>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                    <?php endif; ?>
-                </div>
+            <form id="formGantiPassword">
                 <div class="modal-body">
-                    <?php if (isset($_GET['changepass'])): ?>
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle mr-2"></i> <strong>Peringatan Keamanan!</strong><br>
-                        Anda masih menggunakan password default. Silakan ganti password Anda untuk melanjutkan.
+                    <div class="form-group">
+                        <label for="old_password">Password Saat Ini</label>
+                        <input type="password" class="form-control" id="old_password" name="old_password" required
+                            placeholder="Masukkan password saat ini">
                     </div>
-                    <?php endif; ?>
-                    <form id="formGantiPassword">
-                        <div class="mb-3">
-                            <label for="old_password" class="form-label">Password Lama</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="old_password" name="old_password" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('old_password')"><i class="fas fa-eye"></i></button>
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="new_password" class="form-label">Password Baru</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="new_password" name="new_password" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('new_password')"><i class="fas fa-eye"></i></button>
-                            </div>
-                            <!-- Strength Meter -->
-                            <div class="progress mt-1" style="height: 5px;">
-                                <div id="passStrengthBar" class="progress-bar" role="progressbar" style="width: 0%"></div>
-                            </div>
-                            <small id="passStrengthText" class="text-muted" style="font-size: 0.8em;">Strength: -</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="confirm_password" class="form-label">Konfirmasi Password Baru</label>
-                            <div class="input-group">
-                                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-                                <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('confirm_password')"><i class="fas fa-eye"></i></button>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
-                            <button type="submit" class="btn btn-danger">Simpan </button>
-                        </div>
-                    </form>
+                    <div class="form-group">
+                        <label for="new_password">Password Baru</label>
+                        <input type="password" class="form-control" id="new_password" name="new_password" required
+                            placeholder="Masukkan password baru">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Konfirmasi Password Baru</label>
+                        <input type="password" class="form-control" id="confirm_password" name="confirm_password"
+                            required placeholder="Ulangi password baru">
+                    </div>
                 </div>
-            </div>
+                <div class="modal-footer justify-content-between">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
+                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                </div>
+            </form>
         </div>
     </div>
+</div>
 
-    <script>
-        toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-center", "timeOut": "3000" };
-
-        function togglePassword(fieldId) {
-            const field = document.getElementById(fieldId);
-            const icon = field.nextElementSibling.querySelector('i');
-            if (field.type === "password") {
-                field.type = "text";
-                icon.classList.remove('fa-eye');
-                icon.classList.add('fa-eye-slash');
-            } else {
-                field.type = "password";
-                icon.classList.remove('fa-eye-slash');
-                icon.classList.add('fa-eye');
-            }
-        }
-
-        // Check Password Strength
-        $(document).ready(function() {
-            // Auto Open Modal if forced
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.has('changepass')) {
-                $('#gantiPass').modal({
-                    backdrop: 'static',
-                    keyboard: false
-                });
-            }
-
-            $('#new_password').on('keyup change', function() {
-                const password = $(this).val();
-                const strengthBar = $('#passStrengthBar');
-                const strengthText = $('#passStrengthText');
-                let strength = 0;
-
-                // Strength Calculation
-                if (password.length > 5) strength += 1;
-                if (password.length > 7) strength += 1;
-                
-                // Matches letters and numbers mixed
-                if (password.match(/([a-z].*[A-Z])|([A-Z].*[a-z])/)) strength += 1;
-                if (password.match(/([a-zA-Z])/) && password.match(/([0-9])/)) strength += 1;
-                
-                // Matches special characters
-                if (password.match(/([!%&@#$^*?_~])/)) strength += 1;
-
-                // Update UI
-                if (password.length < 1) {
-                    strengthBar.css('width', '0%').removeClass().addClass('progress-bar');
-                    strengthText.text('Strength: -').css('color', '#6c757d');
-                } else if (strength < 2) {
-                    strengthBar.css('width', '20%').removeClass().addClass('progress-bar bg-danger');
-                    strengthText.html('Strength: <b>Low</b>').css('color', '#dc3545');
-                } else if (strength == 2) {
-                    strengthBar.css('width', '40%').removeClass().addClass('progress-bar bg-warning');
-                    strengthText.html('Strength: <b>Medium</b>').css('color', '#ffc107');
-                } else if (strength >= 3 && strength < 5) {
-                    strengthBar.css('width', '60%').removeClass().addClass('progress-bar bg-info');
-                    strengthText.html('Strength: <b>Good</b>').css('color', '#17a2b8');
-                } else {
-                    strengthBar.css('width', '100%').removeClass().addClass('progress-bar bg-success');
-                    strengthText.html('Strength: <b>Strong</b>').css('color', '#28a745');
-                }
-            });
-        });
-
-        // Handle Form Ganti Password
-        $('#formGantiPassword').on('submit', function(e) {
+<script>
+    $(document).ready(function () {
+        // ==========================================
+        // PASSWORD CHANGE HANDLER
+        // ==========================================
+        $('#formGantiPassword').on('submit', function (e) {
             e.preventDefault();
-            
-            const oldPass = $('#old_password').val();
-            const newPass = $('#new_password').val();
-            const confirmPass = $('#confirm_password').val();
-
-            if(newPass !== confirmPass) {
-                toastr["error"]("Konfirmasi password baru tidak cocok!");
+            if ($('#new_password').val() !== $('#confirm_password').val()) {
+                toastr["error"]("Konfirmasi password tidak cocok!");
                 return;
             }
+
+            const btn = $(this).find('button[type="submit"]');
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i> Memproses...');
 
             $.ajax({
                 url: 'proses_password.php',
                 type: 'POST',
                 data: $(this).serialize(),
                 dataType: 'json',
-                success: function(response) {
-                    if(response.status === 'success') {
-                        toastr["success"](response.message);
+                success: function (res) {
+                    if (res.status === 'success') {
+                        toastr["success"](res.message);
+                        $('#gantiPass').modal('hide');
                         $('#formGantiPassword')[0].reset();
-                        
-                        // Cek apakah ini forced change
-                        const urlParams = new URLSearchParams(window.location.search);
-                        if (urlParams.has('changepass')) {
-                            setTimeout(function(){
-                                window.location.href = 'dashboard.php?page=profil'; // Hapus param changepass
-                            }, 1500);
-                        } else {
-                            // Tutup Modal
-                            $('#gantiPass').modal('hide');
-                        }
                     } else {
-                        toastr["error"](response.message);
+                        toastr["error"](res.message);
                     }
                 },
-                error: function() {
-                    toastr["error"]("Terjadi kesalahan koneksi.");
-                }
+                error: function () { toastr["error"]("Terjadi kesalahan koneksi."); },
+                complete: function () { btn.prop('disabled', false).text('Simpan Perubahan'); }
             });
         });
 
-        function uploadFile() {
-   
-            const fileInput = document.getElementById("photo1");
+        // ==========================================
+        // PHOTO UPLOAD HANDLER
+        // ==========================================
+        window.uploadFile = function () {
+            const fileInput = document.getElementById("photoInput");
             const file = fileInput.files[0];
             if (!file) return;
 
-            if (!file.type.match('image.*')) {
-                toastr["error"]("Hanya file gambar yang diperbolehkan!"); return;
-            }
+            $("#progress_wrapper").show();
+            $("#status").html("<span class='text-muted small'>Memproses...</span>");
 
-            $("#progressContainer").fadeIn();
-
-            // Preview Lokal sebelum upload
-            const reader = new FileReader();
-            reader.onload = function(e) { document.getElementById('profileImage').src = e.target.result; }
-            reader.readAsDataURL(file);
-
-            const formData = new FormData();
-            formData.append("photo1", file);
+            const formdata = new FormData();
+            formdata.append("photo1", file);
 
             $.ajax({
-                url: 'uploads.php', 
+                url: 'uploads.php',
                 type: 'POST',
-                data: formData,
-                contentType: false, cache: false, processData: false,
-                xhr: function() {
+                data: formdata,
+                contentType: false,
+                processData: false,
+                xhr: function () {
                     const xhr = new window.XMLHttpRequest();
-                    xhr.upload.addEventListener("progress", function(evt) {
-                        if (evt.lengthComputable) {
-                            const percent = Math.round((evt.loaded / evt.total) * 100);
-                            document.getElementById("progressBar").style.width = percent + "%";
-                            document.getElementById("status").innerHTML = `<span class="text-info">Mengupload... ${percent}%</span>`;
+                    xhr.upload.addEventListener("progress", function (e) {
+                        if (e.lengthComputable) {
+                            const percent = (e.loaded / e.total) * 100;
+                            $("#progressBar").css("width", Math.round(percent) + "%");
+                            $("#status").html("<span class='text-primary small'>Mengunggah: " + Math.round(percent) + "%</span>");
+                            $("#loaded_n_total").html((e.loaded / 1024).toFixed(1) + " / " + (e.total / 1024).toFixed(1) + " KB");
                         }
                     }, false);
                     return xhr;
                 },
-                success: function(response) {
-                    if(response.status === 'success'){
-                        // Update gambar dengan cache busting agar tidak load gambar lama
-                        if(response.file_path) {
-                            const newSrc = response.file_path + '?t=' + new Date().getTime();
-                            document.getElementById('profileImage').src = newSrc;
-                        }
-                        
-                        // Reset Progress
-                        document.getElementById("status").innerHTML = "<span class='text-success fw-bold'>Selesai!</span>";
-                        toastr["success"]("Foto profil berhasil diperbarui!");
-                        setTimeout(() => { $("#progressContainer").fadeOut(); }, 2000);
+                success: function (response) {
+                    if (response.status === 'success') {
+                        const newImgUrl = response.url + "?t=" + new Date().getTime();
+                        $("#exisImage").html("<img src='" + newImgUrl + "' alt='Photo'>");
+                        $("#status").html("<span class='text-success small'>Berhasil Diperbarui!</span>");
+                        toastr.success("Foto profil berhasil diperbarui.");
+                        setTimeout(function () {
+                            $("#progress_wrapper").fadeOut();
+                            $("#loaded_n_total").html("");
+                            $("#status").html("");
+                        }, 2000);
                     } else {
-                        toastr["warning"](response.message);
-                        $("#progressContainer").fadeOut();
+                        $("#status").html("<span class='text-danger small'>" + response.message + "</span>");
+                        toastr.error(response.message);
+                        $("#progressBar").addClass("bg-danger");
                     }
                 },
-                error: function() {
-                    toastr["error"]("Gagal koneksi ke server.");
-                    $("#progressContainer").fadeOut();
+                error: function () {
+                    $("#status").html("<span class='text-danger small'>Gagal terhubung</span>");
+                    toastr.error("Gagal terhubung ke server.");
                 }
             });
-        }
-    </script>
+        };
+
+    });
+</script>

@@ -134,7 +134,7 @@ if (!isset($conn)) {
             </div>
 
             <!-- Log Card -->
-            <div id="logCard" class="modern-card mt-4 p-4 d-none">
+            <div id="logCard" class="modern-card mt-4 p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <h6 class="fw-bold mb-0 small uppercase text-muted">Log Aktivitas Import</h6>
                     <span class="badge rounded-pill bg-light text-primary border" id="logCounter" style="font-size: 0.65rem;">0 Entri</span>
@@ -312,6 +312,29 @@ if (!isset($conn)) {
 
 <script>
     let excelData = [];
+    let logCount = 0;
+
+    const addLog = (type, message, rowIdx) => {
+        logCount++;
+        const logList = document.getElementById('logList');
+        const item = document.createElement('div');
+        item.className = `p-2 mb-2 rounded-3 extra-small d-flex align-items-center gap-2 border-start border-3 transition-all ${type === 'success' ? 'bg-soft-success border-success' : type === 'update' ? 'bg-soft-primary border-primary' : 'bg-soft-danger border-danger'}`;
+        
+        const icon = type === 'success' ? 'la-check-circle text-success' : type === 'update' ? 'la-sync text-primary' : 'la-exclamation-circle text-danger';
+        
+        item.innerHTML = `
+            <i class="las ${icon} fs-5"></i>
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center">
+                    <strong class="text-dark">${rowIdx >= 0 ? 'Baris ' + (rowIdx + 2) : 'Sistem'}</strong>
+                    <span class="text-muted" style="font-size: 0.6rem;">${new Date().toLocaleTimeString()}</span>
+                </div>
+                <div class="text-muted text-truncate" style="max-width: 250px;">${message}</div>
+            </div>
+        `;
+        logList.prepend(item);
+        document.getElementById('logCounter').textContent = `${logCount} Entri`;
+    };
 
     document.getElementById('excelFile').addEventListener('change', function (e) {
         const file = e.target.files[0];
@@ -342,7 +365,12 @@ if (!isset($conn)) {
 
             if (excelData.length > 0) {
                 document.getElementById('btnImport').disabled = false;
-                showAlert('success', `File terbaca! Ditemukan ${excelData.length} baris data.`);
+                // Clear log and add initial info
+                document.getElementById('logList').innerHTML = '';
+                logCount = 0;
+                document.getElementById('logCounter').textContent = '0 Entri';
+                
+                addLog('success', `File <b>${file.name}</b> terpilih. ${excelData.length} baris data siap diunggah.`, -1);
             } else {
                 showAlert('danger', 'File kosong atau tidak memiliki data.');
             }
@@ -368,29 +396,7 @@ if (!isset($conn)) {
         let success = 0;
         let error = 0;
         let errorLog = [];
-        let logCount = 0;
-
-        const addLog = (type, message, rowIdx) => {
-            logCount++;
-            const logList = document.getElementById('logList');
-            const item = document.createElement('div');
-            item.className = `p-2 mb-2 rounded-3 extra-small d-flex align-items-center gap-2 border-start border-3 transition-all ${type === 'success' ? 'bg-soft-success border-success' : type === 'update' ? 'bg-soft-primary border-primary' : 'bg-soft-danger border-danger'}`;
-            
-            const icon = type === 'success' ? 'la-check-circle text-success' : type === 'update' ? 'la-sync text-primary' : 'la-exclamation-circle text-danger';
-            
-            item.innerHTML = `
-                <i class="las ${icon} fs-5"></i>
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <strong class="text-dark">Baris ${rowIdx + 2}</strong>
-                        <span class="text-muted" style="font-size: 0.6rem;">${new Date().toLocaleTimeString()}</span>
-                    </div>
-                    <div class="text-muted text-truncate" style="max-width: 250px;">${message}</div>
-                </div>
-            `;
-            logList.prepend(item);
-            document.getElementById('logCounter').textContent = `${logCount} Entri`;
-        };
+        logCount = 0;
 
         // Helper functions
         const cleanValue = (val) => {
@@ -416,12 +422,17 @@ if (!isset($conn)) {
         for (let i = 0; i < total; i++) {
             const row = excelData[i];
 
-            // Default missing NIP/NRK to '0' if requested, but NIP should ideally be unique
-            const rawNip = cleanValue(row[0]) || '0';
-            const rawNama = (row[2] || '').toString().trim(); // Column C
+            // Validate NIP (Column A) and Nama (Column C)
+            const rawNip = cleanValue(row[0]);
+            const rawNama = (row[2] || '').toString().trim();
 
+            if (!rawNip || rawNip === '0') {
+                continue; // Silent skip for empty or 0 NIP
+            }
+            
             if (!rawNama) {
-                continue; // Still skip if Nama is missing as it's a minimum requirement
+                addLog('error', `Baris ${i + 2}: Nama kosong, dilewati.`, i);
+                continue;
             }
 
             const percent = Math.round(((i + 1) / total) * 100);
@@ -478,6 +489,9 @@ if (!isset($conn)) {
                 if (res.status === 'success') {
                     success++;
                     addLog(res.mode === 'update' ? 'update' : 'success', `${rawNama} (${res.mode === 'update' ? 'Diperbarui' : 'Ditambah'})`, i);
+                } else if (res.status === 'skipped') {
+                    // Silently ignore skipped status
+                    continue;
                 } else {
                     error++;
                     errorLog.push(`Baris ${i + 2} (${row[0] || 'NIP Kosong'}): ${res.message}`);

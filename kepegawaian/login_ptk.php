@@ -289,7 +289,7 @@ unset($_SESSION['error_message']);
             align-items: center;
             padding: 0 25px;
             transition: all 0.4s;
-            box-shadow: 0 10px 20px -10px rgba(79, 70, 229, 0.5) !important;
+            box-shadow: 0 10px 20px -10px rgba(13, 0, 255, 1) !important;
             border: none !important;
             cursor: pointer;
             margin-top: 10px;
@@ -298,35 +298,31 @@ unset($_SESSION['error_message']);
         .login100-form-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 15px 25px -10px rgba(79, 70, 229, 0.6) !important;
-            animation: pulse-light 2s infinite;
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%) !important;
         }
 
-        @keyframes pulse-light {
-            0% {
-                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.4);
-            }
-
-            70% {
-                box-shadow: 0 0 0 10px rgba(99, 102, 241, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(99, 102, 241, 0);
-            }
+        .login100-form-btn:active {
+            transform: translateY(0);
         }
-
 
         /* Error Messages */
         .error-container {
             margin-top: 25px;
             padding: 15px;
-            background: rgba(239, 68, 68, 0.08) !important;
+            background: rgba(239, 68, 68, 0.12) !important;
             border: 1px solid rgba(239, 68, 68, 0.2) !important;
             border-radius: 12px !important;
-            color: #f87171 !important;
+            color: #fca5a5 !important;
             font-size: 13px;
             text-align: center;
             line-height: 1.5;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
         }
 
         .copyright {
@@ -340,7 +336,7 @@ unset($_SESSION['error_message']);
 
         /* Utility */
         ::placeholder {
-            color: rgba(255, 255, 255, 0.2) !important;
+            color: rgba(255, 255, 255, 0.3) !important;
         }
     </style>
 </head>
@@ -363,29 +359,31 @@ unset($_SESSION['error_message']);
                     <small>Sistem Manajemen Kepegawaian</small>
                 </span>
 
-                <div class="wrap-input100 validate-input" data-validate="Masukkan NIP atau User ID">
+                <div class="wrap-input100 validate-input" data-validate="Masukkan NIP atau Username">
                     <input class="input100" type="text" id="userid" name="userid" placeholder="NIP / Username"
-                        autocomplete="off">
+                        autocomplete="off" required>
                 </div>
 
                 <div class="wrap-input100 validate-input" data-validate="Masukkan password">
-                    <input class="input100" type="password" id="password" name="password" placeholder="Password">
+                    <input class="input100" type="password" id="password" name="password" placeholder="Password" required>
                     <i class="fa fa-eye-slash eye-icon" id="toggle-password"></i>
                 </div>
 
                 <div class="captcha-area">
-                    <img src="../captcha_img.php" alt="CAPTCHA" id="captcha-img">
+                    <div style="background: white; border-radius: 6px; padding: 2px; display: flex; align-items: center;">
+                        <img src="../captcha_img.php" alt="CAPTCHA" id="captcha-img" style="height: 32px; border-radius: 4px; filter: none;">
+                    </div>
                     <span class="refresh-captcha"
                         onclick="document.getElementById('captcha-img').src='../captcha_img.php?'+Math.random();"
                         title="Refresh Captcha">
                         <i class="las la-sync-alt"></i>
                     </span>
-                    <input class="captcha-input" type="text" id="captcha" name="captcha" placeholder="Input Captcha"
+                    <input class="captcha-input" type="text" id="captcha" name="captcha" placeholder="Hasil Captcha"
                         autocomplete="off" required>
                 </div>
 
                 <div class="container-login100-form-btn">
-                    <button class="login100-form-btn">
+                    <button class="login100-form-btn" type="submit">
                         Login
                     </button>
                 </div>
@@ -400,18 +398,18 @@ unset($_SESSION['error_message']);
                     $salah = $_GET['salah'];
                     if ($salah == 1) {
                         $sisa = htmlspecialchars($_GET['sisa'] ?? 0);
-                        echo "<strong>Login Gagal</strong><br>ID Guru atau Password salah.<br>Sisa percobaan: $sisa kali.";
+                        echo "<strong>Login Gagal</strong><br>Username atau Password salah.<br>Sisa percobaan: $sisa kali.";
                     } elseif ($salah == 5) {
-                        echo "<strong>Captcha Salah</strong><br>Silakan periksa kembali jawaban Anda.";
+                        echo "<strong>Captcha Salah</strong><br>Silakan periksa kembali jawaban matematika Anda.";
                     } elseif ($salah == 3) {
                         $wait = isset($_GET['wait']) ? ceil((int) $_GET['wait'] / 60) : 5;
                         echo "<strong>Akun Terkunci</strong><br>Terlalu banyak percobaan login.<br>Silakan tunggu sekitar $wait menit.";
                     } elseif ($salah == 4) {
-                        echo "<strong>Akses Ditolak</strong><br>Portal ini khusus untuk akun Guru.";
+                        echo "<strong>Akses Ditolak</strong><br>Portal ini khusus untuk akun Pegawai/Guru.";
                     } elseif ($salah == 6) {
                         echo "<strong>User Tidak Aktif</strong><br>Akun Anda dinonaktifkan. Silakan hubungi admin.";
                     } elseif ($salah == 2) {
-                        echo "<strong>Gagal Menghubungi Database</strong><br>Terjadi kesalahan sistem atau struktur tabel tidak sesuai. Hubungi Admin.";
+                        echo "<strong>Kesalahan Sistem</strong><br>Gagal menghubungi database. Silakan hubungi tim IT.";
                     } else {
                         echo "<strong>Terjadi Kesalahan</strong><br>Silakan coba lagi nanti.";
                     }
@@ -427,14 +425,22 @@ unset($_SESSION['error_message']);
         </div>
     </div>
 
-    <script src="../plugins/jquery/jquery.min.js"></script> <!-- Adjusted path -->
+    <script src="../plugins/jquery/jquery.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Toggle Password Visibility
             $('#toggle-password').click(function () {
                 const passwordField = $('#password');
                 const type = passwordField.attr('type') === 'password' ? 'text' : 'password';
                 passwordField.attr('type', type);
                 $(this).toggleClass('fa-eye fa-eye-slash');
+            });
+
+            // Focus animation for input containers
+            $('.input100').focus(function(){
+                $(this).parent().addClass('shadow-sm');
+            }).blur(function(){
+                $(this).parent().removeClass('shadow-sm');
             });
         });
 
@@ -442,10 +448,17 @@ unset($_SESSION['error_message']);
             var userid = document.getElementById('userid').value;
             var password = document.getElementById('password').value;
             var captcha = document.getElementById('captcha').value;
+            
             if (userid.trim() === '' || password.trim() === '' || captcha.trim() === '') {
-                alert('Harap isi semua kolom!');
                 return false;
             }
+            
+            // Show loading state on button
+            const btn = document.querySelector('.login100-form-btn');
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin me-2"></i> Memproses...';
+            btn.style.pointerEvents = 'none';
+            btn.style.opacity = '0.8';
+            
             return true;
         }
     </script>

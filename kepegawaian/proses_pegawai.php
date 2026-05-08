@@ -104,7 +104,8 @@ try {
         'pengalaman_kerja' => "TEXT",
         'is_pensiun_synced' => "TINYINT(1) DEFAULT 0",
         'last_activity' => "DATETIME",
-        'tmt_pangkat' => "DATE"
+        'tmt_pangkat' => "DATE",
+        'google_auth_secret' => "VARCHAR(255) NULL"
     ];
 
     foreach ($columns_to_ensure as $col => $type) {
@@ -574,6 +575,23 @@ try {
         } else {
             ob_clean();
             echo json_encode(['status' => 'error', 'message' => 'Gagal mengubah status.']);
+        }
+        exit;
+    }
+
+    // --- RESET 2FA ---
+    if ($action == 'reset_2fa') {
+        header('Content-Type: application/json');
+        $id = $_POST['id'];
+        $stmt = $conn->prepare("UPDATE pegawai SET google_auth_secret = NULL WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        if ($stmt->execute()) {
+            ob_clean();
+            add_activity_log($conn, 'Pegawai', 'Reset 2FA', "ID: $id");
+            echo json_encode(['status' => 'success', 'message' => 'Google Authenticator berhasil direset!']);
+        } else {
+            ob_clean();
+            echo json_encode(['status' => 'error', 'message' => 'Gagal meriset 2FA.']);
         }
         exit;
     }

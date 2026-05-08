@@ -25,7 +25,7 @@ $error_message = "";
 $success_message = "";
 
 // Ambil data user
-$stmt = $conn->prepare("SELECT id, userid, password, email, nama, google_auth_secret, level, status, poto, email_code, email_code_expired FROM tb_user WHERE id = ?");
+$stmt = $conn->prepare("SELECT id, userid, password, email, nama, google_auth_secret, level, status, poto, nik, email_code, email_code_expired FROM tb_user WHERE id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -92,6 +92,7 @@ if (isset($_POST['verify_code'])) {
         $_SESSION['level'] = $user['level'];
         $_SESSION['status'] = $user['status'];
         $_SESSION['poto'] = $user['poto'];
+        $_SESSION['nik'] = $user['nik']; // Sync with login_proses.php
         $_SESSION['last_activity'] = time();
         $_SESSION['skradm'] = $user['userid']; // Required for secure.php
 
@@ -138,7 +139,11 @@ if (isset($_POST['verify_code'])) {
         // Insert Log
         add_activity_log($conn, 'Auth', '2FA Verify', 'Verifikasi 2FA Berhasil');
 
-        header("Location: index.php");
+        if ($user['level'] == '4') {
+            header("Location: index.php?kepegawaian_dashboard_guru");
+        } else {
+            header("Location: index.php");
+        }
         exit();
 
     } else {

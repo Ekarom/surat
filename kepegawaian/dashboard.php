@@ -87,76 +87,7 @@ $file_stats = [
     'ijazah' => ['count' => $conn->query("SELECT COUNT(DISTINCT pegawai_id) FROM riwayat_kepegawaian WHERE kategori = 'Pendidikan' AND file_lampiran IS NOT NULL AND file_lampiran != ''")->fetch_row()[0], 'label' => 'Ijazah', 'icon' => 'la-graduation-cap', 'color' => 'bg-warning'],
 ];
 
-// Individual Promotion Progress Pagination
-$limit_ptk = 5;
-$page_ptk = isset($_GET['p_ptk']) ? max(1, (int) $_GET['p_ptk']) : 1;
-$offset_ptk = ($page_ptk - 1) * $limit_ptk;
-
-$total_ptk_res = $conn->query("SELECT COUNT(*) FROM pegawai WHERE status = '1'");
-$total_ptk_count = $total_ptk_res ? $total_ptk_res->fetch_row()[0] : 0;
-$total_pages_ptk = ceil($total_ptk_count / $limit_ptk);
-
-$ptk_progress = [];
-$sql_progress = "SELECT 
-        id, 
-        nm_pegawai, 
-        nip,
-        tmt_golongan,
-        pangkat,
-        golongan,
-        gelar_depan,
-        gelar_belakang
-     FROM pegawai
-     WHERE status = '1'
-     ORDER BY nm_pegawai ASC
-     LIMIT $limit_ptk OFFSET $offset_ptk";
-$res_progress = $conn->query($sql_progress);
-
-if (!$res_progress) {
-    error_log("SQL Error in Dashboard Promotion: " . $conn->error . " Query: " . $sql_progress);
-}
-
-if ($res_progress) {
-    while ($row = $res_progress->fetch_assoc()) {
-        $tmt = $row['tmt_golongan'];
-        if (!$tmt || $tmt == '0000-00-00') {
-            $row['percentage'] = 0;
-            $row['is_empty'] = true;
-            $row['sisa'] = 'Data TMT Kosong';
-            $row['next_promotion'] = '-';
-        } else {
-            $tmtDate = new DateTime($tmt);
-            $nextPromoDate = clone $tmtDate;
-            $nextPromoDate->modify("+4 years");
-            $today = new DateTime();
-            $interval = $today->diff($nextPromoDate);
-            $isDue = ($today > $nextPromoDate);
-            
-            $sisa = "";
-            if ($isDue) {
-                $sisa = "Sudah Waktunya";
-            } else {
-                if ($interval->y > 0) $sisa .= $interval->y . " Th ";
-                if ($interval->m > 0) $sisa .= $interval->m . " Bln ";
-                if ($interval->d > 0 && $interval->y == 0) $sisa .= $interval->d . " Hari";
-                if (trim($sisa) == "") $sisa = "Bulan Ini";
-            }
-            
-            $totalDays = 4 * 365.25;
-            $passedInterval = $tmtDate->diff($today);
-            $passedDays = $passedInterval->days;
-            if ($passedInterval->invert) $passedDays = 0;
-            
-            $row['percentage'] = min(max(round(($passedDays / $totalDays) * 100), 0), 100);
-            $row['is_empty'] = false;
-            $row['isDue'] = $isDue;
-            $row['sisa'] = trim($sisa);
-            $row['next_promotion'] = $nextPromoDate->format('d-m-Y');
-            $row['tmt_display'] = $tmtDate->format('d-m-Y');
-        }
-        $ptk_progress[] = $row;
-    }
-}
+// Individual Promotion Progress fetching removed - logic moved to dedicated module
 
 /**
  * 2. RETIREMENT DATA (Dashboard Summary)
@@ -245,111 +176,72 @@ if ($res_pensiun) {
 </div>
 
 
-<!-- Section: Promotion Progress -->
+
+<!-- Section: Main Dashboard Body -->
 <div class="row g-4 mb-4">
-    <!-- Individual Promotion Progress -->
+    <!-- Retirement Table -->
     <div class="col-lg-8">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0 py-2">
-                <h6 class="fw-bold mb-0">Progress Kenaikan Pangkat</h6>
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0"><i class="fas fa-user-clock me-2 text-danger"></i> Estimasi Pensiun Terdekat</h6>
+                <a href="?data_pensiun" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">Detail Pensiun <i class="fas fa-arrow-right ms-1"></i></a>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="bg-light">
                             <tr>
-                                <th class="ps-4">Nama PTK / NIP</th>
-                                <th>Estimasi Kenaikan</th>
-                                <th width="200">Progress</th>
-                                <th class="text-center pe-4">Sisa Waktu</th>
+                                <th class="text-center px-4" width="70">#</th>
+                                <th>Nama Pegawai</th>
+                                <th>Jabatan</th>
+                                <th>TMT Pensiun</th>
+                                <th class="text-center px-4">Sisa Waktu</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if (!empty($ptk_progress)): ?>
-                                <?php foreach ($ptk_progress as $p):
-                                    $bar_class = ($p['isDue'] ?? false) ? 'bg-danger' : (($p['percentage'] > 90) ? 'bg-warning' : 'bg-primary');
+                            <?php if (!empty($pensiun_list)):
+                                $no = 1;
+                                foreach ($pensiun_list as $row):
+                                    $sisa = "";
+                                    if ($row['sisa_th'] > 0) $sisa .= $row['sisa_th'] . " Th ";
+                                    if ($row['sisa_bln'] > 0) $sisa .= $row['sisa_bln'] . " Bln";
+                                    if ($sisa == "") $sisa = "Bulan Ini";
+                                    $is_near = ($row['sisa_th'] == 0);
                                     ?>
                                     <tr>
-                                        <td class="ps-4">
-                                            <div class="fw-bold text-dark">
-                                                <?php 
-                                                $full_name = (!empty($p['gelar_depan']) ? $p['gelar_depan'] . ' ' : '') . $p['nm_pegawai'] . (!empty($p['gelar_belakang']) ? ', ' . $p['gelar_belakang'] : '');
-                                                echo htmlspecialchars($full_name); 
-                                                ?>
-                                            </div>
-                                            <div class="extra-small text-muted">
-                                                <?php echo $p['nip'] ?: '-'; ?> • 
-                                                <span class="text-primary fw-bold"><?php echo $p['pangkat'] ?: '-'; ?> (<?php echo $p['golongan'] ?: '-'; ?>)</span>
-                                            </div>
-                                        </td>
+                                        <td class="text-center px-4 text-muted small"><?php echo $no++; ?></td>
                                         <td>
-                                            <div class="small fw-bold text-primary"><?php echo $p['next_promotion']; ?></div>
-                                            <div class="extra-small text-muted">TMT: <?php echo $p['tmt_display'] ?? '-'; ?></div>
+                                            <div class="fw-bold text-dark"><?php echo htmlspecialchars($row['nm_pegawai']); ?></div>
+                                            <div class="extra-small text-muted"><?php echo $row['nip'] ?: '-'; ?></div>
                                         </td>
-                                        <td>
-                                            <div class="d-flex align-items-center">
-                                                <div class="progress flex-grow-1"
-                                                    style="height: 6px; background-color: #f1f5f9; border-radius: 10px;">
-                                                    <div class="progress-bar <?php echo 'bg-gradient-x-' . str_replace('bg-', '', $bar_class); ?> rounded-pill shadow-none"
-                                                        role="progressbar" style="width: <?php echo $p['percentage']; ?>%">
-                                                    </div>
-                                                </div>
-                                                <span class="ms-2 extra-small fw-bold text-muted"
-                                                    style="min-width: 30px;"><?php echo round($p['percentage']); ?>%</span>
-                                            </div>
-                                        </td>
-                                        <td class="text-center pe-4">
-                                            <?php if ($p['is_empty']): ?>
-                                                <span class="badge bg-secondary-soft text-muted rounded-pill px-3 extra-small">TMT Kosong</span>
-                                            <?php elseif ($p['isDue']): ?>
-                                                <span class="badge bg-danger rounded-pill px-3 extra-small">Sudah Waktunya</span>
-                                            <?php else: ?>
-                                                <span class="small fw-bold <?php echo ($p['percentage'] > 90) ? 'text-warning' : 'text-dark'; ?>">
-                                                    <?php echo $p['sisa']; ?>
-                                                </span>
-                                            <?php endif; ?>
+                                        <td><span class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span></td>
+                                        <td class="fw-bold text-primary small"><?php echo $row['tmt_pensiun_display']; ?></td>
+                                        <td class="text-center px-4">
+                                            <span class="badge <?php echo $is_near ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'; ?> rounded-pill px-3 fw-bold">
+                                                <?php echo $sisa; ?>
+                                            </span>
                                         </td>
                                     </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
+                                <?php endforeach;
+                            else: ?>
                                 <tr>
-                                    <td colspan="4" class="text-center py-5 text-muted small">Tidak ada data progress kenaikan pangkat<?php if (!$res_progress) echo "<br><span class='text-danger extra-small'>Database Error: " . htmlspecialchars($conn->error) . "</span>"; ?></td>
+                                    <td colspan="5" class="text-center py-5 text-muted small">Data pensiun tidak tersedia.</td>
                                 </tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
             </div>
-            <div class="card-footer bg-white border-0 py-2 d-flex justify-content-between align-items-center">
-                <?php
-                $base_url = "?";
-                foreach ($_GET as $key => $val) {
-                    if ($key != 'p_ptk')
-                        $base_url .= urlencode($key) . "=" . urlencode($val) . "&";
-                }
-                ?>
-                <a href="<?php echo $base_url; ?>p_ptk=<?php echo max(1, $page_ptk - 1); ?>"
-                    class="btn btn-sm btn-outline-primary rounded-pill px-3 <?php echo ($page_ptk <= 1) ? 'disabled' : ''; ?>">
-                    <i class="las la-angle-left me-1"></i> Prev
-                </a>
-                <span class="extra-small text-muted fw-bold">Hal <?php echo $page_ptk; ?> /
-                    <?php echo $total_pages_ptk; ?></span>
-                <a href="<?php echo $base_url; ?>p_ptk=<?php echo min($total_pages_ptk, $page_ptk + 1); ?>"
-                    class="btn btn-sm btn-outline-primary rounded-pill px-3 <?php echo ($page_ptk >= $total_pages_ptk) ? 'disabled' : ''; ?>">
-                    Next <i class="las la-angle-right ms-1"></i>
-                </a>
-            </div>
         </div>
     </div>
 
-    <!-- User Online Panel (Real-time) -->
-    <div class="col-md-4">
-        <div class="card shadow-sm border-0">
+    <!-- User Online Panel -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm border-0 h-100">
             <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
                 <div class="fw-bold">
-                    User Online
-                    <span id="online-total" class="badge rounded-circle bg-success-soft text-success px-2 py-1"
-                        style="font-size: 0.7rem;">0</span>
+                    <i class="las la-globe me-1 text-success"></i> User Online
+                    <span id="online-total" class="badge rounded-circle bg-success-soft text-success px-2 py-1" style="font-size: 0.7rem;">0</span>
                 </div>
                 <div id="online-ping" class="online-dot-pulse" style="opacity: 0; transition: opacity 0.3s;"></div>
             </div>
@@ -362,78 +254,9 @@ if ($res_pensiun) {
                 </div>
             </div>
             <div class="card-footer bg-white border-0 py-2 d-flex justify-content-between align-items-center">
-                <button id="online-prev" class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50"
-                    disabled>Prev</button>
+                <button id="online-prev" class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50" disabled>Prev</button>
                 <span id="online-page-info" class="extra-small text-muted fw-bold">Hal 1 / 1</span>
-                <button id="online-next" class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50"
-                    disabled>Next</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-
-<!-- Retirement Table -->
-<div class="mt-4 pb-5">
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white border-0 py-2 d-flex justify-content-between align-items-center">
-            <h6 class="fw-bold mb-0"><i class="fas fa-user-clock me-2 text-danger"></i> Estimasi Pensiun Terdekat
-            </h6>
-            <a href="?data_pensiun" class="btn btn-outline-danger btn-sm rounded-pill px-3 fw-bold">Detail Pensiun <i
-                    class="fas fa-arrow-right ms-1"></i></a>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="text-center px-4" width="70">#</th>
-                            <th>Nama Pegawai</th>
-                            <th>Jabatan</th>
-                            <th>TMT Pensiun</th>
-                            <th class="text-center px-4">Sisa Waktu</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php if (!empty($pensiun_list)):
-                            $no = 1;
-                            foreach ($pensiun_list as $row):
-                                $sisa = "";
-                                if ($row['sisa_th'] > 0)
-                                    $sisa .= $row['sisa_th'] . " Th ";
-                                if ($row['sisa_bln'] > 0)
-                                    $sisa .= $row['sisa_bln'] . " Bln";
-                                if ($sisa == "")
-                                    $sisa = "Bulan Ini";
-
-                                $is_near = ($row['sisa_th'] == 0);
-                                ?>
-                                <tr>
-                                    <td class="text-center px-4 text-muted"><?php echo $no++; ?></td>
-                                    <td>
-                                        <div class="fw-bold"><?php echo htmlspecialchars($row['nm_pegawai']); ?></div>
-                                        <div class="extra-small text-muted"><?php echo $row['nip'] ?: '-'; ?></div>
-                                    </td>
-                                    <td><span
-                                            class="badge badge-soft-blue"><?php echo htmlspecialchars($row['jabatan']); ?></span>
-                                    </td>
-                                    <td class="fw-bold text-primary"><?php echo $row['tmt_pensiun_display']; ?></td>
-                                    <td class="text-center px-4">
-                                        <span
-                                            class="badge <?php echo $is_near ? 'bg-danger-soft text-danger' : 'bg-warning-soft text-warning'; ?> rounded-pill px-3 fw-bold">
-                                            <?php echo $sisa; ?>
-                                        </span>
-                                    </td>
-                                </tr>
-                            <?php endforeach;
-                        else: ?>
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Data pensiun tidak tersedia.</td>
-                            </tr>
-                        <?php endif; ?>
-                    </tbody>
-                </table>
+                <button id="online-next" class="btn btn-sm btn-outline-secondary rounded-pill px-3 opacity-50" disabled>Next</button>
             </div>
         </div>
     </div>
