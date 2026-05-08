@@ -83,7 +83,7 @@ function getRetirementDetails($tglLahir, $jabatan, $statusPegawai)
 
 // Fetch all active employees
 $employees = [];
-$query = "SELECT id, nm_pegawai, nip, tgl_lahir, status_pegawai, jabatan, unit_kerja FROM pegawai WHERE status = '1' AND is_pensiun_synced = 1 ORDER BY nm_pegawai ASC";
+$query = "SELECT id, nm_pegawai, nip, tgl_lahir, status_pegawai, jabatan, unit_kerja, gelar_depan, gelar_belakang FROM pegawai WHERE status = '1' AND is_pensiun_synced = 1 ORDER BY nm_pegawai ASC";
 $res = $conn->query($query);
 if ($res) {
     while ($row = $res->fetch_assoc()) {
@@ -95,135 +95,153 @@ if ($res) {
 // Fetch School Profile for Letterhead
 $res_g = $conn->query("SELECT * FROM profils LIMIT 1");
 $g = ($res_g && $res_g->num_rows > 0) ? $res_g->fetch_assoc() : [];
-$base_dir = file_exists('../dbconn.php') ? '../' : '';
+$base_dir = '../';
 ?>
 
-<link rel="stylesheet" href="../plugins/css/palette-gradient.min.css">
-
 <style>
-    /* Premium Table Styling */
-    .table thead th {
-        padding: 1rem 0.75rem !important;
-        font-weight: 700;
-        text-transform: uppercase;
-        font-size: 0.7rem;
-        letter-spacing: 0.5px;
-        border: none !important;
+    .card-modern {
+        border: none;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+        background: #fff;
+        margin-bottom: 20px;
     }
 
-    .table tbody td {
-        padding: 0.75rem 0.75rem !important;
+    .card-modern .card-header {
+        padding: 16px 24px;
+        font-weight: 700;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: none;
+        font-size: 1.1rem;
+    }
+
+    .header-blue {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .pensiun-table thead th {
+        background: #f8fafc;
+        color: #475569;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.65rem;
+        letter-spacing: 0.05em;
         vertical-align: middle;
+        border-bottom: 2px solid #e2e8f0 !important;
+    }
+
+    .pensiun-table tbody td {
+        font-size: 0.85rem;
+        vertical-align: middle;
+        padding: 0.75rem !important;
     }
 
     @media print {
-        /* Hide UI elements */
-        .navbar, #sidebar-wrapper, .btn, .dataTables_filter, .dataTables_info, .dataTables_paginate, .modern-card-header button, .d-print-none {
+        .no-print {
             display: none !important;
         }
 
-        /* Reset Layout */
-        body { background: white !important; padding: 0 !important; margin: 0 !important; }
-        #page-content-wrapper { padding: 0 !important; margin: 0 !important; width: 100% !important; }
-        .container-fluid { padding: 0 !important; }
-        .modern-card { border: none !important; box-shadow: none !important; }
-        .modern-card-header { border-bottom: 2px solid #333 !important; padding-left: 0 !important; }
-        .modern-card-header h6 { font-size: 18pt !important; color: black !important; }
+        .card-modern {
+            border: none !important;
+            box-shadow: none !important;
+        }
 
-        /* Expand DataTable for Print */
-        .dataTables_scrollBody {
-            height: auto !important;
-            max-height: none !important;
-            overflow: visible !important;
+        .card-modern .card-header {
+            display: none !important;
         }
-        .dataTables_scrollHead {
-            display: block !important;
-        }
-        table.table {
-            width: 100% !important;
-            border-collapse: collapse !important;
-            border: 1px solid #dee2e6 !important;
-        }
-        table.table thead th {
-            background-color: #f8f9fa !important;
-            color: black !important;
-            border: 1px solid #dee2e6 !important;
+
+        .pensiun-table thead th {
+            background-color: #f1f5f9 !important;
             -webkit-print-color-adjust: exact;
         }
-        table.table td {
-            border: 1px solid #dee2e6 !important;
-        }
-        
-        /* Typography */
-        .small, .extra-small { font-size: 9pt !important; }
-        .fw-bold { font-weight: bold !important; }
-        
-        /* Progress Bar in Print */
-        .progress { border: 1px solid #ccc !important; }
-        .progress-bar { -webkit-print-color-adjust: exact; background-color: #4f46e5 !important; }
-        
-        /* Page margins */
+
         @page {
-            size: A4 landscape;
+            size: landscape;
             margin: 1cm;
+        }
+
+        body {
+            background: white !important;
+        }
+
+        #page-content-wrapper {
+            padding: 0 !important;
+            margin: 0 !important;
+            width: 100% !important;
+        }
+
+        .kop-surat {
+            display: block !important;
+            margin-bottom: 20px;
+            text-align: center;
         }
     }
 
-    .print-header {
+    /* Kop Surat Styles */
+    .kop-surat {
         display: none;
     }
 
-    @media print {
-        .print-header {
-            display: block;
-            margin-bottom: 20px;
-        }
-        .print-header h4 { margin: 10px 0; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .kop-surat img {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .kop-surat hr {
+        display: none !important;
+    }
+
+    .kop-surat table,
+    .kop-surat td,
+    .kop-surat tr {
+        border: none !important;
+    }
+
+    .progress-custom {
+        height: 6px;
+        border-radius: 10px;
+        background-color: #f1f5f9;
+        overflow: hidden;
     }
 </style>
 
-<div class="py-3">
-    <!-- Print Header (Dynamic from Profile) -->
-    <div class="print-header">
-        <?php
-        if (!empty($g['kop_dinas'])) {
-            echo str_replace('src="images/', 'src="' . $base_dir . 'images/', $g['kop_dinas']);
-        } else {
-            ?>
-            <div style="text-align: center; border-bottom: 3px double #000; padding-bottom: 10px;">
-                <h4 style="margin:0;">PEMERINTAH PROVINSI DKI JAKARTA</h4>
-                <h4 style="margin:0;">DINAS PENDIDIKAN</h4>
-                <h3 style="margin:5px 0;"><?php echo htmlspecialchars($g['nsekolah'] ?? 'SMP NEGERI 171 JAKARTA'); ?></h3>
-                <p style="margin:0; font-size: 10pt;"><?php echo htmlspecialchars($g['alamat'] ?? ''); ?></p>
-            </div>
-        <?php } ?>
-
-        <h4 class="mt-4">LAPORAN ESTIMASI MASA KERJA & PENSIUN PEGAWAI</h4>
-        <p class="text-center small text-muted">Dicetak pada: <?php echo date('d-m-Y H:i'); ?></p>
-    </div>
+<div class="container-fluid py-4">
+    <!-- Kop Dinas for Print -->
+    <?php if (!empty($g['kop_dinas'])): ?>
+        <div class="kop-surat">
+            <?php echo str_replace('src="images/', 'src="' . $base_dir . 'images/', $g['kop_dinas']); ?>
+        </div>
+    <?php endif; ?>
 
     <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4 d-print-none">
-        <div>
-            <h2 class="fw-bold mb-1">Masa Kerja & Pensiun</h2>
-            <p class="text-muted small mb-0">Estimasi batas usia pensiun pegawai aktif.</p>
+    <div class="row mb-4 no-print">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Masa Kerja & Pensiun</h2>
+                <p class="text-muted small mb-0">Estimasi batas usia pensiun pegawai aktif.</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="print_pensiun.php" target="_blank" class="btn btn-outline-primary btn-rounded px-4 shadow-sm fw-bold">
+                    <i class="las la-print me-2"></i> Cetak Laporan Pensiun
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Table Card -->
-    <div class="modern-card">
-        <div class="modern-card-header d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <h6 class="fw-bold mb-0">Laporan Estimasi Pensiun</h6>
-            <a href="print_pensiun.php" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-4 fw-bold shadow-sm d-print-none">
-                <i class="las la-print me-2"></i> Cetak Laporan
-            </a>
+    <div class="card-modern shadow-sm border-0">
+        <div class="card-header header-blue no-print">
+            <i class="las la-hourglass-end"></i> Daftar Estimasi Pensiun Pegawai
         </div>
-
-        <div class="card-body p-0 p-md-3">
-            <table class="table table-striped" style="width:100%;">
-                <thead class="bg-gradient-x-primary">
-                    <tr class="text-white">
-                        <th class="text-center px-3" width="50">#</th>
+        <div class="card-body p-0">
+            <table class="table table-striped table-hover pensiun-table mb-0" id="tablePensiun" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th class="text-center" width="50">#</th>
                         <th>Pegawai</th>
                         <th>Jabatan / Unit</th>
                         <th class="text-center">Lahir</th>
@@ -242,23 +260,19 @@ $base_dir = file_exists('../dbconn.php') ? '../' : '';
                         <?php foreach ($employees as $idx => $emp):
                             $ret = $emp['retirement'];
                             $hasError = $ret['error'] ?? false;
+                            $full_name = (!empty($emp['gelar_depan']) ? $emp['gelar_depan'] . ' ' : '') . $emp['nm_pegawai'] . (!empty($emp['gelar_belakang']) ? ', ' . $emp['gelar_belakang'] : '');
 
-                            $rowClass = $ret['isRetired'] ? 'bg-light opacity-75' : '';
-                            if ($hasError)
-                                $rowClass = 'bg-white';
-
-                            $barClass = $ret['isRetired'] ? 'bg-gradient-x-danger' : ($ret['sisa'] == 'Bulan Ini' ? 'bg-gradient-x-warning' : 'bg-gradient-x-primary');
+                            $barClass = $ret['isRetired'] ? 'bg-danger' : ($ret['sisa'] == 'Bulan Ini' ? 'bg-warning' : 'bg-primary');
                             ?>
-                            <tr class="<?php echo $rowClass; ?>">
-                                <td class="text-center text-muted small"><?php echo $idx + 1; ?></td>
+                            <tr>
+                                <td class="text-center text-muted fw-bold"><?php echo $idx + 1; ?></td>
                                 <td>
-                                    <div class="fw-bold text-dark"><?php echo htmlspecialchars($emp['nm_pegawai']); ?></div>
-                                    <div class="text-muted extra-small"><?php echo $emp['nip'] ?: '-'; ?> |
-                                        <?php echo $emp['status_pegawai']; ?>
-                                    </div>
+                                    <div class="fw-bold text-dark"><?php echo htmlspecialchars($full_name); ?></div>
+                                    <div class="text-muted extra-small">NIP: <?php echo $emp['nip'] ?: '-'; ?> |
+                                        <?php echo $emp['status_pegawai']; ?></div>
                                 </td>
                                 <td>
-                                    <div class="extra-small fw-bold"><?php echo htmlspecialchars($emp['jabatan'] ?: '-'); ?>
+                                    <div class="small fw-bold text-dark"><?php echo htmlspecialchars($emp['jabatan'] ?: '-'); ?>
                                     </div>
                                     <div class="extra-small text-muted text-truncate" style="max-width: 150px;">
                                         <?php echo htmlspecialchars($emp['unit_kerja'] ?: '-'); ?>
@@ -285,10 +299,9 @@ $base_dir = file_exists('../dbconn.php') ? '../' : '';
                                 <td>
                                     <?php if (!$hasError): ?>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="progress flex-grow-1"
-                                                style="height: 6px; border-radius: 10px; background-color: #f1f5f9;">
-                                                <div class="progress-bar <?php echo $barClass; ?> rounded-pill shadow-none"
-                                                    style="width: <?php echo $ret['percent']; ?>%"></div>
+                                            <div class="progress-custom flex-grow-1">
+                                                <div class="progress-bar <?php echo $barClass; ?>"
+                                                    style="width: <?php echo $ret['percent']; ?>%; height: 100%;"></div>
                                             </div>
                                             <span class="extra-small fw-bold text-muted"><?php echo $ret['percent']; ?>%</span>
                                         </div>
@@ -312,7 +325,16 @@ $base_dir = file_exists('../dbconn.php') ? '../' : '';
             scrollY: 450,
             scrollX: true,
             scrollCollapse: true,
+            fixedColumns: {
+                leftColumns: 2
+            },
             paging: false,
+            info: true,
+            searching: true,
+            language: {
+                search: "_INPUT_",
+                searchPlaceholder: "Cari pegawai..."
+            }
         });
     });
 </script>

@@ -32,7 +32,8 @@ $pages = [
     'data_sekolah' => 'datasekolah.php',
     'sinkron_sekolah' => 'sinkron_sekolah.php',
     'sinkron_pensiun' => 'sinkron_pensiun.php',
-    'data_kepegawaian' => 'data_kepegawaian.php'
+    'data_kepegawaian' => 'data_kepegawaian.php',
+    'duk' => 'duk.php'
 ];
 
 $current_page = 'dashboard';
@@ -299,6 +300,10 @@ if (!file_exists($page_to_include)) {
                 <a href="?data_kepegawaian"
                     class="list-group-item list-group-item-action <?php echo ($current_page == 'data_kepegawaian') ? 'active' : ''; ?>">
                     <i class="las la-file-invoice"></i> Data Kepegawaian
+                </a>
+                <a href="?duk"
+                    class="list-group-item list-group-item-action <?php echo ($current_page == 'duk') ? 'active' : ''; ?>">
+                    <i class="las la-sort-amount-down"></i> Daftar Urut Kepangkatan
                 </a>
             </div>
 

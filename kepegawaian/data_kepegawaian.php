@@ -228,7 +228,7 @@ if ($pegawai_id > 0) {
         <div class="row mb-4">
             <div class="col-12 d-flex justify-content-between align-items-center">
                 <div>
-                    <h2 class="fw-bold text-dark mb-1">Detail Monitoring Pegawai</h2>
+                    <h2 class="fw-bold text-dark mb-1">Edit Data Kepegawaian</h2>
                     <p class="text-muted small mb-0">Pemantauan riwayat dan dokumen lampiran secara spesifik.</p>
                 </div>
                 <a href="?data_kepegawaian" class="btn btn-outline-info">
@@ -264,8 +264,10 @@ if ($pegawai_id > 0) {
                                             <div class="info-row">
                                                 <div class="info-label">Nama Lengkap</div>
                                                 <div class="info-box-edit">
-                                                    <input type="text" name="nm_pegawai" class="modern-input fw-bold text-primary"
-                                                        value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>" required>
+                                                    <input type="text" name="nm_pegawai"
+                                                        class="modern-input fw-bold text-primary"
+                                                        value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>"
+                                                        required>
                                                 </div>
                                             </div>
                                             <div class="info-row">
@@ -307,433 +309,460 @@ if ($pegawai_id > 0) {
                 </div>
             </div>
 
+            <div class="mb-4">
+                <h5 class="fw-bold d-flex align-items-center text-dark">
+                    <span class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                        style="width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(13, 202, 240, 0.3);">
+                        <i class="las la-id-card fs-5"></i>
+                    </span>
+                    Biodata & Profil Lengkap
+                </h5>
+            </div>
+
+            <div class="row g-4 mb-5">
+                <!-- IDENTITAS PRIBADI -->
+                <div class="col-lg-4">
+                    <div class="card-modern shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <h6 class="fw-bold text-primary mb-0"><i class="las la-user me-2"></i>Identitas Pribadi</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="info-row">
+                                <div class="info-label">Jenis Kelamin</div>
+                                <div class="info-box-edit">
+                                    <select name="jenis_kelamin" class="form-select modern-input">
+                                        <option value="L" <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'selected' : ''; ?>>
+                                            Laki-laki</option>
+                                        <option value="P" <?php echo ($pegawai['jenis_kelamin'] == 'P') ? 'selected' : ''; ?>>
+                                            Perempuan</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Agama</div>
+                                <div class="info-box-edit">
+                                    <select name="agama" class="form-select modern-input select2-edit">
+                                        <option value="">- Pilih -</option>
+                                        <?php
+                                        $agamas = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu'];
+                                        foreach ($agamas as $a):
+                                            $sel = ($pegawai['agama'] == $a) ? 'selected' : '';
+                                            echo "<option value='$a' $sel>$a</option>";
+                                        endforeach;
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Tempat Lahir</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="tempat_lahir" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Tanggal Lahir</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="tgl_lahir" class="modern-input datepicker"
+                                        value="<?php echo $pegawai['tgl_lahir']; ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">NUPTK</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="nuptk" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['nuptk'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">NIK (KTP)</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="nik" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['nik'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">No. KK</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="no_kk" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_kk'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Nama Ibu</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="nama_ibu" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Hobby</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="hobby" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['hobby'] ?? ''); ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KEPEGAWAIAN & DOKUMEN -->
+                <div class="col-lg-4">
+                    <div class="card-modern shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <h6 class="fw-bold text-success mb-0"><i class="las la-briefcase me-2"></i>Kepegawaian & Dokumen
+                            </h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="info-row">
+                                <div class="info-label">Status</div>
+                                <div class="info-box-edit">
+                                    <select name="status_pegawai" class="form-select modern-input select2-edit">
+                                        <option value="PNS" <?php echo ($pegawai['status_pegawai'] == 'PNS') ? 'selected' : ''; ?>>PNS</option>
+                                        <option value="PPPK" <?php echo ($pegawai['status_pegawai'] == 'PPPK') ? 'selected' : ''; ?>>PPPK</option>
+                                        <option value="Honorer" <?php echo ($pegawai['status_pegawai'] == 'Honorer') ? 'selected' : ''; ?>>Honorer</option>
+                                        <option value="Lainnya" <?php echo ($pegawai['status_pegawai'] == 'Lainnya') ? 'selected' : ''; ?>>Lainnya</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Pendidikan</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="pendidikan" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Golongan</div>
+                                <div class="info-box-edit">
+                                    <select name="golongan" class="form-select modern-input select2-edit">
+                                        <option value="">- Pilih -</option>
+                                        <?php
+                                        $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e', 'V', 'IX'];
+                                        foreach ($golongans as $g):
+                                            $sel = ($pegawai['golongan'] == $g) ? 'selected' : '';
+                                            echo "<option value='$g' $sel>$g</option>";
+                                        endforeach;
+                                        ?>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">TMT Golongan</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="tmt_golongan" class="modern-input datepicker"
+                                        value="<?php echo $pegawai['tmt_golongan']; ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Masa Kerja</div>
+                                <div class="info-box-edit">
+                                    <div class="input-group">
+                                        <input type="number" name="masa_kerja_thn" class="form-control modern-input"
+                                            value="<?php echo $pegawai['masa_kerja_thn']; ?>" placeholder="Thn">
+                                        <input type="number" name="masa_kerja_bln" class="form-control modern-input"
+                                            value="<?php echo $pegawai['masa_kerja_bln']; ?>" placeholder="Bln">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Gaji Pokok</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="gaji_pokok" class="modern-input fw-bold text-success"
+                                        value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">No. Karpeg</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="no_karpeg" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">No. Taspen</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="no_taspen" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_taspen'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">No. BPJS</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="no_bpjs" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs'] ?? ''); ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KONTAK & ALAMAT -->
+                <div class="col-lg-4">
+                    <div class="card-modern shadow-sm border-0 h-100">
+                        <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                            <h6 class="fw-bold text-warning mb-0"><i class="las la-map-marker me-2"></i>Kontak & Alamat</h6>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="info-row">
+                                <div class="info-label">No. HP</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="no_hp" class="modern-input fw-bold text-primary"
+                                        value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Email</div>
+                                <div class="info-box-edit">
+                                    <input type="email" name="email" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['email'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Alamat</div>
+                                <div class="info-box-edit">
+                                    <textarea name="alamat" class="modern-input"
+                                        rows="3"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></textarea>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">RT / RW</div>
+                                <div class="info-box-edit">
+                                    <div class="input-group">
+                                        <input type="text" name="rt" class="form-control modern-input" placeholder="RT"
+                                            value="<?php echo htmlspecialchars($pegawai['rt'] ?? ''); ?>">
+                                        <input type="text" name="rw" class="form-control modern-input" placeholder="RW"
+                                            value="<?php echo htmlspecialchars($pegawai['rw'] ?? ''); ?>">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Kelurahan</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="kelurahan" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['kelurahan'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Kecamatan</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="kecamatan" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['kecamatan'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">NPWP</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="npwp" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['npwp'] ?? ''); ?>">
+                                </div>
+                            </div>
+                            <div class="info-row">
+                                <div class="info-label">Pasangan</div>
+                                <div class="info-box-edit">
+                                    <input type="text" name="nama_pasangan" class="modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan'] ?? ''); ?>">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-n4 mb-5 text-end">
+                <button type="submit" class="btn btn-primary btn-rounded px-5 py-2 shadow">
+                    <i class="las la-save me-2"></i> Simpan Perubahan Data
+                </button>
+            </div>
+        </form>
+
         <div class="mb-4">
             <h5 class="fw-bold d-flex align-items-center text-dark">
-                <span class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                    style="width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(13, 202, 240, 0.3);">
-                    <i class="las la-id-card fs-5"></i>
+                <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                    style="width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">
+                    <i class="las la-table fs-5"></i>
                 </span>
-                Biodata & Profil Lengkap
+                Tabel Riwayat & Dokumen
             </h5>
         </div>
 
-        <div class="row g-4 mb-5">
-            <!-- IDENTITAS PRIBADI -->
-            <div class="col-lg-4">
-                <div class="card-modern shadow-sm border-0 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                        <h6 class="fw-bold text-primary mb-0"><i class="las la-user me-2"></i>Identitas Pribadi</h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="info-row">
-                            <div class="info-label">Jenis Kelamin</div>
-                            <div class="info-box-edit">
-                                <select name="jenis_kelamin" class="form-select modern-input">
-                                    <option value="L" <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'selected' : ''; ?>>Laki-laki</option>
-                                    <option value="P" <?php echo ($pegawai['jenis_kelamin'] == 'P') ? 'selected' : ''; ?>>Perempuan</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Agama</div>
-                            <div class="info-box-edit">
-                                <select name="agama" class="form-select modern-input select2-edit">
-                                    <option value="">- Pilih -</option>
-                                    <?php
-                                    $agamas = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu'];
-                                    foreach ($agamas as $a):
-                                        $sel = ($pegawai['agama'] == $a) ? 'selected' : '';
-                                        echo "<option value='$a' $sel>$a</option>";
-                                    endforeach;
+        <div class="card-modern border-0 shadow-sm mb-5">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle nowrap mb-0" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th class="text-center" width="50">No</th>
+                                <th>Kategori</th>
+                                <th>Keterangan / Institusi</th>
+                                <th>No. SK / Ijazah</th>
+                                <th class="text-center">TMT</th>
+                                <th class="text-end">Gaji Pokok</th>
+                                <th class="text-center">Masa Kerja</th>
+                                <th>Jurusan / Tempat</th>
+                                <th class="text-center">Status</th>
+                                <th class="text-center" width="80">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            if ($q_riwayat && $q_riwayat->num_rows > 0):
+                                $no = 1;
+                                while ($r = $q_riwayat->fetch_assoc()):
+                                    $has_file = !empty($r['file_lampiran']);
                                     ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Tempat Lahir</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="tempat_lahir" class="modern-input" value="<?php echo htmlspecialchars($pegawai['tempat_lahir'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Tanggal Lahir</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="tgl_lahir" class="modern-input datepicker" value="<?php echo $pegawai['tgl_lahir']; ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">NUPTK</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="nuptk" class="modern-input" value="<?php echo htmlspecialchars($pegawai['nuptk'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">NIK (KTP)</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="nik" class="modern-input" value="<?php echo htmlspecialchars($pegawai['nik'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">No. KK</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="no_kk" class="modern-input" value="<?php echo htmlspecialchars($pegawai['no_kk'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Nama Ibu</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="nama_ibu" class="modern-input" value="<?php echo htmlspecialchars($pegawai['nama_ibu'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Hobby</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="hobby" class="modern-input" value="<?php echo htmlspecialchars($pegawai['hobby'] ?? ''); ?>">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KEPEGAWAIAN & DOKUMEN -->
-            <div class="col-lg-4">
-                <div class="card-modern shadow-sm border-0 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                        <h6 class="fw-bold text-success mb-0"><i class="las la-briefcase me-2"></i>Kepegawaian & Dokumen</h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="info-row">
-                            <div class="info-label">Status</div>
-                            <div class="info-box-edit">
-                                <select name="status_pegawai" class="form-select modern-input select2-edit">
-                                    <option value="PNS" <?php echo ($pegawai['status_pegawai'] == 'PNS') ? 'selected' : ''; ?>>PNS</option>
-                                    <option value="PPPK" <?php echo ($pegawai['status_pegawai'] == 'PPPK') ? 'selected' : ''; ?>>PPPK</option>
-                                    <option value="Honorer" <?php echo ($pegawai['status_pegawai'] == 'Honorer') ? 'selected' : ''; ?>>Honorer</option>
-                                    <option value="Lainnya" <?php echo ($pegawai['status_pegawai'] == 'Lainnya') ? 'selected' : ''; ?>>Lainnya</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Pendidikan</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="pendidikan" class="modern-input" value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Golongan</div>
-                            <div class="info-box-edit">
-                                <select name="golongan" class="form-select modern-input select2-edit">
-                                    <option value="">- Pilih -</option>
+                                    <tr>
+                                        <td class="text-center text-muted fw-bold"><?php echo $no++; ?></td>
+                                        <td class="fw-bold text-dark"><?php echo htmlspecialchars($r['kategori'] ?? ''); ?></td>
+                                        <td>
+                                            <?php
+                                            if ($r['kategori'] == 'Pendidikan' && !empty($r['institusi'])) {
+                                                echo htmlspecialchars($r['institusi'] ?? '');
+                                            } else {
+                                                echo htmlspecialchars(($r['deskripsi'] ?? '') ?: '-');
+                                            }
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            if ($r['kategori'] == 'Pendidikan' && !empty($r['no_ijazah'])) {
+                                                echo '<span class="text-muted extra-small d-block">No. Ijazah:</span>';
+                                                echo '<code>' . htmlspecialchars($r['no_ijazah'] ?? '') . '</code>';
+                                            } else {
+                                                echo '<span class="text-muted extra-small d-block">No. SK:</span>';
+                                                echo '<code>' . htmlspecialchars(($r['no_sk'] ?? '') ?: '-') . '</code>';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php echo (!empty($r['tmt']) && $r['tmt'] != '0000-00-00') ? date('d/m/Y', strtotime($r['tmt'])) : '-'; ?>
+                                        </td>
+                                        <td class="text-end fw-bold text-success">
+                                            <?php echo ($r['kategori'] == 'KGB' && !empty($r['gaji_pokok'])) ? 'Rp ' . number_format($r['gaji_pokok'], 0, ',', '.') : '-'; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php
+                                            if ($r['kategori'] == 'KGB' || $r['kategori'] == 'Pangkat') {
+                                                echo ($r['masa_kerja_thn'] ?: 0) . 'th ' . ($r['masa_kerja_bln'] ?: 0) . 'bln';
+                                            } else {
+                                                echo '-';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td>
+                                            <?php
+                                            if ($r['kategori'] == 'Pendidikan' && !empty($r['jurusan'])) {
+                                                echo htmlspecialchars($r['jurusan'] ?? '');
+                                            } else if (($r['kategori'] == 'Diklat' || $r['kategori'] == 'Seminar') && !empty($r['tempat'])) {
+                                                echo htmlspecialchars($r['tempat'] ?? '');
+                                            } else {
+                                                echo '-';
+                                            }
+                                            ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if ($has_file): ?>
+                                                <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
+                                            <?php else: ?>
+                                                <span class="badge-status bg-soft-warning"><i class="las la-times me-1"></i>
+                                                    TIDAK</span>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="text-center">
+                                            <?php if ($has_file): ?>
+                                                <a href="../file/datakepegawaian/<?php echo $r['file_lampiran']; ?>" target="_blank"
+                                                    class="btn-action-view text-primary border" title="Lihat Dokumen">
+                                                    <i class="las la-external-link-alt fs-5"></i>
+                                                </a>
+                                            <?php else: ?>
+                                                <button class="btn-action-view text-muted border opacity-50" disabled>
+                                                    <i class="las la-file-excel fs-5"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
                                     <?php
-                                    $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e', 'V', 'IX'];
-                                    foreach ($golongans as $g):
-                                        $sel = ($pegawai['golongan'] == $g) ? 'selected' : '';
-                                        echo "<option value='$g' $sel>$g</option>";
-                                    endforeach;
-                                    ?>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">TMT Golongan</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="tmt_golongan" class="modern-input datepicker" value="<?php echo $pegawai['tmt_golongan']; ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Masa Kerja</div>
-                            <div class="info-box-edit">
-                                <div class="input-group">
-                                    <input type="number" name="masa_kerja_thn" class="form-control modern-input" value="<?php echo $pegawai['masa_kerja_thn']; ?>" placeholder="Thn">
-                                    <input type="number" name="masa_kerja_bln" class="form-control modern-input" value="<?php echo $pegawai['masa_kerja_bln']; ?>" placeholder="Bln">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Gaji Pokok</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="gaji_pokok" class="modern-input fw-bold text-success" value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">No. Karpeg</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="no_karpeg" class="modern-input" value="<?php echo htmlspecialchars($pegawai['no_karpeg'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">No. Taspen</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="no_taspen" class="modern-input" value="<?php echo htmlspecialchars($pegawai['no_taspen'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">No. BPJS</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="no_bpjs" class="modern-input" value="<?php echo htmlspecialchars($pegawai['no_bpjs'] ?? ''); ?>">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- KONTAK & ALAMAT -->
-            <div class="col-lg-4">
-                <div class="card-modern shadow-sm border-0 h-100">
-                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
-                        <h6 class="fw-bold text-warning mb-0"><i class="las la-map-marker me-2"></i>Kontak & Alamat</h6>
-                    </div>
-                    <div class="card-body p-4">
-                        <div class="info-row">
-                            <div class="info-label">No. HP</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="no_hp" class="modern-input fw-bold text-primary" value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Email</div>
-                            <div class="info-box-edit">
-                                <input type="email" name="email" class="modern-input" value="<?php echo htmlspecialchars($pegawai['email'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Alamat</div>
-                            <div class="info-box-edit">
-                                <textarea name="alamat" class="modern-input" rows="3"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></textarea>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">RT / RW</div>
-                            <div class="info-box-edit">
-                                <div class="input-group">
-                                    <input type="text" name="rt" class="form-control modern-input" placeholder="RT" value="<?php echo htmlspecialchars($pegawai['rt'] ?? ''); ?>">
-                                    <input type="text" name="rw" class="form-control modern-input" placeholder="RW" value="<?php echo htmlspecialchars($pegawai['rw'] ?? ''); ?>">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Kelurahan</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="kelurahan" class="modern-input" value="<?php echo htmlspecialchars($pegawai['kelurahan'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Kecamatan</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="kecamatan" class="modern-input" value="<?php echo htmlspecialchars($pegawai['kecamatan'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">NPWP</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="npwp" class="modern-input" value="<?php echo htmlspecialchars($pegawai['npwp'] ?? ''); ?>">
-                            </div>
-                        </div>
-                        <div class="info-row">
-                            <div class="info-label">Pasangan</div>
-                            <div class="info-box-edit">
-                                <input type="text" name="nama_pasangan" class="modern-input" value="<?php echo htmlspecialchars($pegawai['nama_pasangan'] ?? ''); ?>">
-                            </div>
-                        </div>
-                    </div>
+                                endwhile;
+                            endif;
+                            ?>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <div class="mt-n4 mb-5 text-end">
-            <button type="submit" class="btn btn-primary btn-rounded px-5 py-2 shadow">
-                <i class="las la-save me-2"></i> Simpan Perubahan Data
-            </button>
-        </div>
-    </form>
+        <script>
+            $(document).ready(function () {
+                // DataTable with FixedColumns
+                const table = $('.content table.table').DataTable({
+                    scrollY: 450,
+                    scrollX: true,
+                    scrollCollapse: true,
+                    paging: false,
+                });
 
-    <div class="mb-4">
-        <h5 class="fw-bold d-flex align-items-center text-dark">
-            <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                style="width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">
-                <i class="las la-table fs-5"></i>
-            </span>
-            Tabel Riwayat & Dokumen
-        </h5>
-    </div>
+                // Initialize Select2
+                $('.select2-edit').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%'
+                });
 
-    <div class="card-modern border-0 shadow-sm mb-5">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-striped align-middle nowrap mb-0" style="width:100%">
-                    <thead>
-                        <tr>
-                            <th class="text-center" width="50">No</th>
-                            <th>Kategori</th>
-                            <th>Keterangan / Institusi</th>
-                            <th>No. SK / Ijazah</th>
-                            <th class="text-center">TMT</th>
-                            <th class="text-end">Gaji Pokok</th>
-                            <th class="text-center">Masa Kerja</th>
-                            <th>Jurusan / Tempat</th>
-                            <th class="text-center">Status</th>
-                            <th class="text-center" width="80">Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        if ($q_riwayat && $q_riwayat->num_rows > 0):
-                            $no = 1;
-                            while ($r = $q_riwayat->fetch_assoc()):
-                                $has_file = !empty($r['file_lampiran']);
-                                ?>
-                                <tr>
-                                    <td class="text-center text-muted fw-bold"><?php echo $no++; ?></td>
-                                    <td class="fw-bold text-dark"><?php echo htmlspecialchars($r['kategori'] ?? ''); ?></td>
-                                    <td>
-                                        <?php
-                                        if ($r['kategori'] == 'Pendidikan' && !empty($r['institusi'])) {
-                                            echo htmlspecialchars($r['institusi'] ?? '');
-                                        } else {
-                                            echo htmlspecialchars(($r['deskripsi'] ?? '') ?: '-');
-                                        }
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        if ($r['kategori'] == 'Pendidikan' && !empty($r['no_ijazah'])) {
-                                            echo '<span class="text-muted extra-small d-block">No. Ijazah:</span>';
-                                            echo '<code>' . htmlspecialchars($r['no_ijazah'] ?? '') . '</code>';
-                                        } else {
-                                            echo '<span class="text-muted extra-small d-block">No. SK:</span>';
-                                            echo '<code>' . htmlspecialchars(($r['no_sk'] ?? '') ?: '-') . '</code>';
-                                        }
-                                        ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <?php echo (!empty($r['tmt']) && $r['tmt'] != '0000-00-00') ? date('d/m/Y', strtotime($r['tmt'])) : '-'; ?>
-                                    </td>
-                                    <td class="text-end fw-bold text-success">
-                                        <?php echo ($r['kategori'] == 'KGB' && !empty($r['gaji_pokok'])) ? 'Rp ' . number_format($r['gaji_pokok'], 0, ',', '.') : '-'; ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <?php
-                                        if ($r['kategori'] == 'KGB' || $r['kategori'] == 'Pangkat') {
-                                            echo ($r['masa_kerja_thn'] ?: 0) . 'th ' . ($r['masa_kerja_bln'] ?: 0) . 'bln';
-                                        } else {
-                                            echo '-';
-                                        }
-                                        ?>
-                                    </td>
-                                    <td>
-                                        <?php
-                                        if ($r['kategori'] == 'Pendidikan' && !empty($r['jurusan'])) {
-                                            echo htmlspecialchars($r['jurusan'] ?? '');
-                                        } else if (($r['kategori'] == 'Diklat' || $r['kategori'] == 'Seminar') && !empty($r['tempat'])) {
-                                            echo htmlspecialchars($r['tempat'] ?? '');
-                                        } else {
-                                            echo '-';
-                                        }
-                                        ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <?php if ($has_file): ?>
-                                            <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
-                                        <?php else: ?>
-                                            <span class="badge-status bg-soft-warning"><i class="las la-times me-1"></i>
-                                                TIDAK</span>
-                                        <?php endif; ?>
-                                    </td>
-                                    <td class="text-center">
-                                        <?php if ($has_file): ?>
-                                            <a href="../file/datakepegawaian/<?php echo $r['file_lampiran']; ?>" target="_blank"
-                                                class="btn-action-view text-primary border" title="Lihat Dokumen">
-                                                <i class="las la-external-link-alt fs-5"></i>
-                                            </a>
-                                        <?php else: ?>
-                                            <button class="btn-action-view text-muted border opacity-50" disabled>
-                                                <i class="las la-file-excel fs-5"></i>
-                                            </button>
-                                        <?php endif; ?>
-                                    </td>
-                                </tr>
-                                <?php
-                            endwhile;
-                        endif;
-                        ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+                // Initialize Flatpickr
+                $(".datepicker").flatpickr({
+                    altInput: true,
+                    altFormat: "d-m-Y",
+                    dateFormat: "Y-m-d",
+                    locale: "id",
+                    allowInput: true
+                });
 
-    <script>
-        $(document).ready(function () {
-            // DataTable with FixedColumns
-            const table = $('.content table.table').DataTable({
-                scrollY: 450,
-                scrollX: true,
-                scrollCollapse: true,
-                paging: false,
-            });
-
-            // Initialize Select2
-            $('.select2-edit').select2({
-                theme: 'bootstrap-5',
-                width: '100%'
-            });
-
-            // Initialize Flatpickr
-            $(".datepicker").flatpickr({
-                altInput: true,
-                altFormat: "d-m-Y",
-                dateFormat: "Y-m-d",
-                locale: "id",
-                allowInput: true
-            });
-
-            // Photo Preview
-            $('#foto_input').change(function () {
-                const file = this.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        $('#preview-foto').attr('src', e.target.result);
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // Form Submit Logic
-            $('#formPegawaiAdmin').on('submit', function (e) {
-                e.preventDefault();
-                const formData = new FormData(this);
-                formData.append('action', 'simpan');
-
-                const btn = $(this).find('button[type="submit"]');
-                const oldHtml = btn.html();
-                btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Menyimpan...');
-
-                $.ajax({
-                    url: 'proses_pegawai.php',
-                    type: 'POST',
-                    data: formData,
-                    contentType: false,
-                    processData: false,
-                    dataType: 'json',
-                    success: function (res) {
-                        if (res.status === 'success') {
-                            showToast(res.message, 'success');
-                            setTimeout(() => { location.reload(); }, 1500);
-                        } else {
-                            showToast(res.message, 'error');
-                            btn.prop('disabled', false).html(oldHtml);
+                // Photo Preview
+                $('#foto_input').change(function () {
+                    const file = this.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            $('#preview-foto').attr('src', e.target.result);
                         }
-                    },
-                    error: function () {
-                        showToast('Gagal menghubungi server.', 'error');
-                        btn.prop('disabled', false).html(oldHtml);
+                        reader.readAsDataURL(file);
                     }
                 });
+
+                // Form Submit Logic
+                $('#formPegawaiAdmin').on('submit', function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    formData.append('action', 'simpan');
+
+                    const btn = $(this).find('button[type="submit"]');
+                    const oldHtml = btn.html();
+                    btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Menyimpan...');
+
+                    $.ajax({
+                        url: 'proses_pegawai.php',
+                        type: 'POST',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        dataType: 'json',
+                        success: function (res) {
+                            if (res.status === 'success') {
+                                showToast(res.message, 'success');
+                                setTimeout(() => { location.reload(); }, 1500);
+                            } else {
+                                showToast(res.message, 'error');
+                                btn.prop('disabled', false).html(oldHtml);
+                            }
+                        },
+                        error: function () {
+                            showToast('Gagal menghubungi server.', 'error');
+                            btn.prop('disabled', false).html(oldHtml);
+                        }
+                    });
+                });
             });
-        });
-    </script>
-<?php else:
+        </script>
+    <?php else:
         // ==========================================
         // VIEW: GLOBAL MONITORING (ALL EMPLOYEES)
         // ==========================================
@@ -768,72 +797,86 @@ if ($pegawai_id > 0) {
             </div>
         </div>
 
+        <div class="callout callout-success shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                    style="width: 40px; height: 40px; flex-shrink: 0;">
+                    <i class="las la-info-circle fs-4"></i>
+                </div>
+                <div>
+                    <span class="callout-title">Monitoring Riwayat & Dokumen</span>
+                    <p class="callout-text">Angka pada kolom Pangkat, Jabatan, Pendidikan, dan KGB menunjukkan jumlah
+                        rekaman riwayat yang telah diunggah oleh personil. Gunakan tombol edit untuk melakukan verifikasi
+                        detail dokumen pendukung.</p>
+                </div>
+            </div>
+        </div>
+
         <div class="card">
             <div class="card-body">
-                <table class="table table-striped" style="width:100%">
+                <table class="table table-striped duk-table" id="tableKepegawaian" style="width:100%">
                     <thead>
                         <tr>
                             <th class="text-center" width="40">No</th>
-                            <th>Nama & Identitas</th>
+                            <th>Nama & Gelar</th>
+                            <th>NIP / NRK</th>
+                            <th>Tempat, Tgl Lahir</th>
+                            <th class="text-center">JK</th>
                             <th>Jabatan</th>
-                            <th class="text-center">Pangkat</th>
-                            <th class="text-center">Jabatan</th>
-                            <th class="text-center">Pendidikan</th>
-                            <th class="text-center">KGB</th>
-                            <th class="text-center">Total Dok</th>
-                            <th class="text-center" width="80">Edit</th>
+                            <th class="text-center">Gol</th>
+                            <th>Pendidikan</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" width="60">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php
                         $no = 1;
                         while ($r = $q_global->fetch_assoc()):
+                            $full_name = (!empty($r['gelar_depan']) ? $r['gelar_depan'] . ' ' : '') . $r['nm_pegawai'] . (!empty($r['gelar_belakang']) ? ', ' . $r['gelar_belakang'] : '');
                             ?>
                             <tr>
                                 <td class="text-center text-muted fw-bold"><?php echo $no++; ?></td>
                                 <td>
-                                    <div class="fw-bold text-dark mb-0"><?php echo htmlspecialchars($r['nm_pegawai'] ?? ''); ?></div>
-                                    <div class="extra-small text-muted mt-n1">NIP: <?php echo $r['nip'] ?: '-'; ?></div>
+                                    <div class="fw-bold text-dark"><?php echo htmlspecialchars($full_name); ?></div>
                                 </td>
                                 <td>
-                                    <div class="fw-medium text-muted"><?php echo $r['jabatan'] ?: '-'; ?></div>
+                                    <div class="extra-small text-muted">
+                                        NIP: <?php echo $r['nip'] ?: '-'; ?><br>
+                                        NRK: <?php echo $r['nrk'] ?: '-'; ?>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small">
+                                        <?php echo htmlspecialchars($r['tempat_lahir'] ?: '-'); ?>,<br>
+                                        <?php echo (!empty($r['tgl_lahir']) && $r['tgl_lahir'] != '0000-00-00') ? date('d/m/Y', strtotime($r['tgl_lahir'])) : '-'; ?>
+                                    </div>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($r['count_pangkat'] > 0): ?>
-                                        <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
-                                    <?php else: ?>
-                                        <span class="badge-status bg-soft-danger"><i class="las la-times me-1"></i> KOSONG</span>
-                                    <?php endif; ?>
+                                    <span
+                                        class="badge <?php echo ($r['jenis_kelamin'] == 'L') ? 'bg-soft-primary' : 'bg-soft-danger'; ?> rounded-pill">
+                                        <?php echo $r['jenis_kelamin'] ?: '-'; ?>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="extra-small fw-medium"><?php echo htmlspecialchars($r['jabatan'] ?: '-'); ?>
+                                    </div>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($r['count_jabatan'] > 0): ?>
-                                        <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
-                                    <?php else: ?>
-                                        <span class="badge-status bg-soft-danger"><i class="las la-times me-1"></i> KOSONG</span>
-                                    <?php endif; ?>
+                                    <span class="badge bg-soft-info rounded-pill"><?php echo $r['golongan'] ?: '-'; ?></span>
+                                </td>
+                                <td>
+                                    <div class="extra-small"><?php echo htmlspecialchars($r['pendidikan'] ?: '-'); ?></div>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($r['count_pendidikan'] > 0): ?>
-                                        <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
-                                    <?php else: ?>
-                                        <span class="badge-status bg-soft-danger"><i class="las la-times me-1"></i> KOSONG</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="text-center">
-                                    <?php if ($r['count_kgb'] > 0): ?>
-                                        <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
-                                    <?php else: ?>
-                                        <span class="badge-status bg-soft-danger"><i class="las la-times me-1"></i> KOSONG</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-soft-primary px-3 py-1 rounded-pill fw-bold">
-                                        <?php echo $r['count_total']; ?> File
+                                    <span
+                                        class="badge <?php echo ($r['status_pegawai'] == 'PNS') ? 'bg-success' : 'bg-info'; ?> badge-status">
+                                        <?php echo $r['status_pegawai'] ?: '-'; ?>
                                     </span>
                                 </td>
                                 <td class="text-center">
                                     <a href="?data_kepegawaian&id=<?php echo $r['id']; ?>"
-                                        class="btn btn-sm btn-outline-info shadow-sm">
+                                        class="btn btn-sm btn-outline-primary shadow-sm">
                                         <i class="las la-edit"></i>
                                     </a>
                                 </td>

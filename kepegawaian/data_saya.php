@@ -97,156 +97,174 @@ $res_g = $conn->query("SELECT * FROM profils LIMIT 1");
 $g = $res_g->fetch_assoc();
 ?>
 
+<!-- External Assets for Premium UI -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+    rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
+
 <style>
     .card-modern {
         border: none;
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
         background: #fff;
-        margin-bottom: 24px;
-        transition: transform 0.2s;
+        margin-bottom: 20px;
     }
 
-    .card-modern:hover {
-        transform: translateY(-2px);
-    }
-
-    .card-modern .card-header {
-        padding: 16px 24px;
-        font-weight: 700;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        border: none;
-        font-size: 1.1rem;
-    }
-
-    .header-blue {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-    }
-
-    .header-red {
-        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    }
-
-    .header-slate {
-        background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    }
-
-    .form-group-info {
+    .info-row {
         display: flex;
         padding: 12px 0;
         border-bottom: 1px solid #f1f5f9;
         align-items: center;
     }
 
-    .form-group-info:last-child {
+    .info-row:last-child {
         border-bottom: none;
     }
 
     .info-label {
-        width: 220px;
+        width: 160px;
         font-weight: 700;
         color: #64748b;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 0.5px;
     }
 
-    .info-value {
-        flex: 1;
-        color: #1e293b;
-        background: #f8fafc;
-        padding: 10px 16px;
-        border-radius: 8px;
-        border: 1px solid #e2e8f0;
-        font-size: 0.95rem;
-        font-weight: 500;
-        transition: all 0.2s;
-    }
-
-    .info-value:hover {
-        background: #fff;
-        border-color: #3b82f6;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .info-value.required::after {
-        content: ' *';
-        color: #ef4444;
-        font-weight: bold;
-    }
-
-    .border-top {
-        border-top: 2px solid #f1f5f9 !important;
-    }
-
-    .text-uppercase {
-        letter-spacing: 1px;
-    }
-
-    .photo-display-container {
-        padding: 24px;
-        text-align: center;
-    }
-
-    .photo-frame {
-        width: 100%;
-        max-width: 250px;
-        aspect-ratio: 3/4;
+    .photo-monitor {
+        width: 130px;
+        height: 130px;
         object-fit: cover;
-        border-radius: 12px;
+        border-radius: 50%;
         border: 4px solid #fff;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-        transition: transform 0.3s ease;
+        cursor: pointer;
+        transition: all 0.3s;
     }
 
-    .photo-frame:hover {
-        transform: scale(1.03);
+    .photo-monitor:hover {
+        opacity: 0.8;
+        filter: brightness(0.9);
     }
 
-    .btn-action-group {
-        margin-top: 24px;
-    }
-
-    .btn-action-group .btn {
-        border-radius: 10px;
-        padding: 10px 24px;
-        font-weight: 700;
+    /* Modern Input Styles */
+    .modern-input {
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        padding: 8px 15px;
+        font-size: 0.9rem;
+        background-color: #f8fafc;
+        width: 100%;
         transition: all 0.2s;
+        color: #1e293b;
     }
 
-    .btn-primary {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-        border: none;
-        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+    .modern-input:focus {
+        background-color: #fff;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
     }
 
-    .btn-primary:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+    .info-box-edit {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+
+    /* Select2 Bootstrap 5 Theme Override */
+    .select2-container--bootstrap-5 .select2-selection {
+        border-radius: 8px !important;
+        border: 1px solid #e2e8f0 !important;
+        background-color: #f8fafc !important;
+        min-height: 40px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+
+    .badge-status {
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 0.35rem 0.75rem;
+        border-radius: 50px;
+    }
+
+    .bg-soft-success {
+        background-color: #dcfce7;
+        color: #15803d;
+    }
+
+    .bg-soft-warning {
+        background-color: #fef9c3;
+        color: #854d0e;
+    }
+
+    .bg-soft-danger {
+        background-color: #fee2e2;
+        color: #b91c1c;
+    }
+
+    .bg-soft-primary {
+        background-color: #e0e7ff;
+        color: #4338ca;
+    }
+
+    .btn-action-view {
+        width: 32px;
+        height: 32px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+        text-decoration: none !important;
+    }
+
+    .btn-action-view:hover {
+        transform: scale(1.1);
+        background: #3b82f6;
+        color: #fff !important;
     }
 
     @media (max-width: 768px) {
-        .form-group-info {
+        .info-row {
             flex-direction: column;
             align-items: flex-start;
-            padding: 16px 0;
         }
 
         .info-label {
             width: 100%;
-            margin-bottom: 8px;
-            color: #94a3b8;
-        }
-
-        .info-value {
-            width: 100%;
+            margin-bottom: 5px;
         }
     }
 
+    /* Print Styles */
+    @media print {
+        body * {
+            visibility: hidden;
+        }
+
+        #printableProfile,
+        #printableProfile * {
+            visibility: visible;
+        }
+
+        #printableProfile {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            padding: 20px;
+        }
+
+        .no-print {
+            display: none !important;
+        }
     }
 
     /* Print Table Styles - Outside media print for modal visibility */
@@ -267,83 +285,14 @@ $g = $res_g->fetch_assoc();
         font-weight: bold;
     }
 
-    /* Print Styles */
-    @media print {
-        body {
-            visibility: hidden;
-            -webkit-print-color-adjust: exact;
-        }
-
-        /* Keep the parent chain visible but hide their specific UI styles */
-        #wrapper,
-        #page-content-wrapper,
-        .container-fluid {
-            visibility: visible !important;
-            display: block !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            border: none !important;
-            background: none !important;
-        }
-
-        /* Show the printable container and its children */
-        #printableProfile,
-        #printableProfile * {
-            visibility: visible !important;
-        }
-
-        #printableProfile {
-            display: block !important;
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 1cm 1.5cm !important;
-            background: #fff !important;
-            font-family: "Times New Roman", Times, serif;
-            color: #000 !important;
-            line-height: 1.4;
-        }
-
-        .print-section-header {
-            background: #f3f4f6 !important;
-            padding: 6px 12px;
-            border: 1px solid #000;
-            margin: 20px 0 10px 0;
-            font-weight: bold;
-            font-size: 11pt;
-            text-transform: uppercase;
-        }
-
-        .print-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 10.5pt;
-        }
-
-        .print-table td {
-            padding: 4px 0;
-            vertical-align: top;
-        }
-
-        .print-table .label {
-            width: 200px;
-            font-weight: bold;
-        }
-
-        .print-table .colon {
-            width: 20px;
-        }
-
-        /* Explicitly hide all other major UI components */
-        .navbar,
-        #sidebar-wrapper,
-        .btn-action-group,
-        .card-modern,
-        footer,
-        .modal {
-            display: none !important;
-        }
+    .print-section-header {
+        background: #f3f4f6 !important;
+        padding: 6px 12px;
+        border: 1px solid #000;
+        margin: 20px 0 10px 0;
+        font-weight: bold;
+        font-size: 11pt;
+        text-transform: uppercase;
     }
 
     #printableProfile {
@@ -352,549 +301,447 @@ $g = $res_g->fetch_assoc();
 </style>
 
 <div class="container-fluid py-4">
-    <div class="row">
-        <!-- Left Column: Data Pribadi -->
-        <div class="col-lg-8">
-            <div class="card-modern">
-                <div class="card-header header-blue">
-                    <i class="las la-address-card"></i> Data Pribadi Pegawai
-                </div>
-                <div class="card-body p-4">
-                    <div class="form-group-info">
-                        <div class="info-label">Nomor Induk Pegawai</div>
-                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nip'] ?? '') ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Nomor Registrasi (NRK)</div>
-                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nrk'] ?? '') ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">NUPTK</div>
-                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nuptk'] ?? '') ?: '-'); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Nama Lengkap</div>
-                        <div class="info-value required"><?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Jenis Kelamin</div>
-                        <div class="info-value required">
-                            <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'Laki-laki' : 'Perempuan'; ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Tempat Lahir</div>
-                        <div class="info-value required">
-                            <?php echo htmlspecialchars(($pegawai['tempat_lahir'] ?? '') ?: '-'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Agama</div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars(($pegawai['agama'] ?? '') ?: '-'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Tanggal Lahir</div>
-                        <div class="info-value required">
-                            <?php echo (!empty($pegawai['tgl_lahir']) && $pegawai['tgl_lahir'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tgl_lahir'])) : '-'; ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Pendidikan Terakhir</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Alamat</div>
-                        <div class="info-value"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Nama Ibu Kandung</div>
-                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['nama_ibu'] ?? '') ?: '-'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">Suami / Istri</div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars(($pegawai['nama_pasangan'] ?? '') ?: '-'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label">NPWP</div>
-                        <div class="info-value"><?php echo htmlspecialchars(($pegawai['npwp'] ?? '') ?: '-'); ?></div>
-                    </div>
-
-                    <div class="btn-action-group d-flex gap-2">
-                        <button class="btn btn-primary px-4 fw-bold" id="btnEditProfil">
-                            <i class="las la-edit me-2"></i> Perbarui Data
-                        </button>
-                        <button class="btn btn-outline-dark px-4 fw-bold" data-bs-toggle="modal"
-                            data-bs-target="#modalCetak">
-                            <i class="las la-print me-2"></i> Cetak Bio-Data
-                        </button>
-                    </div>
-                </div>
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">Data Saya</h2>
+                <p class="text-muted small mb-0">Kelola informasi profil dan riwayat kepegawaian Anda.</p>
             </div>
 
-            <div class="card-modern">
-                <div class="card-header header-slate">
-                    <i class="las la-briefcase"></i> Data Rinci Kepegawaian
-                </div>
-                <div class="card-body p-4">
-                    <div class="form-group-info">
-                        <div class="info-label"><i class="las la-id-badge me-2"></i> Jabatan Saat Ini</div>
-                        <div class="info-value fw-bold">
-                            <?php echo htmlspecialchars(($pegawai['jabatan'] ?? '') ?: '-'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label"><i class="las la-layer-group me-2"></i> Pangkat / Golongan
-                        </div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars(($pegawai['pangkat'] ?? '') ?: '-') . " (" . htmlspecialchars(($pegawai['golongan'] ?? '') ?: '-') . ")"; ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label"><i class="lar la-calendar-check me-2"></i> TMT Golongan
-                        </div>
-                        <div class="info-value">
-                            <?php echo (!empty($pegawai['tmt_golongan']) && $pegawai['tmt_golongan'] != '0000-00-00') ? date('d-m-Y', strtotime($pegawai['tmt_golongan'])) : '-'; ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label"><i class="las la-school me-2"></i> Unit Kerja</div>
-                        <div class="info-value">
-                            <?php echo htmlspecialchars(($pegawai['unit_kerja'] ?? '') ?: 'SMP Negeri 171 Jakarta'); ?>
-                        </div>
-                    </div>
-                    <div class="form-group-info">
-                        <div class="info-label"><i class="las la-user-tag me-2"></i> Status Pegawai</div>
-                        <div class="info-value">
-                            <span class="badge <?php
-                            $sp = strtolower($pegawai['status_pegawai'] ?? '');
-                            echo (strpos($sp, 'pns') !== false) ? 'bg-primary' : (strpos($sp, 'pppk') !== false ? 'bg-info' : 'bg-secondary');
-                            ?>">
-                                <?php echo htmlspecialchars($pegawai['status_pegawai'] ?: '-'); ?>
-                            </span>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold mb-3 text-muted small text-uppercase"><i class="las la-id-card me-2"></i>
-                            Dokumen Kepegawaian</h6>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <div class="form-group-info border-0 py-1">
-                                    <div class="info-label" style="width: 140px;">No. Karpeg</div>
-                                    <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars(($pegawai['no_karpeg'] ?? '') ?: '-'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-info border-0 py-1">
-                                    <div class="info-label" style="width: 140px;">No. Taspen</div>
-                                    <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars(($pegawai['no_taspen'] ?? '') ?: '-'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-info border-0 py-1">
-                                    <div class="info-label" style="width: 140px;">No. BPJS</div>
-                                    <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars(($pegawai['no_bpjs'] ?? '') ?: '-'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-info border-0 py-1">
-                                    <div class="info-label" style="width: 140px;">Karis / Karsu</div>
-                                    <div class="info-value py-1 px-2 small">
-                                        <?php echo htmlspecialchars(($pegawai['no_karis_karsu'] ?? '') ?: '-'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-info border-0 py-1">
-                                    <div class="info-label" style="width: 140px;">Masa Kerja</div>
-                                    <div class="info-value py-1 px-2 small">
-                                        <?php echo ($pegawai['masa_kerja_thn'] ?: '0') . ' Thn ' . ($pegawai['masa_kerja_bln'] ?: '0') . ' Bln'; ?>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-info border-0 py-1">
-                                    <div class="info-label" style="width: 140px;">Gaji Pokok</div>
-                                    <div class="info-value py-1 px-2 small fw-bold text-primary">Rp.
-                                        <?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Integrated Appointment & Retirement Info -->
-                    <div class="mt-4 pt-3 border-top">
-                        <h6 class="fw-bold mb-3 text-muted small text-uppercase"><i class="las la-history me-2"></i>
-                            Pengangkatan & Pensiun</h6>
-                        <div class="form-group-info">
-                            <div class="info-label">SK Pengangkatan Pertama</div>
-                            <div class="info-value">
-                                <?php echo htmlspecialchars(($appointment['no_sk'] ?? '') ?: '-'); ?>
-                            </div>
-                        </div>
-                        <div class="form-group-info">
-                            <div class="info-label">TMT Pengangkatan</div>
-                            <div class="info-value">
-                                <?php echo (!empty($appointment['tmt'] ?? '') && $appointment['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($appointment['tmt'])) : '-'; ?>
-                            </div>
-                        </div>
-                        <div class="form-group-info">
-                            <div class="info-label">Estimasi Pensiun</div>
-                            <div class="info-value">
-                                <span class="fw-bold text-danger"><?php echo $retirement['tmt'] ?? "-"; ?></span>
-                                <span class="small text-muted ms-2">(BUP <?php echo $retirement['bup'] ?? "-"; ?>
-                                    Tahun)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-modern">
-                <div class="card-header header-red">
-                    <i class="las la-tasks"></i> Monitoring Berkas & Riwayat
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="bg-light">
-                                <tr>
-                                    <th class="ps-4">Kategori</th>
-                                    <th>Keterangan</th>
-                                    <th>TMT / Tgl</th>
-                                    <th class="text-center">Berkas</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php if (empty($hist_rows)): ?>
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted small">Belum ada data riwayat
-                                            terunggah.</td>
-                                    </tr>
-                                <?php else: ?>
-                                    <?php foreach ($hist_rows as $h): ?>
-                                        <tr>
-                                            <td class="ps-4"><span
-                                                    class="badge bg-light text-dark border"><?php echo htmlspecialchars($h['kategori'] ?? ''); ?></span>
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold small">
-                                                    <?php echo htmlspecialchars($h['deskripsi'] ?? ''); ?>
-                                                </div>
-                                                <?php if ($h['institusi']): ?>
-                                                    <div class="text-muted" style="font-size: 0.75rem;">
-                                                        <?php echo htmlspecialchars($h['institusi'] ?? ''); ?>
-                                                    </div><?php endif; ?>
-                                            </td>
-                                            <td class="small">
-                                                <?php echo (!empty($h['tmt']) && $h['tmt'] != '0000-00-00') ? date('d-m-Y', strtotime($h['tmt'])) : '-'; ?>
-                                            </td>
-                                            <td class="text-center">
-                                                <?php if (!empty($h['file_lampiran'])): ?>
-                                                    <a href="../file/datakepegawaian/<?php echo $h['file_lampiran']; ?>"
-                                                        target="_blank" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                        <i class="las la-file-pdf"></i>
-                                                    </a>
-                                                <?php else: ?>
-                                                    <span class="text-danger small"><i class="las la-times-circle"></i></span>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
-                                    <?php endforeach; ?>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right Column: Foto & Kontak -->
-        <div class="col-lg-4">
-            <div class="card-modern">
-                <div class="card-header header-red">
-                    <i class="las la-camera"></i> Identitas Visual
-                </div>
-                <div class="photo-display-container">
-                    <img src="<?php echo $src_foto; ?>" class="photo-frame" alt="Foto Profil">
-                    <div class="mt-4">
-                        <h5 class="fw-bold mb-1"><?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?></h5>
-                        <p class="text-muted small">NIP. <?php echo htmlspecialchars(($pegawai['nip'] ?? '') ?: '-'); ?>
-                        </p>
-                        <hr>
-                        <div class="text-start">
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="las la-phone-alt text-primary me-3"></i>
-                                <div>
-                                    <div class="small text-muted">Nomor Telepon</div>
-                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?></div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="las la-envelope text-primary me-3"></i>
-                                <div>
-                                    <div class="small text-muted">Alamat Email</div>
-                                    <div class="fw-bold"><?php echo htmlspecialchars($pegawai['email'] ?? ''); ?></div>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-center mb-3">
-                                <i class="las la-map-marker-alt text-primary me-3"></i>
-                                <div>
-                                    <div class="small text-muted">Domisili</div>
-                                    <div class="fw-bold">
-                                        <?php echo htmlspecialchars(($pegawai['alamat'] ?? '') ?: '-'); ?>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
-</div>
 
-<!-- === MODAL: EDIT DATA === -->
-<div class="modal fade" id="modalEditProfil" data-bs-backdrop="static" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Perbarui Data Saya</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formEditProfil" enctype="multipart/form-data">
-                    <input type="hidden" name="id" id="edit_id" value="<?php echo $id_pegawai; ?>">
-                    <input type="hidden" name="foto_lama" id="edit_foto_lama" value="<?php echo $poto_db; ?>">
-                    <input type="hidden" name="nip" id="edit_nip"
-                        value="<?php echo htmlspecialchars($pegawai['nip'] ?? ''); ?>">
+    <form id="formDataSaya" enctype="multipart/form-data">
+        <input type="hidden" name="id" value="<?php echo $id_pegawai; ?>">
+        <input type="hidden" name="foto_lama" value="<?php echo $pegawai['foto']; ?>">
 
-                    <div class="row g-4">
-                        <!-- Photo Section -->
-                        <div class="col-md-4 text-center">
-                            <div class="position-relative d-inline-block">
-                                <img id="preview-foto-edit" src="<?php echo $src_foto; ?>" class="rounded shadow-sm"
-                                    style="width: 150px; height: 200px; object-fit: cover; border: 1px solid #e2e8f0;">
-                                <label for="foto_edit"
-                                    class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                                    style="width: 38px; height: 38px; cursor: pointer; border: 3px solid #fff; margin-bottom: -10px; margin-right: -10px;">
-                                    <i class="las la-camera"></i>
+        <div class="row g-4 mb-5">
+            <div class="col-lg-12">
+                <div class="card-modern shadow-sm border-0">
+                    <div class="card-body p-4">
+                        <div class="row align-items-center">
+                            <div class="col-md-auto text-center mb-3 mb-md-0">
+                                <label for="foto_input" style="cursor: pointer;">
+                                    <img src="<?php echo $src_foto; ?>" class="photo-monitor" id="preview-foto"
+                                        alt="Foto" title="Klik untuk ubah foto">
                                 </label>
-                                <input type="file" id="foto_edit" name="foto" class="d-none" accept="image/*">
-                            </div>
-                        </div>
-
-                        <!-- Info Section -->
-                        <div class="col-md-8">
-                            <div class="row g-3">
-                                <div class="col-12">
-                                    <label class="form-label small fw-bold">Nama Lengkap (*)</label>
-                                    <input type="text" name="nm_pegawai" id="edit_nm_pegawai" class="form-control"
-                                        required value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Tempat Lahir (*)</label>
-                                    <input type="text" name="tempat_lahir" id="edit_tempat_lahir" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['tempat_lahir'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Tanggal Lahir (*)</label>
-                                    <input type="date" name="tgl_lahir" id="edit_tgl_lahir" class="form-control"
-                                        value="<?php echo $pegawai['tgl_lahir'] ?? ''; ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Jenis Kelamin (*)</label>
-                                    <select name="jenis_kelamin" id="edit_jenis_kelamin" class="form-select">
-                                        <option value="L" <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'selected' : ''; ?>>Laki-laki</option>
-                                        <option value="P" <?php echo ($pegawai['jenis_kelamin'] == 'P') ? 'selected' : ''; ?>>Perempuan</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Pendidikan</label>
-                                    <input type="text" name="pendidikan" id="edit_pendidikan" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">NUPTK</label>
-                                    <input type="text" name="nuptk" id="edit_nuptk" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['nuptk'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Agama</label>
-                                    <select name="agama" id="edit_agama" class="form-select">
-                                        <option value="">- Pilih Agama -</option>
-                                        <?php
-                                        $agamas = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu'];
-                                        foreach ($agamas as $a):
-                                            $sel = ($pegawai['agama'] == $a) ? 'selected' : '';
-                                            echo "<option value='$a' $sel>$a</option>";
-                                        endforeach;
-                                        ?>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">NPWP</label>
-                                    <input type="text" name="npwp" id="edit_npwp" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['npwp'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Nama Ibu Kandung</label>
-                                    <input type="text" name="nama_ibu" id="edit_nama_ibu" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['nama_ibu'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label small fw-bold">Nama Suami/Istri</label>
-                                    <input type="text" name="nama_pasangan" id="edit_nama_pasangan" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['nama_pasangan'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">No. Karpeg</label>
-                                    <input type="text" name="no_karpeg" id="edit_no_karpeg" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_karpeg'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">No. Taspen</label>
-                                    <input type="text" name="no_taspen" id="edit_no_taspen" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_taspen'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">No. BPJS</label>
-                                    <input type="text" name="no_bpjs" id="edit_no_bpjs" class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_bpjs'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">No. Karis/Karsu</label>
-                                    <input type="text" name="no_karis_karsu" id="edit_no_karis_karsu"
-                                        class="form-control"
-                                        value="<?php echo htmlspecialchars($pegawai['no_karis_karsu'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">Masa Kerja (Thn/Bln)</label>
-                                    <div class="input-group">
-                                        <input type="number" name="masa_kerja_thn" id="edit_masa_kerja_thn"
-                                            class="form-control" value="<?php echo $pegawai['masa_kerja_thn']; ?>"
-                                            placeholder="Th">
-                                        <input type="number" name="masa_kerja_bln" id="edit_masa_kerja_bln"
-                                            class="form-control" value="<?php echo $pegawai['masa_kerja_bln']; ?>"
-                                            placeholder="Bl">
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold">Gaji Pokok</label>
-                                    <input type="text" name="gaji_pokok" id="edit_gaji_pokok" class="form-control"
-                                        value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
+                                <input type="file" name="foto" id="foto_input" class="d-none" accept="image/*">
+                                <div class="mt-2">
+                                    <span class="badge bg-soft-success rounded-pill px-3 py-1 extra-small">
+                                        <i class="las la-check-circle me-1"></i> Terverifikasi
+                                    </span>
                                 </div>
                             </div>
-                        </div>
-
-                        <!-- Contact Section -->
-                        <div class="col-12">
-                            <div class="bg-light p-3 rounded">
+                            <div class="col-md">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">Email</label>
-                                        <input type="email" name="email" id="edit_email" class="form-control"
-                                            value="<?php echo htmlspecialchars($pegawai['email'] ?? ''); ?>">
+                                        <div class="info-row">
+                                            <div class="info-label">Nama Lengkap</div>
+                                            <div class="info-box-edit">
+                                                <input type="text" name="nm_pegawai"
+                                                    class="modern-input fw-bold text-primary"
+                                                    value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>"
+                                                    required>
+                                            </div>
+                                        </div>
+                                        <div class="info-row">
+                                            <div class="info-label">NIP</div>
+                                            <div class="info-box-edit">
+                                                <input type="text" name="nip" class="modern-input"
+                                                    value="<?php echo htmlspecialchars($pegawai['nip'] ?? ''); ?>"
+                                                    readonly>
+                                            </div>
+                                        </div>
+                                        <div class="info-row">
+                                            <div class="info-label">NRK</div>
+                                            <div class="info-box-edit">
+                                                <input type="text" name="nrk" class="modern-input"
+                                                    value="<?php echo htmlspecialchars($pegawai['nrk'] ?? ''); ?>"
+                                                    readonly>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label small fw-bold">No. HP</label>
-                                        <input type="text" name="no_hp" id="edit_no_hp" class="form-control"
-                                            value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
-                                    </div>
-                                    <div class="col-12">
-                                        <label class="form-label small fw-bold">Alamat</label>
-                                        <textarea name="alamat" id="edit_alamat" class="form-control"
-                                            rows="2"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></textarea>
+                                        <div class="info-row">
+                                            <div class="info-label">Jabatan</div>
+                                            <div class="info-box-edit">
+                                                <input type="text" name="jabatan" class="modern-input"
+                                                    value="<?php echo htmlspecialchars($pegawai['jabatan'] ?? ''); ?>">
+                                            </div>
+                                        </div>
+                                        <div class="info-row">
+                                            <div class="info-label">Unit Kerja</div>
+                                            <div class="info-box-edit">
+                                                <input type="text" name="unit_kerja" class="modern-input"
+                                                    value="<?php echo htmlspecialchars(($pegawai['unit_kerja'] ?? '') ?: 'SMP Negeri 171 Jakarta'); ?>">
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </form>
+                </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="submit" form="formEditProfil" class="btn btn-primary">Simpan Perubahan</button>
+        </div>
+
+        <div class="mb-4">
+            <h5 class="fw-bold d-flex align-items-center text-dark">
+                <span class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                    style="width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(13, 202, 240, 0.3);">
+                    <i class="las la-id-card fs-5"></i>
+                </span>
+                Biodata & Profil Lengkap
+            </h5>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <!-- IDENTITAS PRIBADI -->
+            <div class="col-lg-4">
+                <div class="card-modern shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                        <h6 class="fw-bold text-primary mb-0"><i class="las la-user me-2"></i>Identitas Pribadi</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="info-row">
+                            <div class="info-label">Jenis Kelamin</div>
+                            <div class="info-box-edit">
+                                <select name="jenis_kelamin" class="form-select modern-input">
+                                    <option value="L" <?php echo ($pegawai['jenis_kelamin'] == 'L') ? 'selected' : ''; ?>>
+                                        Laki-laki</option>
+                                    <option value="P" <?php echo ($pegawai['jenis_kelamin'] == 'P') ? 'selected' : ''; ?>>
+                                        Perempuan</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Agama</div>
+                            <div class="info-box-edit">
+                                <select name="agama" class="form-select modern-input select2-edit">
+                                    <option value="">- Pilih -</option>
+                                    <?php
+                                    $agamas = ['Islam', 'Kristen Protestan', 'Katolik', 'Hindu', 'Buddha', 'Khonghucu'];
+                                    foreach ($agamas as $a):
+                                        $sel = ($pegawai['agama'] == $a) ? 'selected' : '';
+                                        echo "<option value='$a' $sel>$a</option>";
+                                    endforeach;
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Tempat Lahir</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="tempat_lahir" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['tempat_lahir'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Tanggal Lahir</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="tgl_lahir" class="modern-input datepicker"
+                                    value="<?php echo $pegawai['tgl_lahir']; ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">NUPTK</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="nuptk" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['nuptk'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">NIK (KTP)</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="nik" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['nik'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">No. KK</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="no_kk" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['no_kk'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Nama Ibu</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="nama_ibu" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['nama_ibu'] ?? ''); ?>">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KEPEGAWAIAN & DOKUMEN -->
+            <div class="col-lg-4">
+                <div class="card-modern shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                        <h6 class="fw-bold text-success mb-0"><i class="las la-briefcase me-2"></i>Kepegawaian & Dokumen
+                        </h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="info-row">
+                            <div class="info-label">Status</div>
+                            <div class="info-box-edit">
+                                <select name="status_pegawai" class="form-select modern-input select2-edit">
+                                    <option value="PNS" <?php echo ($pegawai['status_pegawai'] == 'PNS') ? 'selected' : ''; ?>>PNS</option>
+                                    <option value="PPPK" <?php echo ($pegawai['status_pegawai'] == 'PPPK') ? 'selected' : ''; ?>>PPPK</option>
+                                    <option value="Honorer" <?php echo ($pegawai['status_pegawai'] == 'Honorer') ? 'selected' : ''; ?>>Honorer</option>
+                                    <option value="Lainnya" <?php echo ($pegawai['status_pegawai'] == 'Lainnya') ? 'selected' : ''; ?>>Lainnya</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Pendidikan</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="pendidikan" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Golongan</div>
+                            <div class="info-box-edit">
+                                <select name="golongan" class="form-select modern-input select2-edit">
+                                    <option value="">- Pilih -</option>
+                                    <?php
+                                    $golongans = ['I/a', 'I/b', 'I/c', 'I/d', 'II/a', 'II/b', 'II/c', 'II/d', 'III/a', 'III/b', 'III/c', 'III/d', 'IV/a', 'IV/b', 'IV/c', 'IV/d', 'IV/e', 'V', 'IX'];
+                                    foreach ($golongans as $g):
+                                        $sel = ($pegawai['golongan'] == $g) ? 'selected' : '';
+                                        echo "<option value='$g' $sel>$g</option>";
+                                    endforeach;
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">TMT Golongan</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="tmt_golongan" class="modern-input datepicker"
+                                    value="<?php echo $pegawai['tmt_golongan']; ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Masa Kerja</div>
+                            <div class="info-box-edit">
+                                <div class="input-group">
+                                    <input type="number" name="masa_kerja_thn" class="form-control modern-input"
+                                        value="<?php echo $pegawai['masa_kerja_thn']; ?>" placeholder="Thn">
+                                    <input type="number" name="masa_kerja_bln" class="form-control modern-input"
+                                        value="<?php echo $pegawai['masa_kerja_bln']; ?>" placeholder="Bln">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Gaji Pokok</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="gaji_pokok" class="modern-input fw-bold text-success"
+                                    value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">No. Karpeg</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="no_karpeg" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['no_karpeg'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">No. Taspen</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="no_taspen" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['no_taspen'] ?? ''); ?>">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- KONTAK & ALAMAT -->
+            <div class="col-lg-4">
+                <div class="card-modern shadow-sm border-0 h-100">
+                    <div class="card-header bg-white border-0 pt-4 px-4 pb-0">
+                        <h6 class="fw-bold text-warning mb-0"><i class="las la-map-marker me-2"></i>Kontak & Alamat</h6>
+                    </div>
+                    <div class="card-body p-4">
+                        <div class="info-row">
+                            <div class="info-label">No. HP</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="no_hp" class="modern-input fw-bold text-primary"
+                                    value="<?php echo htmlspecialchars($pegawai['no_hp'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Email</div>
+                            <div class="info-box-edit">
+                                <input type="email" name="email" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['email'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Alamat</div>
+                            <div class="info-box-edit">
+                                <textarea name="alamat" class="modern-input"
+                                    rows="3"><?php echo htmlspecialchars($pegawai['alamat'] ?? ''); ?></textarea>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Kelurahan</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="kelurahan" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['kelurahan'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Kecamatan</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="kecamatan" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['kecamatan'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">NPWP</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="npwp" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['npwp'] ?? ''); ?>">
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">Pasangan</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="nama_pasangan" class="modern-input"
+                                    value="<?php echo htmlspecialchars($pegawai['nama_pasangan'] ?? ''); ?>">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-n4 mb-5 text-end">
+            <button type="submit" class="btn btn-primary btn-rounded px-5 py-2 shadow">
+                <i class="las la-save me-2"></i> Simpan Perubahan Profil
+            </button>
+        </div>
+    </form>
+
+    <div class="mb-4">
+        <h5 class="fw-bold d-flex align-items-center text-dark">
+            <span class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                style="width: 36px; height: 36px; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);">
+                <i class="las la-table fs-5"></i>
+            </span>
+            Riwayat Kepegawaian & Dokumen
+        </h5>
+    </div>
+
+    <div class="card-modern border-0 shadow-sm mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle nowrap mb-0" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th class="text-center" width="50">No</th>
+                            <th>Kategori</th>
+                            <th>Keterangan / Institusi</th>
+                            <th>No. SK / Ijazah</th>
+                            <th class="text-center">TMT</th>
+                            <th class="text-end">Gaji Pokok</th>
+                            <th class="text-center">Masa Kerja</th>
+                            <th>Jurusan / Tempat</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center" width="80">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        if (!empty($hist_rows)):
+                            $no = 1;
+                            foreach ($hist_rows as $r):
+                                $has_file = !empty($r['file_lampiran']);
+                                ?>
+                                <tr>
+                                    <td class="text-center text-muted fw-bold"><?php echo $no++; ?></td>
+                                    <td class="fw-bold text-dark"><?php echo htmlspecialchars($r['kategori'] ?? ''); ?></td>
+                                    <td>
+                                        <?php
+                                        if ($r['kategori'] == 'Pendidikan' && !empty($r['institusi'])) {
+                                            echo htmlspecialchars($r['institusi'] ?? '');
+                                        } else {
+                                            echo htmlspecialchars(($r['deskripsi'] ?? '') ?: '-');
+                                        }
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        if ($r['kategori'] == 'Pendidikan' && !empty($r['no_ijazah'])) {
+                                            echo '<span class="text-muted extra-small d-block">No. Ijazah:</span>';
+                                            echo '<code>' . htmlspecialchars($r['no_ijazah'] ?? '') . '</code>';
+                                        } else {
+                                            echo '<span class="text-muted extra-small d-block">No. SK:</span>';
+                                            echo '<code>' . htmlspecialchars(($r['no_sk'] ?? '') ?: '-') . '</code>';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php echo (!empty($r['tmt']) && $r['tmt'] != '0000-00-00') ? date('d/m/Y', strtotime($r['tmt'])) : '-'; ?>
+                                    </td>
+                                    <td class="text-end fw-bold text-success">
+                                        <?php echo ($r['kategori'] == 'KGB' && !empty($r['gaji_pokok'])) ? 'Rp ' . number_format($r['gaji_pokok'], 0, ',', '.') : '-'; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php
+                                        if ($r['kategori'] == 'KGB' || $r['kategori'] == 'Pangkat') {
+                                            echo ($r['masa_kerja_thn'] ?: 0) . 'th ' . ($r['masa_kerja_bln'] ?: 0) . 'bln';
+                                        } else {
+                                            echo '-';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td>
+                                        <?php
+                                        if ($r['kategori'] == 'Pendidikan' && !empty($r['jurusan'])) {
+                                            echo htmlspecialchars($r['jurusan'] ?? '');
+                                        } else if (($r['kategori'] == 'Diklat' || $r['kategori'] == 'Seminar') && !empty($r['tempat'])) {
+                                            echo htmlspecialchars($r['tempat'] ?? '');
+                                        } else {
+                                            echo '-';
+                                        }
+                                        ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($has_file): ?>
+                                            <span class="badge-status bg-soft-success"><i class="las la-check me-1"></i> ADA</span>
+                                        <?php else: ?>
+                                            <span class="badge-status bg-soft-warning"><i class="las la-times me-1"></i>
+                                                TIDAK</span>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php if ($has_file): ?>
+                                            <a href="../file/datakepegawaian/<?php echo $r['file_lampiran']; ?>" target="_blank"
+                                                class="btn-action-view text-primary border" title="Lihat Dokumen">
+                                                <i class="las la-external-link-alt fs-5"></i>
+                                            </a>
+                                        <?php else: ?>
+                                            <button class="btn-action-view text-muted border opacity-50" disabled>
+                                                <i class="las la-file-excel fs-5"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php
+                            endforeach;
+                        endif;
+                        ?>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 </div>
-
-<script>
-    $(document).ready(function () {
-        const modalEdit = new bootstrap.Modal(document.getElementById('modalEditProfil'));
-
-        $('#btnEditProfil').click(function () {
-            modalEdit.show();
-        });
-
-        // Preview Photo
-        $('#foto_edit').change(function () {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    $('#preview-foto-edit').attr('src', e.target.result);
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // Submit Form
-        $('#formEditProfil').on('submit', function (e) {
-            e.preventDefault();
-            const formData = new FormData(this);
-            formData.append('action', 'simpan');
-
-            const btn = $(this).closest('.modal-content').find('button[type="submit"]');
-            const oldHtml = btn.html();
-            btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Menyimpan...');
-
-            $.ajax({
-                url: 'proses_pegawai.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                dataType: 'json',
-                success: function (res) {
-                    if (res.status === 'success') {
-                        if (typeof showToast === 'function') showToast(res.message, 'success');
-                        else alert(res.message);
-                        setTimeout(() => { location.reload(); }, 1500);
-                    } else {
-                        if (typeof showToast === 'function') showToast(res.message, 'error');
-                        else alert(res.message);
-                        btn.prop('disabled', false).html(oldHtml);
-                    }
-                },
-                error: function () {
-                    if (typeof showToast === 'function') showToast('Terjadi kesalahan sistem.', 'error');
-                    btn.prop('disabled', false).html(oldHtml);
-                }
-            });
-        });
-
-        // Print Preview Logic
-        document.getElementById('modalCetak').addEventListener('show.bs.modal', function () {
-            const printable = document.getElementById('printableProfile');
-            const preview = document.getElementById('printPreviewContent');
-            preview.innerHTML = printable.innerHTML;
-        });
-    });
-</script>
 
 <!-- === MODAL: CETAK PREVIEW === -->
 <div class="modal fade" id="modalCetak" tabindex="-1" aria-hidden="true">
@@ -1139,3 +986,88 @@ $g = $res_g->fetch_assoc();
         </table>
     </div>
 </div>
+
+<script>
+    $(document).ready(function () {
+        // DataTable Initialization
+        const table = $('.container-fluid table.table').DataTable({
+            scrollY: 450,
+            scrollX: true,
+            scrollCollapse: true,
+            paging: false,
+        });
+
+        // Initialize Select2
+        $('.select2-edit').select2({
+            theme: 'bootstrap-5',
+            width: '100%'
+        });
+
+        // Initialize Flatpickr
+        $(".datepicker").flatpickr({
+            altInput: true,
+            altFormat: "d-m-Y",
+            dateFormat: "Y-m-d",
+            locale: "id",
+            allowInput: true
+        });
+
+        // Photo Preview
+        $('#foto_input').change(function () {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#preview-foto').attr('src', e.target.result);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Form Submit Logic
+        $('#formDataSaya').on('submit', function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            formData.append('action', 'simpan');
+
+            const btn = $(this).find('button[type="submit"]');
+            const oldHtml = btn.html();
+            btn.prop('disabled', true).html('<i class="las la-spinner fa-spin me-2"></i> Menyimpan...');
+
+            $.ajax({
+                url: 'proses_pegawai.php',
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                success: function (res) {
+                    if (res.status === 'success') {
+                        if (typeof showToast === 'function') showToast(res.message, 'success');
+                        else alert(res.message);
+                        setTimeout(() => { location.reload(); }, 1500);
+                    } else {
+                        if (typeof showToast === 'function') showToast(res.message, 'error');
+                        else alert(res.message);
+                        btn.prop('disabled', false).html(oldHtml);
+                    }
+                },
+                error: function () {
+                    if (typeof showToast === 'function') showToast('Gagal menghubungi server.', 'error');
+                    else alert('Gagal menghubungi server.');
+                    btn.prop('disabled', false).html(oldHtml);
+                }
+            });
+        });
+
+        // Print Preview Logic
+        const modalCetak = document.getElementById('modalCetak');
+        if (modalCetak) {
+            modalCetak.addEventListener('show.bs.modal', function () {
+                const printable = document.getElementById('printableProfile');
+                const preview = document.getElementById('printPreviewContent');
+                preview.innerHTML = printable.innerHTML;
+            });
+        }
+    });
+</script>
