@@ -105,6 +105,9 @@ try {
         'is_pensiun_synced' => "TINYINT(1) DEFAULT 0",
         'last_activity' => "DATETIME",
         'tmt_pangkat' => "DATE",
+        'tmt_cpns' => "DATE",
+        'tmt_pns' => "DATE",
+        'tmt_jabatan' => "DATE",
         'google_auth_secret' => "VARCHAR(255) NULL"
     ];
 
@@ -496,6 +499,9 @@ try {
         $tgl_lulus = !empty($_POST['tgl_lulus']) ? $_POST['tgl_lulus'] : ($current_data['tgl_lulus'] ?? null);
         $tmt_golongan = !empty($_POST['tmt_golongan']) ? $_POST['tmt_golongan'] : ($current_data['tmt_golongan'] ?? null);
         $tmt_pangkat = !empty($_POST['tmt_pangkat']) ? $_POST['tmt_pangkat'] : ($current_data['tmt_pangkat'] ?? null);
+        $tmt_cpns = !empty($_POST['tmt_cpns']) ? $_POST['tmt_cpns'] : ($current_data['tmt_cpns'] ?? null);
+        $tmt_pns = !empty($_POST['tmt_pns']) ? $_POST['tmt_pns'] : ($current_data['tmt_pns'] ?? null);
+        $tmt_jabatan = !empty($_POST['tmt_jabatan']) ? $_POST['tmt_jabatan'] : ($current_data['tmt_jabatan'] ?? null);
         $gelar_depan = $_POST['gelar_depan'] ?? ($current_data['gelar_depan'] ?? '');
         $gelar_belakang = $_POST['gelar_belakang'] ?? ($current_data['gelar_belakang'] ?? '');
         
@@ -541,15 +547,15 @@ try {
 
         if (empty($id)) {
             // Insert - Fixed placeholder mismatch (42 fields)
-            $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, tmt_pangkat, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, nik, no_kk, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok, rt, rw, kelurahan, kecamatan, hobby, pengalaman_kerja, gelar_depan, gelar_belakang) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO pegawai (nip, nm_pegawai, tempat_lahir, tgl_lahir, jenis_kelamin, jabatan, pangkat, golongan, unit_kerja, status_pegawai, pendidikan, tgl_lulus, tmt_golongan, tmt_pangkat, tmt_cpns, tmt_pns, tmt_jabatan, no_hp, email, alamat, foto, nrk, status, nuptk, agama, nama_ibu, nama_pasangan, npwp, nik, no_kk, no_karpeg, no_taspen, no_bpjs, no_karis_karsu, masa_kerja_thn, masa_kerja_bln, gaji_pokok, rt, rw, kelurahan, kecamatan, hobby, pengalaman_kerja, gelar_depan, gelar_belakang) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssssssssssssssssssssssssssssssiidssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang);
+            $stmt->bind_param("sssssssssssssssssssssssssssssssiidsssssssss", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $tmt_cpns, $tmt_pns, $tmt_jabatan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang);
         } else {
             // Update - Added missing fields
-            $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, tmt_pangkat=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, nik=?, no_kk=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=?, rt=?, rw=?, kelurahan=?, kecamatan=?, hobby=?, pengalaman_kerja=?, gelar_depan=?, gelar_belakang=? WHERE id=?";
+            $sql = "UPDATE pegawai SET nip=?, nm_pegawai=?, tempat_lahir=?, tgl_lahir=?, jenis_kelamin=?, jabatan=?, pangkat=?, golongan=?, unit_kerja=?, status_pegawai=?, pendidikan=?, tgl_lulus=?, tmt_golongan=?, tmt_pangkat=?, tmt_cpns=?, tmt_pns=?, tmt_jabatan=?, no_hp=?, email=?, alamat=?, foto=?, nrk=?, status=?, nuptk=?, agama=?, nama_ibu=?, nama_pasangan=?, npwp=?, nik=?, no_kk=?, no_karpeg=?, no_taspen=?, no_bpjs=?, no_karis_karsu=?, masa_kerja_thn=?, masa_kerja_bln=?, gaji_pokok=?, rt=?, rw=?, kelurahan=?, kecamatan=?, hobby=?, pengalaman_kerja=?, gelar_depan=?, gelar_belakang=? WHERE id=?";
             $stmt = $conn->prepare($sql);
-            $stmt->bind_param("sssssssssssssssssssssssssssssssiidssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang, $id);
+            $stmt->bind_param("sssssssssssssssssssssssssssssssiidsssssssssi", $nip, $nm_pegawai, $tempat_lahir, $tgl_lahir, $jenis_kelamin, $jabatan, $pangkat, $golongan, $unit_kerja, $status_pegawai, $pendidikan, $tgl_lulus, $tmt_golongan, $tmt_pangkat, $tmt_cpns, $tmt_pns, $tmt_jabatan, $no_hp, $email, $alamat, $foto, $nrk, $status, $nuptk, $agama, $nama_ibu, $nama_pasangan, $npwp, $nik_val, $no_kk, $no_karpeg, $no_taspen, $no_bpjs, $no_karis_karsu, $masa_kerja_thn, $masa_kerja_bln, $gaji_pokok, $rt, $rw, $kelurahan, $kecamatan, $hobby, $pengalaman_kerja, $gelar_depan, $gelar_belakang, $id);
         }
 
         if ($stmt->execute()) {

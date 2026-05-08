@@ -354,7 +354,7 @@ while ($row = $history_all->fetch_assoc()) {
                             <div class="info-label">Tanggal Lahir</div>
                             <div class="info-box-edit">
                                 <input type="text" name="tgl_lahir" class="modern-input datepicker"
-                                    value="<?php echo $pegawai['tgl_lahir']; ?>">
+                                    value="<?php echo (!empty($pegawai['tgl_lahir']) && $pegawai['tgl_lahir'] != '0000-00-00') ? $pegawai['tgl_lahir'] : ''; ?>">
                             </div>
                         </div>
                         <div class="info-row">
@@ -413,7 +413,7 @@ while ($row = $history_all->fetch_assoc()) {
                             <div class="info-box-edit">
                                 <div class="input-group">
                                     <input type="text" name="pendidikan" class="form-control modern-input" placeholder="Jenjang" value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
-                                    <input type="text" name="tgl_lulus" class="form-control modern-input datepicker" placeholder="Tgl Lulus" value="<?php echo $pegawai['tgl_lulus']; ?>">
+                                    <input type="text" name="tgl_lulus" class="form-control modern-input datepicker" placeholder="Tgl Lulus" value="<?php echo (!empty($pegawai['tgl_lulus']) && $pegawai['tgl_lulus'] != '0000-00-00') ? $pegawai['tgl_lulus'] : ''; ?>">
                                 </div>
                             </div>
                         </div>
@@ -439,9 +439,24 @@ while ($row = $history_all->fetch_assoc()) {
                             <div class="info-label">TMT Pangkat/Gol</div>
                             <div class="info-box-edit">
                                 <div class="input-group">
-                                    <input type="text" name="tmt_pangkat" class="form-control modern-input datepicker" placeholder="TMT Pangkat" value="<?php echo $pegawai['tmt_pangkat']; ?>">
-                                    <input type="text" name="tmt_golongan" class="form-control modern-input datepicker" placeholder="TMT Golongan" value="<?php echo $pegawai['tmt_golongan']; ?>">
+                                    <input type="text" name="tmt_pangkat" class="form-control modern-input datepicker" placeholder="TMT Pangkat" value="<?php echo (!empty($pegawai['tmt_pangkat']) && $pegawai['tmt_pangkat'] != '0000-00-00') ? $pegawai['tmt_pangkat'] : ''; ?>">
+                                    <input type="text" name="tmt_golongan" class="form-control modern-input datepicker" placeholder="TMT Golongan" value="<?php echo (!empty($pegawai['tmt_golongan']) && $pegawai['tmt_golongan'] != '0000-00-00') ? $pegawai['tmt_golongan'] : ''; ?>">
                                 </div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">TMT CPNS / PNS</div>
+                            <div class="info-box-edit">
+                                <div class="input-group">
+                                    <input type="text" name="tmt_cpns" class="form-control modern-input datepicker" placeholder="TMT CPNS" value="<?php echo (!empty($pegawai['tmt_cpns']) && $pegawai['tmt_cpns'] != '0000-00-00') ? $pegawai['tmt_cpns'] : ''; ?>">
+                                    <input type="text" name="tmt_pns" class="form-control modern-input datepicker" placeholder="TMT PNS" value="<?php echo (!empty($pegawai['tmt_pns']) && $pegawai['tmt_pns'] != '0000-00-00') ? $pegawai['tmt_pns'] : ''; ?>">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-label">TMT Jabatan</div>
+                            <div class="info-box-edit">
+                                <input type="text" name="tmt_jabatan" class="modern-input datepicker" placeholder="TMT Jabatan" value="<?php echo (!empty($pegawai['tmt_jabatan']) && $pegawai['tmt_jabatan'] != '0000-00-00') ? $pegawai['tmt_jabatan'] : ''; ?>">
                             </div>
                         </div>
                         <div class="info-row">
