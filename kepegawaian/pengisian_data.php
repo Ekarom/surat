@@ -24,6 +24,39 @@ if (!$pegawai) {
 }
 
 $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['foto'] : '../images/default.png';
+
+// Calculate completion percentage with stricter checks
+$completion_fields = [
+    'nm_pegawai', 'jenis_kelamin', 'agama', 'tempat_lahir', 'tgl_lahir', 
+    'nik', 'no_kk', 'no_hp', 'email', 'alamat',
+    'status_pegawai', 'golongan', 'pendidikan', 'unit_kerja'
+];
+$filled = 0;
+foreach ($completion_fields as $f) {
+    $val = trim($pegawai[$f] ?? '');
+    if ($val !== '' && $val !== '-' && $val !== '0000-00-00' && $val !== '0') {
+        $filled++;
+    }
+}
+
+// Check Riwayat (Mandatory categories for completion)
+$required_hist = ['Pangkat', 'Jabatan', 'Pendidikan'];
+$hist_check = $conn->prepare("SELECT kategori FROM riwayat_kepegawaian WHERE pegawai_id = ?");
+$hist_check->bind_param("i", $id_pegawai);
+$hist_check->execute();
+$hist_res = $hist_check->get_result();
+$user_hist_cats = [];
+while ($row = $hist_res->fetch_assoc()) {
+    $user_hist_cats[] = $row['kategori'];
+}
+foreach ($required_hist as $rh) {
+    if (in_array($rh, $user_hist_cats)) {
+        $filled++;
+    }
+}
+
+$total_check_count = count($completion_fields) + count($required_hist);
+$completion = round(($filled / $total_check_count) * 100);
 ?>
 
 <!-- === EXTERNAL ASSETS === -->
@@ -130,6 +163,11 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         border-color: var(--sap-primary);
         box-shadow: 0 0 0 4px var(--sap-primary-light);
         outline: none;
+    }
+
+    .input-group > .modern-input {
+        width: auto;
+        flex: 1 1 auto;
     }
 
     .photo-preview-wrapper {
@@ -281,6 +319,36 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
         background-size: 1.1rem !important;
         padding-right: 2.5rem !important;
     }
+
+    .completion-bar-wrapper {
+        background: var(--sap-gray-100);
+        height: 10px;
+        border-radius: 10px;
+        overflow: hidden;
+        margin-top: 10px;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .completion-bar {
+        height: 100%;
+        background: var(--sap-primary-gradient);
+        transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px var(--sap-primary-light);
+    }
+
+    .input-group-text-modern {
+        background-color: var(--sap-gray-100);
+        border: 1px solid var(--sap-gray-200);
+        border-radius: 0.75rem 0 0 0.75rem;
+        color: var(--sap-secondary);
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    .input-group-modern .modern-input {
+        border-top-left-radius: 0 !important;
+        border-bottom-left-radius: 0 !important;
+    }
 </style>
 
 <div class="row">
@@ -290,6 +358,16 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
             <h2 class="page-title mb-1">Pengisian Data Mandiri</h2>
             <p class="text-muted small mb-0">Lengkapi profil, data kepegawaian, dan riwayat Anda untuk sinkronisasi
                 sistem.</p>
+        </div>
+        <div class="text-end mt-3 mt-md-0" style="min-width: 200px;">
+            <div class="d-flex justify-content-between mb-1">
+                <span class="small fw-bold text-muted">Kelengkapan Data</span>
+                <span class="small fw-bold text-primary"><?php echo $completion; ?>%</span>
+            </div>
+            <div class="completion-bar-wrapper">
+                <div class="completion-bar" style="width: <?php echo $completion; ?>%;"></div>
+            </div>
+            <p class="text-muted mb-0" style="font-size: 0.65rem; margin-top: 4px;">* Progres mencakup Profil, Kepegawaian, & Riwayat Utama (Pangkat, Jabatan, Pendidikan).</p>
         </div>
     </div>
 
@@ -342,10 +420,24 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                             <!-- IDENTITAS PRIBADI -->
                             <div class="section-title"><i class="las la-id-card me-2"></i> Identitas Pribadi</div>
                             <div class="row g-3 mb-5">
-                                <div class="col-md-6">
-                                    <label class="modern-label">Nama Lengkap (*)</label>
-                                    <input type="text" name="nm_pegawai" class="form-control modern-input" required
-                                        value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>">
+                                <div class="col-md-12">
+                                    <label class="modern-label">Nama Lengkap & Gelar (*)</label>
+                                    <div class="input-group">
+                                        <input type="text" name="gelar_depan"
+                                            class="form-control modern-input" style="max-width: 85px;"
+                                            placeholder="Dr."
+                                            value="<?php echo htmlspecialchars($pegawai['gelar_depan'] ?? ''); ?>">
+                                        <input type="text" name="nm_pegawai"
+                                            class="form-control modern-input fw-bold text-primary"
+                                            style="flex: 2;"
+                                            placeholder="Nama Lengkap"
+                                            value="<?php echo htmlspecialchars($pegawai['nm_pegawai'] ?? ''); ?>"
+                                            required>
+                                        <input type="text" name="gelar_belakang"
+                                            class="form-control modern-input" style="max-width: 110px;"
+                                            placeholder="M.Pd"
+                                            value="<?php echo htmlspecialchars($pegawai['gelar_belakang'] ?? ''); ?>">
+                                    </div>
                                     <div class="invalid-feedback">Nama lengkap wajib diisi.</div>
                                 </div>
                                 <div class="col-md-3">
@@ -379,7 +471,7 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                 <div class="col-md-4">
                                     <label class="modern-label">Tanggal Lahir (*)</label>
                                     <input type="text" name="tgl_lahir" class="form-control modern-input datepicker"
-                                        required value="<?php echo $pegawai['tgl_lahir']; ?>">
+                                        required value="<?php echo ($pegawai['tgl_lahir'] != '0000-00-00') ? $pegawai['tgl_lahir'] : ''; ?>">
                                     <div class="invalid-feedback">Tanggal lahir wajib diisi.</div>
                                 </div>
                                 <div class="col-md-4">
@@ -444,7 +536,12 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                     <input type="text" name="pendidikan" class="form-control modern-input"
                                         value="<?php echo htmlspecialchars($pegawai['pendidikan'] ?? ''); ?>">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
+                                    <label class="modern-label">Unit Kerja</label>
+                                    <input type="text" name="unit_kerja" class="form-control modern-input"
+                                        value="<?php echo htmlspecialchars($pegawai['unit_kerja'] ?? ''); ?>">
+                                </div>
+                                <div class="col-md-4">
                                     <label class="modern-label">Golongan</label>
                                     <select name="golongan" class="form-select modern-input">
                                         <option value="">- Pilih -</option>
@@ -457,15 +554,35 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                         ?>
                                     </select>
                                 </div>
-                                <div class="col-md-3">
-                                    <label class="modern-label">Tgl. Lulus Pendidikan</label>
-                                    <input type="text" name="tgl_lulus" class="form-control modern-input datepicker"
-                                        value="<?php echo $pegawai['tgl_lulus']; ?>">
+                                <div class="col-md-4">
+                                    <label class="modern-label">TMT Pangkat</label>
+                                    <input type="text" name="tmt_pangkat" class="form-control modern-input datepicker"
+                                        value="<?php echo ($pegawai['tmt_pangkat'] != '0000-00-00') ? $pegawai['tmt_pangkat'] : ''; ?>">
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <label class="modern-label">TMT Golongan</label>
                                     <input type="text" name="tmt_golongan" class="form-control modern-input datepicker"
-                                        value="<?php echo $pegawai['tmt_golongan']; ?>">
+                                        value="<?php echo ($pegawai['tmt_golongan'] != '0000-00-00') ? $pegawai['tmt_golongan'] : ''; ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="modern-label">TMT Jabatan</label>
+                                    <input type="text" name="tmt_jabatan" class="form-control modern-input datepicker"
+                                        value="<?php echo ($pegawai['tmt_jabatan'] != '0000-00-00') ? $pegawai['tmt_jabatan'] : ''; ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="modern-label">TMT CPNS</label>
+                                    <input type="text" name="tmt_cpns" class="form-control modern-input datepicker"
+                                        value="<?php echo ($pegawai['tmt_cpns'] != '0000-00-00') ? $pegawai['tmt_cpns'] : ''; ?>">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="modern-label">TMT PNS</label>
+                                    <input type="text" name="tmt_pns" class="form-control modern-input datepicker"
+                                        value="<?php echo ($pegawai['tmt_pns'] != '0000-00-00') ? $pegawai['tmt_pns'] : ''; ?>">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="modern-label">Tgl. Lulus Pendidikan</label>
+                                    <input type="text" name="tgl_lulus" class="form-control modern-input datepicker"
+                                        value="<?php echo ($pegawai['tgl_lulus'] != '0000-00-00') ? $pegawai['tgl_lulus'] : ''; ?>">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="modern-label">No. Karpeg</label>
@@ -497,9 +614,12 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <label class="modern-label">Gaji Pokok (Angka Saja)</label>
-                                    <input type="text" name="gaji_pokok" class="form-control modern-input"
-                                        value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
+                                    <label class="modern-label">Gaji Pokok (Rp)</label>
+                                    <div class="input-group input-group-modern">
+                                        <span class="input-group-text input-group-text-modern">Rp</span>
+                                        <input type="text" name="gaji_pokok" id="gaji_pokok_mask" class="form-control modern-input text-end fw-bold"
+                                            value="<?php echo number_format($pegawai['gaji_pokok'] ?: 0, 0, ',', '.'); ?>">
+                                    </div>
                                 </div>
                             </div>
 
@@ -806,6 +926,13 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
             monthSelectorType: "static"
         });
 
+        // Currency Masking for Gaji Pokok
+        $('#gaji_pokok_mask').on('input', function() {
+            let val = $(this).val().replace(/[^0-9]/g, '');
+            if (val === '') val = '0';
+            $(this).val(new Intl.NumberFormat('id-ID').format(val));
+        });
+
         const ajaxUrl = 'proses_pegawai.php';
         const pegawai_id = <?php echo $id_pegawai; ?>;
         let modalFormRiwayat = new bootstrap.Modal(document.getElementById('modalFormRiwayat'));
@@ -915,51 +1042,52 @@ $foto_path = !empty($pegawai['foto']) ? '../file/datakepegawaian/' . $pegawai['f
 
         // Category Specific Fields Mapping
         const updateRiwayatFields = (kat, data = null) => {
+            const sDate = (d) => (d && d !== '0000-00-00') ? d : '';
             let html = '';
             if (kat === 'Pendidikan') {
                 html = `
                 <div class="col-12"><label class="modern-label">Jenjang (S1/S2/SMA/dll) (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Nama Sekolah / Univ (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Fakultas / Jurusan</label><input type="text" id="r_jurusan" class="form-control modern-input" value="${data?.jurusan || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tgl Ijazah (*)</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" required value="${data?.tgl_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tgl Ijazah (*)</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" required value="${sDate(data?.tgl_sk)}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">No. Ijazah (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
             } else if (kat === 'Pangkat' || kat === 'Kepangkatan' || kat === 'Jabatan' || kat === 'Tugas Tambahan') {
                 html = `
                 <div class="col-12"><label class="modern-label">Nama Pangkat / Jabatan / Tugas (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
-                <div class="col-md-6"><label class="modern-label">TMT (Terhitung Mulai Tanggal) (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
-                <div class="col-md-6"><label class="modern-label">Tgl SK</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" value="${data?.tgl_sk || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">TMT (Terhitung Mulai Tanggal) (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${sDate(data?.tmt)}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tgl SK</label><input type="text" id="r_tgl_sk" class="form-control modern-input datepicker" value="${sDate(data?.tgl_sk)}"></div>
                 <div class="col-12"><label class="modern-label">Nomor SK (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
             } else if (kat === 'KGB') {
                 html = `
                 <div class="col-12"><label class="modern-label">Gaji Pokok Baru (Rp) (*)</label><input type="text" id="r_gaji_pokok" class="form-control modern-input" required value="${data?.gaji_pokok || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Masa Kerja (Thn)</label><input type="number" id="r_masa_kerja_thn" class="form-control modern-input" value="${data?.masa_kerja_thn || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Masa Kerja (Bln)</label><input type="number" id="r_masa_kerja_bln" class="form-control modern-input" value="${data?.masa_kerja_bln || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">TMT KGB (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">TMT KGB (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${sDate(data?.tmt)}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">No. SK KGB (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
             } else if (kat === 'Diklat' || kat === 'Seminar') {
                 html = `
                 <div class="col-12"><label class="modern-label">Nama Diklat / Seminar (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Penyelenggara / Tempat</label><input type="text" id="r_tempat" class="form-control modern-input" value="${data?.tempat || ''}"></div>
                 <div class="col-md-6"><label class="modern-label">Durasi (Jam/Hari)</label><input type="text" id="r_durasi" class="form-control modern-input" value="${data?.durasi || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tgl Pelaksanaan (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
+                <div class="col-md-6"><label class="modern-label">Tgl Pelaksanaan (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${sDate(data?.tmt)}"><div class="invalid-feedback">Wajib diisi.</div></div>`;
             } else if (kat === 'Anak') {
                 html = `
                 <div class="col-12"><label class="modern-label">Nama Anak (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">NIK Anak (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}" oninput="this.value = this.value.replace(/[^0-9]/g, '')" maxlength="16"><div class="invalid-feedback">Wajib diisi (16 digit).</div></div>
                 <div class="col-md-6"><label class="modern-label">No. Akte Kelahiran (*)</label><input type="text" id="r_no_sk" class="form-control modern-input" required value="${data?.no_sk || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Tempat Lahir</label><input type="text" id="r_tempat" class="form-control modern-input" value="${data?.tempat || ''}"></div>
-                <div class="col-md-6"><label class="modern-label">Tanggal Lahir (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tanggal Lahir (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${sDate(data?.tmt)}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Jenis Kelamin / Status</label><select id="r_jurusan" class="form-select modern-input"><option value="L" ${data?.jurusan === 'L' ? 'selected' : ''}>Laki-laki</option><option value="P" ${data?.jurusan === 'P' ? 'selected' : ''}>Perempuan</option></select></div>`;
             } else if (kat === 'Pengalaman Kerja') {
                 html = `
                 <div class="col-12"><label class="modern-label">Nama Perusahaan / Instansi (*)</label><input type="text" id="r_institusi" class="form-control modern-input" required value="${data?.institusi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-12"><label class="modern-label">Jabatan (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
-                <div class="col-md-6"><label class="modern-label">Tgl Mulai</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" value="${data?.tmt || ''}"></div>
+                <div class="col-md-6"><label class="modern-label">Tgl Mulai</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" value="${sDate(data?.tmt)}"></div>
                 <div class="col-md-6"><label class="modern-label">Durasi (Tahun/Bulan)</label><input type="text" id="r_durasi" class="form-control modern-input" placeholder="Contoh: 2 Tahun" value="${data?.durasi || ''}"></div>`;
             } else {
                 html = `
                 <div class="col-12"><label class="modern-label">Keterangan / Deskripsi (*)</label><input type="text" id="r_deskripsi" class="form-control modern-input" required value="${data?.deskripsi || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
-                <div class="col-md-6"><label class="modern-label">Tanggal / TMT (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${data?.tmt || ''}"><div class="invalid-feedback">Wajib diisi.</div></div>
+                <div class="col-md-6"><label class="modern-label">Tanggal / TMT (*)</label><input type="text" id="r_tmt" class="form-control modern-input datepicker" required value="${sDate(data?.tmt)}"><div class="invalid-feedback">Wajib diisi.</div></div>
                 <div class="col-md-6"><label class="modern-label">Nomor SK/Dokumen</label><input type="text" id="r_no_sk" class="form-control modern-input" value="${data?.no_sk || ''}"></div>`;
             }
             $('#extra_fields_container').html(html);

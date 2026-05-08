@@ -22,8 +22,8 @@ if (isset($_SESSION['error_message'])) {
 
     <!-- Icons -->
     <link rel="icon" type="image/png" href="images/logodik.png">
-    <link rel="stylesheet" href="plugins/fontawesome-free/css/all.min.css">
-    <link rel="stylesheet" href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
+    <link rel="stylesheet"
+        href="https://maxst.icons8.com/vue-static/landings/line-awesome/line-awesome/1.3.0/css/line-awesome.min.css">
     <link rel="stylesheet" type="text/css" href="plugins/iconic/css/material-design-iconic-font.min.css">
 
     <!-- Styles -->
@@ -180,7 +180,8 @@ if (isset($_SESSION['error_message'])) {
                 <div class="wrap-input100 validate-input" data-validate="Masukkan Jawaban Captcha"
                     style="display: flex; align-items: center; justify-content: space-between;">
                     <img src="captcha_img.php" alt="CAPTCHA" id="captcha-img" style="border-radius: 5px; height: 40px;">
-                    <span style="cursor: pointer; padding: 0 10px; color: #999;" id="reload-captcha" title="Refresh Captcha">
+                    <span style="cursor: pointer; padding: 0 10px; color: #999;" id="reload-captcha"
+                        title="Refresh Captcha">
                         <i class="las la-sync" style="transition: 0.3s;" onmouseover="this.style.color='#0010ff'"
                             onmouseout="this.style.color=''"></i>
                     </span>

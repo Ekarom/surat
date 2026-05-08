@@ -1,9 +1,22 @@
 <?php
 ob_start();
-session_start();
-
-// Include koneksi database
+// Include koneksi database (handles session_start with correct path)
 include 'dbconn.php';
+
+// Cek koneksi database
+if (!isset($conn) || $conn === false) {
+    die("Error: Database connection failed. Please check your configuration.");
+}
+
+// Redirect jika sudah login
+if (isset($_SESSION['authenticated']) && $_SESSION['authenticated'] === true) {
+    if (isset($_SESSION['level']) && $_SESSION['level'] == '4') {
+        header("Location: index.php?kepegawaian_dashboard_guru");
+    } else {
+        header("Location: index.php");
+    }
+    exit();
+}
 
 // Load Dependencies dengan Cek File
 if (file_exists('vendor/autoload.php')) {
@@ -94,6 +107,7 @@ if (isset($_POST['verify_code'])) {
         $_SESSION['poto'] = $user['poto'];
         $_SESSION['nik'] = $user['nik']; // Sync with login_proses.php
         $_SESSION['last_activity'] = time();
+        $_SESSION['login_time'] = time();
         $_SESSION['skradm'] = $user['userid']; // Required for secure.php
 
         // --- Remember Device Logic ---
@@ -140,7 +154,7 @@ if (isset($_POST['verify_code'])) {
         add_activity_log($conn, 'Auth', '2FA Verify', 'Verifikasi 2FA Berhasil');
 
         if ($user['level'] == '4') {
-            header("Location: index.php?kepegawaian_dashboard_guru");
+            header("Location: kepegawaian/index_ptk.php");
         } else {
             header("Location: index.php");
         }

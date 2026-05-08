@@ -370,7 +370,8 @@ if (!file_exists($page_to_include)) {
         $("#sidebarToggle").click(function (e) { e.preventDefault(); $("body").toggleClass("toggled"); });
         function updateClock() {
             const now = new Date();
-            $('#realtime-clock').text(now.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'medium' }));
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            $('#realtime-clock').text(now.toLocaleString('id-ID', options).replace(/ pukul /g, ' '));
         }
         setInterval(updateClock, 1000); updateClock();
 

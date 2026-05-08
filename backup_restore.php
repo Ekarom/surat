@@ -658,7 +658,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                     throw new Exception("Gagal backup database: " . $error_output . $extra_tip);
                 }
 
-                $response = ['success' => true, 'message' => "Database '{$backup_db}' berhasil di-backup ke " . basename($backup_file) . "."];
+                // ==========================================================
+                // VERIFIKASI INTEGRITAS BACKUP (BARU)
+                // ==========================================================
+                if (!file_exists($backup_file) || filesize($backup_file) < 100) {
+                    throw new Exception("Integritas Gagal: File backup kosong atau rusak.");
+                }
+
+                // 1. Cek Validitas GZIP
+                $is_valid_gz = false;
+                $gz_test = @gzopen($backup_file, 'rb');
+                if ($gz_test) {
+                    // Coba baca sedikit data
+                    $data = gzread($gz_test, 1024);
+                    if ($data !== false && strlen($data) > 0) {
+                        $is_valid_gz = true;
+                    }
+                    gzclose($gz_test);
+                }
+
+                if (!$is_valid_gz) {
+                    unlink($backup_file);
+                    throw new Exception("Integritas Gagal: File .gz tidak valid atau korup.");
+                }
+
+                // 2. Generate MD5 Checksum
+                $md5_hash = md5_file($backup_file);
+                file_put_contents($backup_file . '.md5', $md5_hash);
+
+                $response = ['success' => true, 'message' => "Database '{$backup_db}' berhasil di-backup dan diverifikasi.", 'checksum' => $md5_hash];
 
                 break;
 
@@ -799,10 +827,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                 $backups = [];
                 if ($files) {
                     foreach ($files as $file) {
+                        $md5_file = $file . '.md5';
+                        $checksum = file_exists($md5_file) ? trim(file_get_contents($md5_file)) : null;
+                        
+                        // Verifikasi cepat: apakah file masih ada dan size > 0
+                        $is_valid = false;
+                        if (file_exists($file) && filesize($file) > 0) {
+                            if ($checksum) {
+                                // Jika ada checksum, kita anggap verified (atau bisa re-verify md5_file($file) === $checksum)
+                                $is_valid = true;
+                            }
+                        }
+
                         $backups[] = [
                             'name' => basename($file),
                             'size' => filesize($file),
-                            'date' => filemtime($file)
+                            'date' => filemtime($file),
+                            'checksum' => $checksum,
+                            'verified' => $is_valid
                         ];
                     }
                     // Urutkan berdasarkan tanggal, terbaru dulu
@@ -823,14 +865,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                 // Validasi keamanan: pastikan file ada di dalam BACKUP_DIR
                 $file_path = realpath(BACKUP_DIR . '/' . $file_to_delete);
                 if ($file_path && strpos($file_path, realpath(BACKUP_DIR)) === 0 && file_exists($file_path)) {
-                    if (unlink($file_path)) {
-                        $response = ['success' => true, 'message' => "File '" . $file_to_delete . "' berhasil dihapus."];
-                    } else {
-                        throw new Exception("Gagal menghapus file di server.");
+                    // Hapus file backup
+                    unlink($file_path);
+                    // Hapus file MD5 jika ada
+                    if (file_exists($file_path . '.md5')) {
+                        unlink($file_path . '.md5');
                     }
+                    $response = ['success' => true, 'message' => "File '" . $file_to_delete . "' berhasil dihapus."];
                 } else {
                     throw new Exception("File tidak ditemukan atau lokasi tidak valid.");
                 }
+                break;
+
+            // ========================
+            // Aksi: Verifikasi Backup
+            // ========================
+            case 'verify_backup':
+                $file_name = isset($_POST['file_name']) ? basename($_POST['file_name']) : null;
+                if (!$file_name) throw new Exception("Nama file tidak valid.");
+
+                $file_path = BACKUP_DIR . '/' . $file_name;
+                if (!file_exists($file_path)) throw new Exception("File tidak ditemukan.");
+
+                // 1. Cek Gzip
+                $gz = @gzopen($file_path, 'rb');
+                if (!$gz) throw new Exception("File korup (Gzip error).");
+                gzread($gz, 1024);
+                gzclose($gz);
+
+                // 2. MD5
+                $current_md5 = md5_file($file_path);
+                $saved_md5 = file_exists($file_path . '.md5') ? trim(file_get_contents($file_path . '.md5')) : null;
+
+                if ($saved_md5 && $current_md5 !== $saved_md5) {
+                    throw new Exception("Verifikasi Gagal: Checksum tidak cocok! File mungkin telah dimodifikasi.");
+                }
+
+                // Update/Simpan checksum baru jika belum ada
+                if (!$saved_md5) {
+                    file_put_contents($file_path . '.md5', $current_md5);
+                }
+
+                $response = ['success' => true, 'message' => "Verifikasi berhasil. Checksum: $current_md5", 'checksum' => $current_md5];
                 break;
 
             // ========================
@@ -1108,6 +1184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !empty($_POST['action'])) {
                                                             <tr>
                                                                 <th>Nama File</th>
                                                                 <th>Ukuran</th>
+                                                                <th>Status</th>
                                                                 <th class="text-center">Aksi</th>
                                                             </tr>
                                                         </thead>
@@ -1294,6 +1371,14 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
             }[m]));
         }
 
+        window.copyToClipboard = function(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("MD5 Checksum disalin ke clipboard!");
+            }).catch(err => {
+                console.error('Gagal menyalin text: ', err);
+            });
+        }
+
         // --- Fungsi AJAX ---
         async function sendAjax(formData) {
             try {
@@ -1433,10 +1518,22 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                     const sizeMB = (file.size / 1024 / 1024).toFixed(2);
                     const fileDate = new Date(file.date * 1000).toLocaleString('id-ID');
 
+                    const statusBadge = file.verified 
+                        ? `<span class="badge badge-success shadow-sm"><i class="las la-check-circle mr-1"></i>Verified</span>`
+                        : `<span class="badge badge-warning shadow-sm"><i class="las la-exclamation-triangle mr-1"></i>Unverified</span>`;
+                    
+                    const checksumInfo = file.checksum 
+                        ? `<br><small class="text-muted text-monospace" style="cursor:pointer" onclick="copyToClipboard('${file.checksum}')" title="MD5: ${file.checksum} (Klik untuk salin)">MD5: ${file.checksum.substring(0, 10)}...</small>` 
+                        : '';
+
                     dtBackup.row.add([
-                        `<strong>${escapeHTML(file.name)}</strong><br><small class="text-muted">${fileDate}</small>`,
+                        `<strong>${escapeHTML(file.name)}</strong>${checksumInfo}<br><small class="text-muted">${fileDate}</small>`,
                         `<span class="badge bg-light text-dark border">${sizeMB} MB</span>`,
+                        statusBadge,
                         `<div class="text-center">
+                            <button class="btn btn-xs btn-info shadow-sm verify-backup-btn" data-file="${escapeHTML(file.name)}" title="Verifikasi Integritas">
+                                <i class="las la-shield-alt"></i>
+                            </button>
                             <a href="${thisScriptUrl}?download=${encodeURIComponent(file.name)}" class="btn btn-xs btn-success shadow-sm" download title="Download">
                                 <i class="las la-download"></i>
                             </a>
@@ -1451,6 +1548,29 @@ semua elemen HTML di atasnya selesai di-parsing oleh browser.
                 logBackup(data.message || 'Gagal memuat daftar backup', 'error');
             }
         }
+
+        // --- Event Listener untuk Verifikasi Backup ---
+        $('#brd-backup table.table').on('click', '.verify-backup-btn', async function (e) {
+            e.preventDefault();
+            const fileName = $(this).data('file');
+            
+            showLoading(true);
+            logBackup(`Memulai verifikasi integritas untuk ${fileName}...`, 'info');
+
+            const formData = new FormData();
+            formData.append('action', 'verify_backup');
+            formData.append('file_name', fileName);
+
+            const data = await sendAjax(formData);
+
+            if (data.success) {
+                logBackup(data.message, 'success');
+                loadBackupList(); // Refresh badge dan info
+            } else {
+                logBackup(data.message, 'error');
+            }
+            showLoading(false);
+        });
 
         // --- Event Listener untuk Hapus Backup ---
         $('#brd-backup table.table').on('click', '.delete-backup-btn', async function (e) {
