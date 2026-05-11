@@ -222,7 +222,7 @@ if ($pegawai_id > 0) {
         endif;
 
         $foto_path = (!empty($pegawai['foto']) && file_exists("../file/datakepegawaian/" . $pegawai['foto'])) ? "../file/datakepegawaian/" . $pegawai['foto'] : "../images/default.png";
-        $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = '$pegawai_id' ORDER BY tmt DESC");
+        $q_riwayat = $conn->query("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = '$pegawai_id' ORDER BY tmt ASC");
         ?>
 
         <div class="row mb-4">

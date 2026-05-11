@@ -52,7 +52,7 @@ $poto_db = $pegawai['foto'] ?? '';
 $src_foto = (!empty($poto_db) && file_exists("../file/datakepegawaian/" . $poto_db)) ? "../file/datakepegawaian/" . $poto_db : "../images/default.png";
 
 // Fetch All History Data
-$stmt_hist = $conn->prepare("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt DESC");
+$stmt_hist = $conn->prepare("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt ASC");
 $stmt_hist->bind_param("i", $id_pegawai);
 $stmt_hist->execute();
 $history_all = $stmt_hist->get_result();

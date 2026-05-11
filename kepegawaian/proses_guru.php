@@ -84,7 +84,7 @@ if ($action == 'simpan_riwayat') {
 
 // --- MUAT RIWAYAT ---
 if ($action == 'muat_riwayat') {
-    $stmt = $conn->prepare("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt DESC");
+    $stmt = $conn->prepare("SELECT * FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt ASC");
     $stmt->bind_param("i", $pegawai_id);
     $stmt->execute();
     $result = $stmt->get_result();

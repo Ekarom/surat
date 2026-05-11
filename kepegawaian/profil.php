@@ -24,7 +24,7 @@ $poto_db = $pegawai['foto'] ?? '';
 $src_foto = (!empty($poto_db) && file_exists("../file/datakepegawaian/" . $poto_db)) ? "../file/datakepegawaian/" . $poto_db : "../images/default.png";
 
 // Get latest history for highlights
-$stmt_last = $conn->prepare("SELECT kategori, deskripsi FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt DESC LIMIT 3");
+$stmt_last = $conn->prepare("SELECT kategori, deskripsi FROM riwayat_kepegawaian WHERE pegawai_id = ? ORDER BY tmt ASC LIMIT 3");
 $stmt_last->bind_param("i", $id_pegawai);
 $stmt_last->execute();
 $highlights = $stmt_last->get_result();

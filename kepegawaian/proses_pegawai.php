@@ -649,7 +649,7 @@ try {
         if (!empty($kategori_filter)) {
             $query .= " AND kategori = ?";
         }
-        $query .= " ORDER BY tmt DESC, created_at DESC";
+        $query .= " ORDER BY tmt ASC, created_at ASC";
 
         $stmt = $conn->prepare($query);
         if (!empty($kategori_filter)) {
